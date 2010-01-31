@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QVector>
+#include <QPointer>
 
 #include <QtGui/QMainWindow>
 
@@ -11,7 +12,6 @@ namespace Ui
 }
 
 #include "image.h"
-
 
 class MainWindow : public QMainWindow
 {
@@ -23,7 +23,9 @@ public:
 
 
 private slots:
-    void load();
+    void add_image();
+    void load_metafile();
+    void save_metafile();
 
 
 private:

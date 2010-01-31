@@ -9,6 +9,5 @@ SOURCES += src/main.cpp \
     src/image.cpp
 HEADERS += src/mainwindow.h \
     src/matrix/include/matrix.h \
-    src/matrix/include/matrix.h \
     src/image.h
 FORMS += src/mainwindow.ui

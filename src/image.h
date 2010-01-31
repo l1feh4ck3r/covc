@@ -10,10 +10,18 @@ class Image
 {
 public:
     Image();
+    Image(QString &filename, matrix<int> &_matrix_of_calibration, QPoint &_bounding_square);
+
+
+public:
+    bool isValid() const {return valid;}
+
 
 private:
-    Matrix  bounding_sqare;
+    QPoint bounding_sqare;
+    matrix<int>  matrix_of_calibration;
     QImage  image;
+    bool valid;
 };
 
 #endif // IMAGE_H

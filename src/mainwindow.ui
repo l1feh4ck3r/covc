@@ -45,9 +45,10 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionSave"/>
-    <addaction name="actionLoad"/>
+    <addaction name="actionSave_metafile"/>
+    <addaction name="actionLoad_metafile"/>
     <addaction name="actionAdd_image"/>
+    <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuCalculate">
     <property name="title">
@@ -59,7 +60,7 @@
    <addaction name="menuCalculate"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionSave">
+  <action name="actionSave_metafile">
    <property name="text">
     <string>Save metafile</string>
    </property>
@@ -67,7 +68,7 @@
     <string>Save</string>
    </property>
   </action>
-  <action name="actionLoad">
+  <action name="actionLoad_metafile">
    <property name="text">
     <string>Load metafile</string>
    </property>
@@ -82,8 +83,30 @@
     <string>Run</string>
    </property>
   </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionQuit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>319</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
