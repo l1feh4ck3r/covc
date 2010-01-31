@@ -11,3 +11,12 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::load()
+{
+}
+
+void MainWindow::setup_connections()
+{
+    connect(ui->actionLoad, SIGNAL(triggered()), this, SLOT(load()));
+}
