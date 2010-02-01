@@ -5,12 +5,18 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "imagepreview.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
+    setup_ui();
+
     setup_connections();
+
+    setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 }
 
 MainWindow::~MainWindow()
@@ -83,4 +89,23 @@ void MainWindow::save_metafile()
 void MainWindow::setup_connections()
 {
     connect(ui->actionLoad_metafile, SIGNAL(triggered()), this, SLOT(load_metafile()));
+}
+
+void MainWindow::setup_ui()
+{
+    imagePreviewList = new QListView;
+    //imagePreviewList->setDragEnabled(true);
+    imagePreviewList->setViewMode(QListView::IconMode);
+    imagePreviewList->setIconSize(QSize(90, 90));
+    imagePreviewList->setGridSize(QSize(100, 100));
+    imagePreviewList->setSpacing(10);
+    imagePreviewList->setMovement(QListView::Snap);
+    //imagePreviewList->setAcceptDrops(true);
+    //imagePreviewList->setDropIndicatorShown(true);
+
+    imagePreviewModel = new ImagePreview(this);
+    imagePreviewList->setModel(imagePreviewModel);
+
+    ui->horizontalLayout->insertWidget(0, imagePreviewList);
+    //ui->horizontalLayout->addWidget(imagePreviewList);
 }

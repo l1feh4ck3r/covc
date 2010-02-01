@@ -6,6 +6,9 @@
 
 #include <QtGui/QMainWindow>
 
+class ImagePreview;
+class QListView;
+
 namespace Ui
 {
     class MainWindow;
@@ -30,10 +33,14 @@ private slots:
 
 private:
     void setup_connections();
+    void setup_ui();
 
 
 private:
     Ui::MainWindow *ui;
+    QListView *imagePreviewList;
+    ImagePreview *imagePreviewModel;
+
     QVector<Image> images;
 };
 
