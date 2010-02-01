@@ -1,11 +1,10 @@
 #include <QtGui>
 
-#include <fstream>
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 #include "imagepreview.h"
+#include "imageview.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -47,8 +46,9 @@ void MainWindow::load_metafile()
     size_t image_number;
     in >> image_number;
 
-    if (!images.isEmpty())
-        images.clear();
+    imagePreviewModel->clear();
+
+    images.clear();
     images.resize(image_number);
 
     // load images names with bounding sqares from meta file
@@ -75,7 +75,11 @@ void MainWindow::load_metafile()
         // create image
         Image image(image_file_name, matrix_of_calibration, bounding_square);
         if (image.isValid())
+        {
             images.append(image);
+            // add image to the preview widget
+            imagePreviewModel->addImage(image.getImage());
+        }
     }
 
     //close input file
@@ -94,18 +98,17 @@ void MainWindow::setup_connections()
 void MainWindow::setup_ui()
 {
     imagePreviewList = new QListView;
-    //imagePreviewList->setDragEnabled(true);
     imagePreviewList->setViewMode(QListView::IconMode);
     imagePreviewList->setIconSize(QSize(90, 90));
     imagePreviewList->setGridSize(QSize(100, 100));
     imagePreviewList->setSpacing(10);
     imagePreviewList->setMovement(QListView::Snap);
-    //imagePreviewList->setAcceptDrops(true);
-    //imagePreviewList->setDropIndicatorShown(true);
 
     imagePreviewModel = new ImagePreview(this);
     imagePreviewList->setModel(imagePreviewModel);
 
-    ui->horizontalLayout->insertWidget(0, imagePreviewList);
-    //ui->horizontalLayout->addWidget(imagePreviewList);
+    imageView = new ImageView(this);
+
+    ui->horizontalLayout->addWidget(imagePreviewList);
+    ui->horizontalLayout->addWidget(imageView);
 }

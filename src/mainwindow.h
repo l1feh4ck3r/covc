@@ -6,8 +6,10 @@
 
 #include <QtGui/QMainWindow>
 
-class ImagePreview;
 class QListView;
+
+class ImagePreview;
+class ImageView;
 
 namespace Ui
 {
@@ -37,11 +39,12 @@ private:
 
 
 private:
-    Ui::MainWindow *ui;
-    QListView *imagePreviewList;
-    ImagePreview *imagePreviewModel;
+    Ui::MainWindow  *ui;
+    QListView       *imagePreviewList;
+    ImagePreview    *imagePreviewModel;
+    ImageView       *imageView;
 
-    QVector<Image> images;
+    QVector<Image>  images;
 };
 
 #endif // MAINWINDOW_H

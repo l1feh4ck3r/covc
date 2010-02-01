@@ -7,11 +7,13 @@ TEMPLATE = app
 SOURCES += src/main.cpp \
     src/mainwindow.cpp \
     src/image.cpp \
-    src/imagepreview.cpp
+    src/imagepreview.cpp \
+    src/imageview.cpp
 HEADERS += src/mainwindow.h \
     src/matrix/include/matrix.h \
     src/image.h \
-    src/imagepreview.h
+    src/imagepreview.h \
+    src/imageview.h
 FORMS += src/mainwindow.ui
 OTHER_FILES += .gitignore \
     TODO \

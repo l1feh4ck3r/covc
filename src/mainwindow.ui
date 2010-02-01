@@ -45,16 +45,6 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetMaximumSize</enum>
      </property>
-     <item>
-      <widget class="QGraphicsView" name="graphicsView">
-       <property name="minimumSize">
-        <size>
-         <width>650</width>
-         <height>599</height>
-        </size>
-       </property>
-      </widget>
-     </item>
     </layout>
    </widget>
   </widget>

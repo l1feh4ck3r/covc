@@ -14,7 +14,8 @@ public:
 
 
 public:
-    bool isValid() const {return valid;}
+    bool isValid () const {return valid;}
+    const QImage & getImage () const {return image;}
 
 
 private:
