@@ -7,3 +7,6 @@ Done:
 - Loading of metafile, containing file names of images, bounding sqares and matrices of calibration.
   (added Sun Jan 24 21:55:42 2010, completed on Sun Jan 31 22:30:12 2010, priority high)
 
+- Drawing bounding rectangle.
+  (added Tue Feb  2 22:09:57 2010, completed on Tue Feb  2 22:11:36 2010, priority medium)
+
