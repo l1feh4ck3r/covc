@@ -7,9 +7,9 @@
 #include <QtGui/QMainWindow>
 
 class QListView;
+class QGraphicsView;
 
 class ImagePreview;
-class ImageView;
 
 namespace Ui
 {
@@ -42,7 +42,7 @@ private:
     Ui::MainWindow  *ui;
     QListView       *image_preview_list;
     ImagePreview    *image_preview_model;
-    ImageView       *image_view;
+    QGraphicsView   *image_view;
 
     QVector<Image>  images;
 };

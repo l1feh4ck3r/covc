@@ -1,10 +1,12 @@
 #include <QtGui>
 
+#include <QGraphicsView>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 #include "imagepreview.h"
-#include "imageview.h"
+#include "imagescene.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -107,7 +109,13 @@ void MainWindow::setup_ui()
     image_preview_model = new ImagePreview(this);
     image_preview_list->setModel(image_preview_model);
 
-    image_view = new ImageView(this);
+    image_view = new QGraphicsView(this);
+    image_view->setMinimumSize(650, 599);
+    image_view->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
+
+    ImageScene * image_scene = new ImageScene(this);
+    image_scene->set_rectangle(QRectF(0.0, 0.0, 0.0, 0.0));
+    image_view->setScene(image_scene);
 
     ui->horizontalLayout->addWidget(image_preview_list);
     ui->horizontalLayout->addWidget(image_view);
