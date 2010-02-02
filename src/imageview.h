@@ -1,9 +1,9 @@
 #ifndef IMAGEVIEW_H
 #define IMAGEVIEW_H
 
-#include <QFrame>
+#include <QGraphicsView>
 
-class ImageView : public QFrame
+class ImageView : public QGraphicsView
 {
     Q_OBJECT
 
@@ -11,10 +11,19 @@ public:
     ImageView(QWidget *parent);
 
 
+public:
+signals:
+    void rectangle_changed(QRect rect);
+
+
 protected:
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent * mouseEvent);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent * mouseEvent);
+    
+
+private:
+    QPoint          rectangle_position;
 };
 
 #endif // IMAGEVIEW_H

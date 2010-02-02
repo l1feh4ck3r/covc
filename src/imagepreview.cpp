@@ -66,8 +66,7 @@ QVariant ImagePreview::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void ImagePreview::addImage(const QImage &image)
-//void ImagePreview::addPiece(const QPixmap &pixmap, const QPoint &location)
+void ImagePreview::add_image(const QImage &image)
 {
     int row = pixmaps.size();
 

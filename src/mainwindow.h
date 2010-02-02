@@ -40,9 +40,9 @@ private:
 
 private:
     Ui::MainWindow  *ui;
-    QListView       *imagePreviewList;
-    ImagePreview    *imagePreviewModel;
-    ImageView       *imageView;
+    QListView       *image_preview_list;
+    ImagePreview    *image_preview_model;
+    ImageView       *image_view;
 
     QVector<Image>  images;
 };

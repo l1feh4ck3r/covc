@@ -46,7 +46,7 @@ void MainWindow::load_metafile()
     size_t image_number;
     in >> image_number;
 
-    imagePreviewModel->clear();
+    image_preview_model->clear();
 
     images.clear();
     images.resize(image_number);
@@ -74,11 +74,11 @@ void MainWindow::load_metafile()
 
         // create image
         Image image(image_file_name, matrix_of_calibration, bounding_square);
-        if (image.isValid())
+        if (image.is_valid())
         {
             images.append(image);
             // add image to the preview widget
-            imagePreviewModel->addImage(image.getImage());
+            image_preview_model->add_image(image.get_image());
         }
     }
 
@@ -97,18 +97,18 @@ void MainWindow::setup_connections()
 
 void MainWindow::setup_ui()
 {
-    imagePreviewList = new QListView;
-    imagePreviewList->setViewMode(QListView::IconMode);
-    imagePreviewList->setIconSize(QSize(90, 90));
-    imagePreviewList->setGridSize(QSize(100, 100));
-    imagePreviewList->setSpacing(10);
-    imagePreviewList->setMovement(QListView::Snap);
+    image_preview_list = new QListView;
+    image_preview_list->setViewMode(QListView::IconMode);
+    image_preview_list->setIconSize(QSize(90, 90));
+    image_preview_list->setGridSize(QSize(100, 100));
+    image_preview_list->setSpacing(10);
+    image_preview_list->setMovement(QListView::Snap);
 
-    imagePreviewModel = new ImagePreview(this);
-    imagePreviewList->setModel(imagePreviewModel);
+    image_preview_model = new ImagePreview(this);
+    image_preview_list->setModel(image_preview_model);
 
-    imageView = new ImageView(this);
+    image_view = new ImageView(this);
 
-    ui->horizontalLayout->addWidget(imagePreviewList);
-    ui->horizontalLayout->addWidget(imageView);
+    ui->horizontalLayout->addWidget(image_preview_list);
+    ui->horizontalLayout->addWidget(image_view);
 }

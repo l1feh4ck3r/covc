@@ -14,15 +14,15 @@ public:
 
 
 public:
-    bool isValid () const {return valid;}
-    const QImage & getImage () const {return image;}
+    bool is_valid () const {return valid;}
+    const QImage & get_image () const {return image;}
 
 
 private:
-    QPoint bounding_sqare;
-    matrix<int>  matrix_of_calibration;
-    QImage  image;
-    bool valid;
+    QPoint      bounding_rectangle;
+    QImage      image;
+    matrix<int> matrix_of_calibration;
+    bool        valid;
 };
 
 #endif // IMAGE_H

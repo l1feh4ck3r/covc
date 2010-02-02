@@ -5,13 +5,13 @@ Image::Image()
 {
 }
 
-Image::Image(QString &filename, matrix<int> &_matrix_of_calibration, QPoint &_bounding_square)
+Image::Image(QString &filename, matrix<int> &_matrix_of_calibration, QPoint &_bounding_rectangle)
         :valid(false)
 {
     if (image.load(filename))
     {
         matrix_of_calibration = _matrix_of_calibration;
-        bounding_sqare = _bounding_square;
+        bounding_rectangle = _bounding_rectangle;
         valid = true;
     }
 }

@@ -71,7 +71,7 @@ public:
     int rowCount(const QModelIndex &parent) const;
     Qt::DropActions supportedDropActions() const;
 
-    void addImage(const QImage &image);
+    void add_image(const QImage &image);
     void clear();
 
 private:
