@@ -16,10 +16,11 @@ public:
 public:
     bool is_valid () const {return valid;}
     const QImage & get_image () const {return image;}
+    QRectF get_bounding_rectangle() const {return bounding_rectangle;}
 
 
 private:
-    QPoint      bounding_rectangle;
+    QRectF      bounding_rectangle;
     QImage      image;
     matrix<int> matrix_of_calibration;
     bool        valid;

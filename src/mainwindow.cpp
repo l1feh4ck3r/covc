@@ -31,6 +31,12 @@ void MainWindow::add_image()
 {
 }
 
+void MainWindow::image_selected(QModelIndex index)
+{
+    image_scene->set_image(images[index.row()].get_image());
+    image_scene->set_rectangle(images[index.row()].get_bounding_rectangle());
+}
+
 void MainWindow::load_metafile()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Select meta file."));
@@ -95,6 +101,7 @@ void MainWindow::save_metafile()
 void MainWindow::setup_connections()
 {
     connect(ui->actionLoad_metafile, SIGNAL(triggered()), this, SLOT(load_metafile()));
+    connect(image_preview_list, SIGNAL(clicked(QModelIndex)), this, SLOT(image_selected(QModelIndex)));
 }
 
 void MainWindow::setup_ui()
@@ -113,7 +120,8 @@ void MainWindow::setup_ui()
     image_view->setMinimumSize(650, 599);
     image_view->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
 
-    ImageScene * image_scene = new ImageScene(this);
+    image_scene = new ImageScene(this);
+    image_scene->setSceneRect(0.0, 0.0, 645.0, 595.0);
     image_scene->set_rectangle(QRectF(0.0, 0.0, 0.0, 0.0));
     image_view->setScene(image_scene);
 

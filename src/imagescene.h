@@ -13,6 +13,7 @@ public:
 
 public:
     void set_rectangle(QRectF _rectangle);
+    void set_image(const QImage &_image);
 
 signals:
     void rectangle_changed(QRectF rectangle);
@@ -25,9 +26,10 @@ protected:
     
 
 private:
-    QPointF             rectangle_position;
-    QRectF              active_rectangle;
-    QGraphicsRectItem * rectangle;
+    QPointF                 rectangle_position;
+    QRectF                  active_rectangle;
+    QGraphicsRectItem      *rectangle;
+    QGraphicsPixmapItem    *image;
 };
 
 #endif // IMAGESCENE_H

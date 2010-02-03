@@ -10,7 +10,7 @@ ImageScene::ImageScene(QObject *parent)
 
 void ImageScene::mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent)
 {
-    qDebug("x = %f | y = %f", mouseEvent->scenePos().x(), mouseEvent->scenePos().y());
+    qDebug("press : x = %f | y = %f", mouseEvent->scenePos().x(), mouseEvent->scenePos().y());
 
     if (mouseEvent->button() != Qt::LeftButton)
     {
@@ -27,7 +27,19 @@ void ImageScene::mouseReleaseEvent(QGraphicsSceneMouseEvent * mouseEvent)
 {
     if (mouseEvent->button() == Qt::LeftButton)
     {
-        emit rectangle_changed(QRectF(rectangle_position, mouseEvent->scenePos()));
+        QPointF release_position = mouseEvent->scenePos();
+        if (release_position.x() < 0.0)
+            release_position.setX(0.0);
+        if (release_position.y() < 0.0)
+            release_position.setY(0.0);
+        if (release_position.x() > width())
+            release_position.setX(width());
+        if (release_position.y() > height())
+            release_position.setY(height());
+
+        qDebug("release : x = %f | y = %f", release_position.x(), release_position.y());
+
+        emit rectangle_changed(QRectF(rectangle_position, release_position));
     }
 
     QGraphicsScene::mousePressEvent(mouseEvent);
@@ -43,12 +55,27 @@ void ImageScene::mouseMoveEvent(QGraphicsSceneMouseEvent * mouseEvent)
     QGraphicsScene::mousePressEvent(mouseEvent);
 }
 
+void ImageScene::set_image(const QImage &_image)
+{
+    if (!image)
+    {
+        removeItem(image);
+        delete image;
+    }
+
+    QPixmap pixmap = QPixmap::fromImage(_image.scaled(width(),
+                                                      height(),
+                                                      Qt::KeepAspectRatio,
+                                                      Qt::SmoothTransformation));
+    image = addPixmap(pixmap);
+}
+
 void ImageScene::set_rectangle(QRectF _rectangle)
 {
     if (!rectangle)
     {
         removeItem(rectangle);
-        rectangle = NULL;
+        delete rectangle;
     }
     rectangle = addRect(_rectangle);
 }

@@ -4,12 +4,14 @@
 #include <QVector>
 #include <QPointer>
 
-#include <QtGui/QMainWindow>
+#include <QMainWindow>
+#include <QModelIndex>
 
 class QListView;
 class QGraphicsView;
 
 class ImagePreview;
+class ImageScene;
 
 namespace Ui
 {
@@ -29,6 +31,7 @@ public:
 
 private slots:
     void add_image();
+    void image_selected(QModelIndex index);
     void load_metafile();
     void save_metafile();
 
@@ -42,6 +45,7 @@ private:
     Ui::MainWindow  *ui;
     QListView       *image_preview_list;
     ImagePreview    *image_preview_model;
+    ImageScene      *image_scene;
     QGraphicsView   *image_view;
 
     QVector<Image>  images;
