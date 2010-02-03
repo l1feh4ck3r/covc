@@ -63,10 +63,11 @@ void ImageScene::set_image(const QImage &_image)
         delete image;
     }
 
-    QPixmap pixmap = QPixmap::fromImage(_image.scaled(width(),
-                                                      height(),
-                                                      Qt::KeepAspectRatio,
-                                                      Qt::SmoothTransformation));
+//    QPixmap pixmap = QPixmap::fromImage(_image.scaled(width(),
+//                                                      height(),
+//                                                      Qt::KeepAspectRatio,
+//                                                      Qt::SmoothTransformation));
+    QPixmap pixmap = QPixmap::fromImage(_image);
     image = addPixmap(pixmap);
 }
 

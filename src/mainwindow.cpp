@@ -34,7 +34,15 @@ void MainWindow::add_image()
 void MainWindow::image_selected(QModelIndex index)
 {
     image_scene->set_image(images[index.row()].get_image());
+    // set scene size to image size
+    image_view->setSceneRect(0.0,
+                             0.0,
+                             images[index.row()].get_image().width(),
+                             images[index.row()].get_image().height());
     image_scene->set_rectangle(images[index.row()].get_bounding_rectangle());
+
+    // scale image view size
+    TODO
 }
 
 void MainWindow::load_metafile()
