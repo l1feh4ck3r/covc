@@ -33,16 +33,21 @@ void MainWindow::add_image()
 
 void MainWindow::image_selected(QModelIndex index)
 {
+    QImage &image = images[index.row()].get_image();
+
     image_scene->set_image(images[index.row()].get_image());
     // set scene size to image size
     image_view->setSceneRect(0.0,
                              0.0,
-                             images[index.row()].get_image().width(),
-                             images[index.row()].get_image().height());
+                             image.width(),
+                             image.height());
     image_scene->set_rectangle(images[index.row()].get_bounding_rectangle());
 
     // scale image view size
-    TODO
+    if (image.width() > image.height())
+        image_view->scale(image.width()/645.0, image.width()/645.0);
+    else
+        image_view->scale(image.height()/595.0, image.height()/595.0);
 }
 
 void MainWindow::load_metafile()
@@ -77,8 +82,8 @@ void MainWindow::load_metafile()
         QPoint bounding_square;
         in >> bounding_square;
 
-        // loading image bounding sqare
-        matrix<int> matrix_of_calibration(2,2);
+        // loading matrix of calibration
+        matrix<int> matrix_of_calibration(3,3);
         // CAUTION: type-specific code
         for (size_t i=0; i < matrix_of_calibration.RowNo(); i++)
             for (size_t j=0; j < matrix_of_calibration.ColNo(); j++)
