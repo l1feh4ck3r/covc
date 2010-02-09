@@ -1,5 +1,9 @@
 Realization of voxel coloring algorithm on C++ via OpenCL.
 
+tools/oclc:
+  oclc - OpenCL Compiler.
+  oclc only compiles OpenCL sources and showing errors.
+
 ===============================================================================
 
 Done:
@@ -9,4 +13,3 @@ Done:
 
 - Drawing bounding rectangle.
   (added Tue Feb  2 22:09:57 2010, completed on Tue Feb  2 22:11:36 2010, priority medium)
-
