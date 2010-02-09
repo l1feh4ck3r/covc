@@ -10,7 +10,7 @@ class Image
 {
 public:
     Image();
-    Image(QString &filename, matrix<int> &_matrix_of_calibration, QPoint &_bounding_square);
+    Image(QString &filename, matrix<int> &_matrix_of_calibration, QRectF &_bounding_square);
 
 
 public:

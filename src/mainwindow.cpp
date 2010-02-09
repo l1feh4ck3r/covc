@@ -33,7 +33,7 @@ void MainWindow::add_image()
 
 void MainWindow::image_selected(QModelIndex index)
 {
-    QImage &image = images[index.row()].get_image();
+    const QImage &image = images[index.row()].get_image();
 
     image_scene->set_image(images[index.row()].get_image());
     // set scene size to image size
@@ -79,7 +79,7 @@ void MainWindow::load_metafile()
         QString image_file_name;
         in >> image_file_name;
 
-        QPoint bounding_square;
+        QRectF bounding_square;
         in >> bounding_square;
 
         // loading matrix of calibration

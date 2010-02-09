@@ -57,7 +57,7 @@ void ImageScene::mouseMoveEvent(QGraphicsSceneMouseEvent * mouseEvent)
 
 void ImageScene::set_image(const QImage &_image)
 {
-    if (!image)
+    if (image)
     {
         removeItem(image);
         delete image;
@@ -73,7 +73,7 @@ void ImageScene::set_image(const QImage &_image)
 
 void ImageScene::set_rectangle(QRectF _rectangle)
 {
-    if (!rectangle)
+    if (rectangle)
     {
         removeItem(rectangle);
         delete rectangle;
