@@ -8,12 +8,14 @@ SOURCES += src/main.cpp \
     src/mainwindow.cpp \
     src/image.cpp \
     src/imagepreview.cpp \
-    src/imagescene.cpp
+    src/imagescene.cpp \
+    src/colorer/colorer.cpp
 HEADERS += src/mainwindow.h \
     src/matrix/include/matrix.h \
     src/image.h \
     src/imagepreview.h \
-    src/imagescene.h
+    src/imagescene.h \
+    src/colorer/colorer.h
 FORMS += src/mainwindow.ui
 OTHER_FILES += .gitignore \
     TODO \
