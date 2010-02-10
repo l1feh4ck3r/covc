@@ -9,8 +9,9 @@ using namespace std;
 //
 cl_context          ocl_context;
 cl_kernel           ocl_kernel;
-cl_command_queue    ocl_command_queue;
 cl_uint             ocl_device_count;
+cl_command_queue    ocl_command_queue;
+cl_program          ocl_program;
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +23,13 @@ char *  load_source(const char *filename, size_t &file_size);
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
+//! Load source code from file.
+//!
+//! @return string with source code if succeeded, 0 otherwise
+//! @param filename     Name of the file with source code
+//! @param file_size    returened size of the string with source code
+///////////////////////////////////////////////////////////////////////////////
 char * load_source(const char *filename, size_t *file_size)
 {
     FILE * source_file = NULL;
@@ -64,12 +72,21 @@ char * load_source(const char *filename, size_t *file_size)
     return source_code;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//! Program entry point
+///////////////////////////////////////////////////////////////////////////////
 void main(int argc, char* argv[])
 {
+    // prepare opencl
+    if (prepare_opencl() != 0)
+        return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Prepare for using OpenCL: create device context, kernel, command queue
+//!
+//! @return 0 if succeeded, OpenCL error otherwise
 ///////////////////////////////////////////////////////////////////////////////
 int prepare_opencl()
 {
