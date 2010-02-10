@@ -39,10 +39,10 @@ int Colorer::prepare_opencl()
         return ocl_error_number;
 
     // find out how many GPU's available
-    //TODO: It's part of code for future. Now only one GPU will be used.
+    //TODO: It's part of code for future. Now only first opencl compatible device will be used.
     size_t number_device_bytes;
     ocl_error_number = clGetContextInfo(ocl_context, CL_CONTEXT_DEVICES, 0, NULL, &number_device_bytes);
-    ocl_device_count = (cl_uint)number_device_bytes/sizeof(cl_device_id);
+    ocl_device_count = static_cast<cl_uint>(number_device_bytes)/sizeof(cl_device_id);
 
     if (ocl_error_number != CL_SUCCESS)
         // can't get info about context
@@ -51,13 +51,15 @@ int Colorer::prepare_opencl()
         // no OpenCL supported device found
         return -1;
 
-    //creating command queue
+    // getting id of the first opencl compatible device
     //TODO: see oclGetDev from NVIDIA's oclUtils.cpp
     cl_device_id* ocl_devices_id = new (cl_device_id[number_device_bytes]);
     clGetContextInfo(ocl_context, CL_CONTEXT_DEVICES, number_device_bytes, ocl_devices_id, NULL);
+    // using the first opencl compatible device
     cl_device_id ocl_device_id = ocl_devices_id[0];
     delete ocl_devices_id;
 
+    // creating command queue
     ocl_command_queue = clCreateCommandQueue(ocl_context, ocl_device_id, 0, &ocl_error_number);
     if (ocl_error_number != CL_SUCCESS)
         // can't create opencl command queue
