@@ -10,6 +10,7 @@ using namespace std;
 cl_context          ocl_context;
 cl_kernel           ocl_kernel;
 cl_uint             ocl_device_count;
+cl_device_id        ocl_device_id;
 cl_command_queue    ocl_command_queue;
 cl_program          ocl_program;
 //
@@ -35,14 +36,14 @@ int     prepare_opencl();
 int build_source(const char *source, size_t source_length)
 {
     cl_int ocl_error_number = CL_SUCCESS;
-    ocl_program = clCreateProgramWithSource(ocl_context, 1, (const char**)(source), &source_length, &ocl_error_number);
+    ocl_program = clCreateProgramWithSource(ocl_context, 1, (const char**)(&source), &source_length, &ocl_error_number);
     if (ocl_error_number != CL_SUCCESS)
     {
         cout << "Error " << ocl_error_number << ": Failed to create program." << endl;
         return ocl_error_number;
     }
 
-    ocl_error_number = clBuildProgram(ocl_program, 0, NULL, "-cl-mad-enable", NULL, NULL);
+    ocl_error_number = clBuildProgram(ocl_program, 1, &ocl_device_id, "-cl-mad-enable", NULL, NULL);
     if (ocl_error_number != CL_SUCCESS)
     {
         cout << "Error " << ocl_error_number << ": Failed to build program." << endl;
@@ -50,7 +51,7 @@ int build_source(const char *source, size_t source_length)
         // print out build info
         char ocl_build_info[10240];
         // TODO: for many devices don't use 0 as second parameter
-        clGetProgramBuildInfo(ocl_program, 0, CL_PROGRAM_BUILD_LOG, sizeof(ocl_build_info), ocl_build_info, NULL);
+        clGetProgramBuildInfo(ocl_program, ocl_device_id, CL_PROGRAM_BUILD_LOG, sizeof(ocl_build_info), ocl_build_info, NULL);
         cout << "OpenCL Program Build Info:" << endl;
         cout << ocl_build_info << endl;
 
@@ -152,7 +153,7 @@ int main(int argc, char* argv[])
     // load source code
     char * source_code = NULL;
     size_t source_length;
-    source_code = load_source(argv[1], &source_length);
+    source_code = load_source("matrixMul.cl", &source_length);
     if (!source_code)
         return -1;
 
@@ -205,10 +206,10 @@ int prepare_opencl()
 
     // getting id of the first opencl compatible device
     //TODO: see oclGetDev from NVIDIA's oclUtils.cpp
-    cl_device_id* ocl_devices_id = new (cl_device_id[number_device_bytes]);
+    cl_device_id *ocl_devices_id = new (cl_device_id[number_device_bytes]);
     clGetContextInfo(ocl_context, CL_CONTEXT_DEVICES, number_device_bytes, ocl_devices_id, NULL);
     // using the first opencl compatible device
-    cl_device_id ocl_device_id = ocl_devices_id[0];
+    ocl_device_id = ocl_devices_id[0];
     delete ocl_devices_id;
 
     // creating command queue
