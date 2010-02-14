@@ -50,7 +50,6 @@ int build_source(const char *source, size_t source_length)
 
         // print out build info
         char ocl_build_info[10240];
-        // TODO: for many devices don't use 0 as second parameter
         clGetProgramBuildInfo(ocl_program, ocl_device_id, CL_PROGRAM_BUILD_LOG, sizeof(ocl_build_info), ocl_build_info, NULL);
         cout << "OpenCL Program Build Info:" << endl;
         cout << ocl_build_info << endl;
