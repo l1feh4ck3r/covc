@@ -1,0 +1,13 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+PROJECT(oclc)
+
+ADD_EXECUTABLE(
+    oclc
+    oclc.cpp
+)
+
+TARGET_LINK_LIBRARIES(
+    oclc
+    OpenCL
+)

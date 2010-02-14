@@ -1,2 +1,10 @@
 oclc - OpenCL Compiler.
+
 oclc only compiles OpenCL sources and showing errors.
+oclc depends on OpenCL library.
+
+Compiling:
+    mkdir build
+    cd ./build
+    cmake ../
+    make

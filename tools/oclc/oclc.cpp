@@ -18,10 +18,67 @@ cl_program          ocl_program;
 ///////////////////////////////////////////////////////////////////////////////
 //! Functions definitions
 //
+int     build_source(const char *source, size_t source_length);
+char   *load_source(const char *filename, size_t &file_size);
 int     prepare_opencl();
-char *  load_source(const char *filename, size_t &file_size);
 //
 ///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
+//! Build opencl source code and print to stdout errors.
+//!
+//! @return 0 if succeeded, OpenCL error number otherwise
+//! @param source OpenCL source code
+//! @param source_length Source code length
+///////////////////////////////////////////////////////////////////////////////
+int build_source(const char *source, size_t source_length)
+{
+    cl_int ocl_error_number = CL_SUCCESS;
+    ocl_program = clCreateProgramWithSource(ocl_context, 1, (const char**)(source), &source_length, &ocl_error_number);
+    if (ocl_error_number != CL_SUCCESS)
+    {
+        cout << "Error " << ocl_error_number << ": Failed to create program." << endl;
+        return ocl_error_number;
+    }
+
+    ocl_error_number = clBuildProgram(ocl_program, 0, NULL, "-cl-mad-enable", NULL, NULL);
+    if (ocl_error_number != CL_SUCCESS)
+    {
+        cout << "Error " << ocl_error_number << ": Failed to build program." << endl;
+
+        // print out build info
+        char ocl_build_info[10240];
+        // TODO: for many devices don't use 0 as second parameter
+        clGetProgramBuildInfo(ocl_program, 0, CL_PROGRAM_BUILD_LOG, sizeof(ocl_build_info), ocl_build_info, NULL);
+        cout << "OpenCL Program Build Info:" << endl;
+        cout << ocl_build_info << endl;
+
+        return ocl_error_number;
+    }
+
+    return 0;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//! Clean up OpenCL resources
+///////////////////////////////////////////////////////////////////////////////
+void clean()
+{
+    cl_int ocl_error_number = CL_SUCCESS;
+
+    clReleaseKernel(ocl_kernel);
+    clReleaseCommandQueue(ocl_command_queue);
+    clReleaseProgram(ocl_program);
+
+    ocl_error_number = clReleaseContext(ocl_context);
+    if (ocl_error_number != CL_SUCCESS)
+    {
+        cout << "Error " << ocl_error_number << ": Can't release OpenCL context." << endl;
+    }
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Load source code from file.
@@ -76,12 +133,40 @@ char * load_source(const char *filename, size_t *file_size)
 ///////////////////////////////////////////////////////////////////////////////
 //! Program entry point
 ///////////////////////////////////////////////////////////////////////////////
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
+    if (argc != 2)
+    {
+        cout << "Invalid number of parameters." << endl;
+        cout << "Usage:" << endl;
+        cout << "    " << argv[0] << " <filename>" << endl << endl;
+        cout << "    Where <filename> is name of the file with OpenCL source code." << endl;
+
+        return 0;
+    }
+
     // prepare opencl
     if (prepare_opencl() != 0)
-        return;
+        return -1;
+
+    // load source code
+    char * source_code = NULL;
+    size_t source_length;
+    source_code = load_source(argv[1], &source_length);
+    if (!source_code)
+        return -1;
+
+    // compile source code
+    build_source(source_code, source_length);
+
+    // clean up resources
+    clean();
+    if (source_code)
+        delete source_code;
+
+    return 0;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Prepare for using OpenCL: create device context, kernel, command queue
