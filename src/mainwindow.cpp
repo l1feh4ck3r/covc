@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 }
 
+
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -27,10 +28,17 @@ MainWindow::~MainWindow()
     images.clear();
 }
 
+
 void MainWindow::add_image()
 {
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//! Setting up selected image and it's bounding rectangle to image view
+//!
+//! @param index Image index in preview window
+///////////////////////////////////////////////////////////////////////////////
 void MainWindow::image_selected(QModelIndex index)
 {
     const QImage &image = images[index.row()].get_image();
@@ -50,6 +58,10 @@ void MainWindow::image_selected(QModelIndex index)
         image_view->scale(image.height()/595.0, image.height()/595.0);
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//! Load meta file and all needed files from meta file definitions
+///////////////////////////////////////////////////////////////////////////////
 void MainWindow::load_metafile()
 {
     QString filename = QFileDialog::getOpenFileName(this, tr("Select meta file."));
@@ -107,16 +119,28 @@ void MainWindow::load_metafile()
     file.close();
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//! TODO May be one day it will be saving function
+///////////////////////////////////////////////////////////////////////////////
 void MainWindow::save_metafile()
 {
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//! Setup qt connections
+///////////////////////////////////////////////////////////////////////////////
 void MainWindow::setup_connections()
 {
     connect(ui->actionLoad_metafile, SIGNAL(triggered()), this, SLOT(load_metafile()));
     connect(image_preview_list, SIGNAL(clicked(QModelIndex)), this, SLOT(image_selected(QModelIndex)));
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//! Setup ui
+///////////////////////////////////////////////////////////////////////////////
 void MainWindow::setup_ui()
 {
     image_preview_list = new QListView;

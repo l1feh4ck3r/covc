@@ -12,6 +12,12 @@ int Colorer::build_source()
     return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//! Load colorer source code from file.
+//!
+//! @return true if succeeded, false otherwise
+//! @param filename Name of the file with colorer source code
+///////////////////////////////////////////////////////////////////////////////
 bool Colorer::load_from_file(QString filename)
 {
     QFile source_code_file(filename);
@@ -27,6 +33,11 @@ bool Colorer::load_from_file(QString filename)
     return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//! Prepare for using OpenCL: create device context, kernel, command queue
+//!
+//! @return 0 if succeeded, OpenCL error otherwise
+///////////////////////////////////////////////////////////////////////////////
 int Colorer::prepare_opencl()
 {
     cl_uint ocl_device_count = 0;
