@@ -7,10 +7,36 @@ Colorer::Colorer()
 {
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+//! Build opencl source code
+//!
+//! @return 0 if succeeded, OpenCL error number otherwise
+///////////////////////////////////////////////////////////////////////////////
 int Colorer::build_source()
 {
+    // BUG: I think there is a very buggy code,
+    // 'case too many hacks
+    cl_int ocl_error_number = CL_SUCCESS;
+    const char * source_code_data = source_code.toAscii().data();
+    size_t source_code_size = source_code.size();
+
+    ocl_program = clCreateProgramWithSource(ocl_context, 1,
+                                            &source_code_data,
+                                            &source_code_size,
+                                            &ocl_error_number);
+    if (ocl_error_number != CL_SUCCESS)
+        // failed to create program.
+        return ocl_error_number;
+
+    ocl_error_number = clBuildProgram(ocl_program, 1, &ocl_device_id, "-cl-mad-enable", NULL, NULL);
+    if (ocl_error_number != CL_SUCCESS)
+        // failed to build program.
+        return ocl_error_number;
+
     return 0;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Load colorer source code from file.
@@ -32,6 +58,7 @@ bool Colorer::load_from_file(QString filename)
 
     return true;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Prepare for using OpenCL: create device context, kernel, command queue
@@ -78,6 +105,7 @@ int Colorer::prepare_opencl()
 
     return 0;
 }
+
 
 void Colorer::run()
 {

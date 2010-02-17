@@ -36,7 +36,7 @@ int     prepare_opencl();
 int build_source(const char *source, size_t source_length)
 {
     cl_int ocl_error_number = CL_SUCCESS;
-    ocl_program = clCreateProgramWithSource(ocl_context, 1, (const char**)(&source), &source_length, &ocl_error_number);
+    ocl_program = clCreateProgramWithSource(ocl_context, 1, &source, &source_length, &ocl_error_number);
     if (ocl_error_number != CL_SUCCESS)
     {
         cout << "Error " << ocl_error_number << ": Failed to create program." << endl;
@@ -92,20 +92,12 @@ char * load_source(const char *filename, size_t *file_size)
     FILE * source_file = NULL;
     size_t real_file_size = 0;
 
-#ifdef _WIN32   // Windows version
-    if(fopen_s(&source_file, filename, "rb") != 0)
-    {
-        cout << "Error: can't open file \'" << filename << "\'" << endl;
-        return NULL;
-    }
-#else           // Linux version
     source_file = fopen(filename, "rb");
     if(source_file == 0)
     {
         cout << "Error: can't open file \'" << filename << "\'" << endl;
         return NULL;
     }
-#endif
 
     // get file size
     fseek(source_file, 0, SEEK_END);
