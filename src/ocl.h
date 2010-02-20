@@ -1,17 +1,18 @@
 #ifndef OCL_H
 #define OCL_H
 
-#include <QThread>
-
 #include <CL/cl.h>
 
-class Ocl : public QThread
+#include <QString>
+
+class Ocl
 {
 public:
     Ocl();
 
 
 public:
+    void    add_definition(QString name, QString value);
     int     build_source();
     bool    load_from_file(QString filename);
     int     prepare_opencl();
@@ -19,6 +20,7 @@ public:
 
 
 private:
+    QString definitions;
     QString source_code;
 
     // OpenCL uses

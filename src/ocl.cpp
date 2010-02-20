@@ -9,6 +9,19 @@ Ocl::Ocl()
 
 
 ///////////////////////////////////////////////////////////////////////////////
+//! Add new definition to definitions. Function adds string templated like this:
+//! #define <name> <value>
+//!
+//! @param name Name of the definition
+//! @param value Value of the definition
+///////////////////////////////////////////////////////////////////////////////
+void Ocl::add_definition(QString name, QString value)
+{
+    definitions += "#define " + name + " " + value + "\n";
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 //! Build opencl source code
 //!
 //! @return 0 if succeeded, OpenCL error number otherwise
@@ -16,9 +29,9 @@ Ocl::Ocl()
 int Ocl::build_source()
 {
     // BUG: I think there is a very buggy code,
-    // 'case too many hacks
+    // 'case too many hacks and magic numbers
     cl_int ocl_error_number = CL_SUCCESS;
-    const char * source_code_data = source_code.toAscii().data();
+    const char * source_code_data = (definitions + source_code).toAscii().data();
     size_t source_code_size = source_code.size();
 
     ocl_program = clCreateProgramWithSource(ocl_context, 1,
