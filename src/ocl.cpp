@@ -1,9 +1,9 @@
-#include "colorer.h"
+#include "ocl.h"
 
 #include <QFile>
 #include <QTextStream>
 
-Colorer::Colorer()
+Ocl::Ocl()
 {
 }
 
@@ -13,7 +13,7 @@ Colorer::Colorer()
 //!
 //! @return 0 if succeeded, OpenCL error number otherwise
 ///////////////////////////////////////////////////////////////////////////////
-int Colorer::build_source()
+int Ocl::build_source()
 {
     // BUG: I think there is a very buggy code,
     // 'case too many hacks
@@ -39,12 +39,12 @@ int Colorer::build_source()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//! Load colorer source code from file.
+//! Load opencl source code from file.
 //!
 //! @return true if succeeded, false otherwise
-//! @param filename Name of the file with colorer source code
+//! @param filename Name of the file with opencl source code
 ///////////////////////////////////////////////////////////////////////////////
-bool Colorer::load_from_file(QString filename)
+bool Ocl::load_from_file(QString filename)
 {
     QFile source_code_file(filename);
     if (!source_code_file.open(QFile::ReadOnly))
@@ -65,7 +65,7 @@ bool Colorer::load_from_file(QString filename)
 //!
 //! @return 0 if succeeded, OpenCL error otherwise
 ///////////////////////////////////////////////////////////////////////////////
-int Colorer::prepare_opencl()
+int Ocl::prepare_opencl()
 {
     cl_uint ocl_device_count = 0;
     cl_int ocl_error_number = CL_SUCCESS;
@@ -107,6 +107,6 @@ int Colorer::prepare_opencl()
 }
 
 
-void Colorer::run()
+void Ocl::run()
 {
 }

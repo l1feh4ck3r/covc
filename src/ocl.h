@@ -1,20 +1,20 @@
-#ifndef COLORER_H
-#define COLORER_H
+#ifndef OCL_H
+#define OCL_H
 
 #include <QThread>
 
 #include <CL/cl.h>
 
-class Colorer : public QThread
+class Ocl : public QThread
 {
 public:
-    Colorer();
+    Ocl();
 
 
 public:
     int     build_source();
     bool    load_from_file(QString filename);
-    int    prepare_opencl();
+    int     prepare_opencl();
     virtual void run();
 
 
@@ -30,4 +30,4 @@ private:
     cl_device_id        ocl_device_id;
 };
 
-#endif // COLORER_H
+#endif // OCL_H
