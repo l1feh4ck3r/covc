@@ -17,6 +17,8 @@ public:
     bool    load_from_file(QString filename);
     int     prepare_opencl();
     virtual void run();
+// getters
+    cl_program get_program() { return ocl_program; }
 
 
 private:
@@ -24,12 +26,12 @@ private:
     QString source_code;
 
     // OpenCL uses
-    cl_context          ocl_context;
-    cl_kernel           ocl_kernel;
     cl_command_queue    ocl_command_queue;
+    cl_context          ocl_context;
     cl_uint             ocl_device_count;
-    cl_program          ocl_program;
     cl_device_id        ocl_device_id;
+    cl_kernel           ocl_kernel;
+    cl_program          ocl_program;
 };
 
 #endif // OCL_H

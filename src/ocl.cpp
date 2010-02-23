@@ -4,6 +4,9 @@
 #include <QTextStream>
 
 Ocl::Ocl()
+    :ocl_command_queue(0), ocl_context(0),
+    ocl_device_count(0), ocl_device_id(0),
+    ocl_kernel(0), ocl_program(0)
 {
 }
 
@@ -59,6 +62,9 @@ int Ocl::build_source()
 ///////////////////////////////////////////////////////////////////////////////
 bool Ocl::load_from_file(QString filename)
 {
+    definitions.clear();
+    source_code.clear();
+
     QFile source_code_file(filename);
     if (!source_code_file.open(QFile::ReadOnly))
         return false;
