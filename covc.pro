@@ -17,8 +17,10 @@ HEADERS += src/mainwindow.h \
     src/imagescene.h \
     src/ocl.h
 unix:LIBS += -lOpenCL
-#win32:LIBS += c:/mylibs/math.lib
+
+# win32:LIBS += c:/mylibs/math.lib
 FORMS += src/mainwindow.ui
 OTHER_FILES += .gitignore \
     TODO \
-    README
+    README \
+    src/colorer.cl
