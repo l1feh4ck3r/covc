@@ -1,11 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QVector>
-#include <QPointer>
-
 #include <QMainWindow>
 #include <QModelIndex>
+#include <QTableWidget>
+#include <QVector>
+#include <QPointer>
 
 class QListView;
 class QGraphicsView;
@@ -47,6 +47,7 @@ private:
     ImagePreview    *image_preview_model;
     ImageScene      *image_scene;
     QGraphicsView   *image_view;
+    QTableWidget    *table_widget;
 
     QVector<Image>  images;
 };

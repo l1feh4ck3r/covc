@@ -143,6 +143,10 @@ void MainWindow::setup_connections()
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::setup_ui()
 {
+    //create left vertical layout for images preview and calibration matrix
+    QVBoxLayout * verticalLayout = new QVBoxLayout(this);
+
+    //create images preview
     image_preview_list = new QListView;
     image_preview_list->setViewMode(QListView::IconMode);
     image_preview_list->setIconSize(QSize(90, 90));
@@ -153,6 +157,18 @@ void MainWindow::setup_ui()
     image_preview_model = new ImagePreview(this);
     image_preview_list->setModel(image_preview_model);
 
+    //create table widget for calibration matrix
+    table_widget = new QTableWidget(this);
+    table_widget->setMaximumHeight(100);
+    table_widget->setColumnCount(3);
+    table_widget->setColumnWidth(0, 45);
+    table_widget->setColumnWidth(1, 45);
+    table_widget->setColumnWidth(2, 45);
+    table_widget->setRowCount(3);
+    table_widget->horizontalHeader()->hide();
+    table_widget->verticalHeader()->hide();
+
+    //create images view (main widget)
     image_view = new QGraphicsView(this);
     image_view->setMinimumSize(650, 599);
     image_view->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
@@ -162,6 +178,9 @@ void MainWindow::setup_ui()
     image_scene->set_rectangle(QRectF(0.0, 0.0, 0.0, 0.0));
     image_view->setScene(image_scene);
 
-    ui->horizontalLayout->addWidget(image_preview_list);
+    verticalLayout->addWidget(image_preview_list);
+    verticalLayout->addWidget(table_widget);
+
+    ui->horizontalLayout->addLayout(verticalLayout);
     ui->horizontalLayout->addWidget(image_view);
 }
