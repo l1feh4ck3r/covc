@@ -56,6 +56,12 @@ void MainWindow::image_selected(QModelIndex index)
         image_view->scale(image.width()/645.0, image.width()/645.0);
     else
         image_view->scale(image.height()/595.0, image.height()/595.0);
+
+    const matrix<int> & calibration_matrix = images[index.row()].get_matrix_of_calibration();
+
+    for (int i = 0; i < calibration_matrix.RowNo(); ++i)
+        for (int j = 0; j < calibration_matrix.ColNo(); ++j)
+            table_widget->setItem(i, j, new QTableWidgetItem(QString("%1").arg(calibration_matrix(i, j))));
 }
 
 
