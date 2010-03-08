@@ -2,6 +2,9 @@ Realization of voxel coloring algorithm on C++ via OpenCL.
 
 Using openclxx library. More info search in src/CLxx/README file.
 
+Dependancies:
+    boost signals
+
 tools/oclc:
   oclc - OpenCL Compiler.
   oclc only compiles OpenCL sources and showing errors.
