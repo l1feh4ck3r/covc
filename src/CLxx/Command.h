@@ -121,7 +121,7 @@ namespace CLxx
 
 	      friend class CommandQueue;
 
-		  void setCommandQueue( boost::shared_ptr<CommandQueue>& cmd )  {  _cmdQueue = cmd; }
+          void setCommandQueue( boost::shared_ptr<CommandQueue> cmd )  {  _cmdQueue = cmd; }
 
 		  void execute();
 

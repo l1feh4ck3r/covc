@@ -60,7 +60,7 @@ namespace CLxx
 		///
 		/// devices : list of unique devices5
 
-		static boost::shared_ptr<Context> createContext( const std::vector<boost::shared_ptr<Device>>& devices) 
+        static boost::shared_ptr<Context> createContext( const std::vector<boost::shared_ptr<Device> >& devices)
 		{ 
 			return createContextImpl(devices, NULL); 
 		}
@@ -104,7 +104,7 @@ namespace CLxx
 
       protected:
 
-	   	   static boost::shared_ptr<Context> createContextImpl( const std::vector<boost::shared_ptr<Device>>& devices, const std::vector<Property>* properties);
+           static boost::shared_ptr<Context> createContextImpl( const std::vector<boost::shared_ptr<Device> >& devices, const std::vector<Property>* properties);
 
 	   	   static boost::shared_ptr<Context> createContextImpl( Device::DeviceType deviceType, const std::vector<Property>* properties);
 
@@ -117,13 +117,13 @@ namespace CLxx
 
 	   cl_uint getContextReferenceCount() const;
 
-	   const std::vector<boost::shared_ptr<Device>>& getDevices() const { return _devices; }
+       const std::vector<boost::shared_ptr<Device> >& getDevices() const { return _devices; }
 
 	   const std::vector<Property>& getProperties() const { return _properties; }
 
-	   const std::set<boost::shared_ptr<CommandQueue>>& getCommandQueues() const { return _commandQueues; }
+       const std::set<boost::shared_ptr<CommandQueue> >& getCommandQueues() const { return _commandQueues; }
 
-	   const std::set<boost::shared_ptr<Program>>& getPrograms() const { return _programs; }
+       const std::set<boost::shared_ptr<Program> >& getPrograms() const { return _programs; }
 
 	   /// Callbacks registered by the application. This signal
        /// will be used by the OpenCL implementation to report information on errors that occur in this
@@ -165,11 +165,11 @@ namespace CLxx
 
 	   std::vector<Property> _properties;
 
-	   std::vector<boost::shared_ptr<Device>> _devices;
+       std::vector<boost::shared_ptr<Device> > _devices;
 
-	   std::set<boost::shared_ptr<CommandQueue>> _commandQueues;
+       std::set<boost::shared_ptr<CommandQueue> > _commandQueues;
 
-	   std::set<boost::shared_ptr<Program>> _programs;
+       std::set<boost::shared_ptr<Program> > _programs;
 
 	   ErrorCallback _errorCallbacks;
 

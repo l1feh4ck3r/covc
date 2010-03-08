@@ -13,7 +13,7 @@ namespace CLxx
 		{
 		}
 
-	boost::shared_ptr<CommandQueue> CommandQueue::createCommandQueue( boost::shared_ptr<Context>& context, CommandQueue::Properties props, boost::shared_ptr<Device>& dev )
+    boost::shared_ptr<CommandQueue> CommandQueue::createCommandQueue( boost::shared_ptr<Context> context, CommandQueue::Properties props, boost::shared_ptr<Device> dev )
 	{
 		cl_int errorCode;
 		boost::shared_ptr<Device> deviceUsed;

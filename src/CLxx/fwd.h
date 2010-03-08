@@ -26,7 +26,7 @@ THE SOFTWARE.
 #define FWD_H
 
 #include <vector>
-#include <CL\cl.h>
+#include <CL/cl.h>
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 

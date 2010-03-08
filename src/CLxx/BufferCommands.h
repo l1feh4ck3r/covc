@@ -214,10 +214,10 @@ namespace CLxx
         /// width * height * depth * bytes/image element if image is a 3D image object and is computed
         /// as width * height * bytes/image element if image is a 2D image object.
 
-		CopyBufferToImageCommand(boost::shared_ptr<Buffer>& buffer, 
-								 boost::shared_ptr<Image>& image, 
+        CopyBufferToImageCommand(boost::shared_ptr<Buffer> buffer,
+                                 boost::shared_ptr<Image> image,
 								 size_t buffer_offset = 0,
-								 boost::shared_ptr<ImageCommand::ImageArea>& image_area = boost::shared_ptr<ImageCommand::ImageArea>());
+                                 boost::shared_ptr<ImageCommand::ImageArea> image_area = boost::shared_ptr<ImageCommand::ImageArea>());
        
         virtual CommandType getCommandType() const { return COPY_BUFFER_TO_IMAGE; }
      

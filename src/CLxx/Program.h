@@ -64,9 +64,9 @@ namespace CLxx
 		///
 		/// context : must be a valid OpenCL context
 		/// source  : null-terminated character strings that make up the source code
-		static boost::shared_ptr<Program> createProgram(boost::shared_ptr<Context>& context, const char* source);
+        static boost::shared_ptr<Program> createProgram(boost::shared_ptr<Context> context, const char* source);
 
-		static boost::shared_ptr<Program> createProgramFromFile(boost::shared_ptr<Context>& context, const char* path);
+        static boost::shared_ptr<Program> createProgramFromFile(boost::shared_ptr<Context> context, const char* path);
 
 
 		//static boost::shared_ptr<Program> createProgram(boost::shared_ptr<Context> context, std::vector<Device> devs, boost::shared_ptr<unsigned char> binary );
@@ -135,15 +135,15 @@ namespace CLxx
 
 		cl_uint getReferenceCount() const;
 
-		const std::set<boost::shared_ptr<Device>>& getDevices() const { return _devices; }
+        const std::set<boost::shared_ptr<Device> >& getDevices() const { return _devices; }
 
-		const std::map<boost::shared_ptr<Device>, boost::shared_ptr<unsigned char>>& getBinaries() const { return _binaries; }
+        const std::map<boost::shared_ptr<Device>, boost::shared_ptr<unsigned char> >& getBinaries() const { return _binaries; }
 
 		const boost::shared_ptr<unsigned char>& getBinary(boost::shared_ptr<Device> dev) const;
 
 		const std::string& getProgramSource() const { return _source; }
 
-		const std::set<boost::shared_ptr<Kernel>>& getKernels() { return _kernels; }
+        const std::set<boost::shared_ptr<Kernel> >& getKernels() { return _kernels; }
 
 		boost::shared_ptr<Kernel> createKernel(const char* kernel_name );
 
@@ -160,8 +160,8 @@ namespace CLxx
 
 		Handle _handle;
 
-		std::set<boost::shared_ptr<Device>> _devices;
-		std::map<boost::shared_ptr<Device>, boost::shared_ptr<unsigned char>> _binaries;
+        std::set<boost::shared_ptr<Device> > _devices;
+        std::map<boost::shared_ptr<Device>, boost::shared_ptr<unsigned char> > _binaries;
 
 		std::string _source;
 
@@ -169,7 +169,7 @@ namespace CLxx
 
 		boost::shared_ptr<Context> _context;
 		
-		std::set<boost::shared_ptr<Kernel>> _kernels;
+        std::set<boost::shared_ptr<Kernel> > _kernels;
 
 		BuildFinishedSignal _buildFinishedSignal;
 

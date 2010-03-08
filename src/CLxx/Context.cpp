@@ -18,7 +18,7 @@ namespace CLxx
 		}
 	}
 
-	boost::shared_ptr<Context> Context::createContextImpl( const std::vector<boost::shared_ptr<Device>>& devices, const std::vector<Property>* properties)
+    boost::shared_ptr<Context> Context::createContextImpl( const std::vector<boost::shared_ptr<Device> >& devices, const std::vector<Property>* properties)
 	{
 		cl_int errorCode;
 		cl_context_properties* prop = NULL;

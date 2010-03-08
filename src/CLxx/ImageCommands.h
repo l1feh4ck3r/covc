@@ -99,7 +99,7 @@ namespace CLxx
 			size_t getRowPitch() const { return _rowPitch; }
 		};
 
-		boost::shared_ptr<Image2D> getImage2D() const { return boost::static_pointer_cast<Image2D>(_image); }
+        //boost::shared_ptr<Image2D> getImage2D() const { return boost::static_pointer_cast<Image2D>(_image); }
 
         boost::shared_ptr<Image2DArea> getImage2DArea() const { return boost::static_pointer_cast<Image2DArea>(_imageArea); }
 
@@ -147,7 +147,7 @@ namespace CLxx
 			size_t getSlicePitch() const { return _slicePitch; }
 		};
 
-        boost::shared_ptr<Image3D> getImage3D() const { return boost::static_pointer_cast<Image3D>(_image); }
+        //boost::shared_ptr<Image3D> getImage3D() const { return boost::static_pointer_cast<Image3D>(_image); }
 
         boost::shared_ptr<Image3DArea> getImage3DArea() const { return boost::static_pointer_cast<Image3DArea>(_imageArea); }
 
@@ -182,7 +182,7 @@ namespace CLxx
 		///            The contents of the buffer that ptr points to cannot be used until 
 		///            the read command has completed. getStatus() can be used to query the execution status of the command
 		/// area     : refere to Image2DArea for details
-		ReadImage2DCommand(boost::shared_ptr<Image2D>& image, void* ptr, bool blocking = true, boost::shared_ptr<Image2DArea>& area = boost::shared_ptr<Image2DArea>() );
+        ReadImage2DCommand(boost::shared_ptr<Image2D>& image, void* ptr, bool blocking = true, boost::shared_ptr<Image2DArea> area = boost::shared_ptr<Image2DArea>() );
        
         virtual CommandType getCommandType() const { return READ_IMAGE; }
      
@@ -216,7 +216,7 @@ namespace CLxx
 		///            The contents of the buffer that ptr points to cannot be used until 
 		///            the read command has completed. getStatus() can be used to query the execution status of the command
 		/// area     : refere to Image3DArea for details
-		ReadImage3DCommand(boost::shared_ptr<Image3D>& image, void* ptr, bool blocking = true, boost::shared_ptr<Image3DArea>& area = boost::shared_ptr<Image3DArea>() );
+        ReadImage3DCommand(boost::shared_ptr<Image3D>& image, void* ptr, bool blocking = true, boost::shared_ptr<Image3DArea> area = boost::shared_ptr<Image3DArea>() );
        
         virtual CommandType getCommandType() const { return READ_IMAGE; }
      
@@ -256,7 +256,7 @@ namespace CLxx
 		///            getStatus() can be used to query the execution status of the command. 
 		///            When the write command has completed, the memory pointed to by ptr can then be reused by the application
 		/// area     : refere to Image2DArea for details
-		WriteImage2DCommand(boost::shared_ptr<Image2D>& image, void* ptr, bool blocking = true, boost::shared_ptr<Image2DArea>& area = boost::shared_ptr<Image2DArea>() );
+        WriteImage2DCommand(boost::shared_ptr<Image2D>& image, void* ptr, bool blocking = true, boost::shared_ptr<Image2DArea> area = boost::shared_ptr<Image2DArea>() );
        
         virtual CommandType getCommandType() const { return WRITE_IMAGE; }
      
@@ -296,7 +296,7 @@ namespace CLxx
 		///            getStatus() can be used to query the execution status of the command. 
 		///            When the write command has completed, the memory pointed to by ptr can then be reused by the application
 		/// area     : refere to Image3DArea for details
-		WriteImage3DCommand(boost::shared_ptr<Image3D>& image, void* mem, bool blocking = true, boost::shared_ptr<Image3DArea>& area = boost::shared_ptr<Image3DArea>() );
+        WriteImage3DCommand(boost::shared_ptr<Image3D>& image, void* mem, bool blocking = true, boost::shared_ptr<Image3DArea> area = boost::shared_ptr<Image3DArea>() );
        
         virtual CommandType getCommandType() const { return WRITE_IMAGE; }
      
@@ -334,7 +334,7 @@ namespace CLxx
 		///            When the map command is completed, the application can access the
         ///            contents of the mapped region using the pointer returned by getHostMemoryPtr
 		/// area     : refere to Image2DArea for details
-		MapImage2DCommand(boost::shared_ptr<Image2D>& image, Flags flags = READ | WRITE, bool blocking = true, boost::shared_ptr<Image2DArea>& area = boost::shared_ptr<Image2DArea>() );
+        MapImage2DCommand(boost::shared_ptr<Image2D>& image, Flags flags = READ | WRITE, bool blocking = true, boost::shared_ptr<Image2DArea> area = boost::shared_ptr<Image2DArea>() );
 
 		// if destroyed the host memory will be unmapped
 		~MapImage2DCommand()
@@ -384,7 +384,7 @@ namespace CLxx
 		///            When the map command is completed, the application can access the
         ///            contents of the mapped region using the pointer returned by getHostMemoryPtr
 		/// area     : refere to Image3DArea for details
-		MapImage3DCommand(boost::shared_ptr<Image3D>& image, Flags flags = READ | WRITE, bool blocking = true, boost::shared_ptr<Image3DArea>& area = boost::shared_ptr<Image3DArea>() );
+        MapImage3DCommand(boost::shared_ptr<Image3D>& image, Flags flags = READ | WRITE, bool blocking = true, boost::shared_ptr<Image3DArea> area = boost::shared_ptr<Image3DArea>() );
        
 		// if destroyed the host memory will be unmapped
 		~MapImage3DCommand()
@@ -422,8 +422,8 @@ namespace CLxx
 
 		CopyImageCommand(boost::shared_ptr<Image>& src_image, 
 			             boost::shared_ptr<Image>& dst_image, 
-			             boost::shared_ptr<ImageArea>& src_area = boost::shared_ptr<ImageArea>(), 
-						 boost::shared_ptr<ImageArea>& dst_area = boost::shared_ptr<ImageArea>());
+                         boost::shared_ptr<ImageArea> src_area = boost::shared_ptr<ImageArea>(),
+                         boost::shared_ptr<ImageArea> dst_area = boost::shared_ptr<ImageArea>());
        
         virtual CommandType getCommandType() const { return COPY_IMAGE; }
      
@@ -451,7 +451,7 @@ namespace CLxx
 
 		CopyImageToBufferCommand(boost::shared_ptr<Image>& image, 
 			                     boost::shared_ptr<Buffer>& buffer, 
-			                     boost::shared_ptr<ImageArea>& image_area = boost::shared_ptr<ImageArea>(), 
+                                 boost::shared_ptr<ImageArea> image_area = boost::shared_ptr<ImageArea>(),
 						         size_t buffer_offset = 0);
        
         virtual CommandType getCommandType() const { return COPY_IMAGE_TO_BUFFER; }

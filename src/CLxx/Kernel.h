@@ -25,6 +25,8 @@ THE SOFTWARE.
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#include <sstream>
+
 #include "fwd.h"
 #include "Buffer.h"
 #include "Exception.h"
@@ -84,7 +86,7 @@ namespace CLxx
 		///
         /// program  : is a program object with a successfully built executable.
 		/// kernels  : list of kernels created
-		static void createKernels(boost::shared_ptr<Program> prog, std::vector<boost::shared_ptr<Kernel>>& kernels );
+        static void createKernels(boost::shared_ptr<Program> prog, std::vector<boost::shared_ptr<Kernel> >& kernels );
 
 	public:
 
@@ -132,7 +134,7 @@ namespace CLxx
 
 		/// Is used to set the argument value for a specific argument of a kernel
 		template<typename T>
-		void setArgument(cl_uint arg_index, T& arg_value) { setArg(arg_index,value); }
+        void setArgument(cl_uint arg_index, T& arg_value) { setArg(arg_index,arg_value); }
 
 		/// set the argument value 
 		template<typename T0>
@@ -168,7 +170,7 @@ namespace CLxx
 
 	protected:
 
-		template<typename T>
+        template<typename T>
 		void setArg(cl_uint arg_index, T& value)
 		{
 			cl_int ciErrNum =  clSetKernelArg(_handle, arg_index, sizeof(value), &value);
@@ -177,14 +179,6 @@ namespace CLxx
 				throw Exception(ciErrNum);
 		}
 
-		template<>
-		void setArg(cl_uint arg_index, boost::shared_ptr<Buffer>& value)
-		{
-			cl_int ciErrNum =  clSetKernelArg(_handle, arg_index, sizeof(Memory::Handle), &(value->getHandle()) );
-
-			if(ciErrNum != CL_SUCCESS)
-				throw Exception(ciErrNum);
-		}
 /*
 		template<typename T, size_t size>
 		void setArg(cl_uint arg_index, T (&array)[size])
@@ -208,14 +202,17 @@ namespace CLxx
 		template<typename T>
 		void setArg(cl_uint arg_index, T* value)
 		{
-			std::stringstream ss;
+            std::stringstream ss;
 			ss << "Argument " << arg_index << " is a pointer. "
 			   << "Need to provide size of the array pointed. " 
 			   << "Use array_ptr, to pass the pointer";   
-			throw Exception( ss.str() );
+            throw Exception( ss.str() );
 		}
 
-		};
-	}
+    };
+
+    template<>
+    void Kernel::setArg(cl_uint arg_index, boost::shared_ptr<Buffer>& value);
+}
 
 #endif

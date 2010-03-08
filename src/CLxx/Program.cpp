@@ -28,7 +28,7 @@ namespace CLxx
 	{
 	}
 
-	boost::shared_ptr<Program> Program::createProgramFromFile(boost::shared_ptr<Context>& context, const char* path)
+    boost::shared_ptr<Program> Program::createProgramFromFile(boost::shared_ptr<Context> context, const char* path)
 	{
 		std::ifstream file(path);
 		
@@ -42,7 +42,7 @@ namespace CLxx
 		return createProgram(context,ss.str().c_str());
 	}
 
-	boost::shared_ptr<Program> Program::createProgram(boost::shared_ptr<Context>& context, const char* source)
+    boost::shared_ptr<Program> Program::createProgram(boost::shared_ptr<Context> context, const char* source)
 	{
 		cl_int errorCode;			
 	    
@@ -140,7 +140,7 @@ namespace CLxx
 
 	boost::shared_ptr<Kernel> Program::getKernel( cl_kernel k ) const 
 	{
-		for( std::set<boost::shared_ptr<Kernel>>::const_iterator it = _kernels.begin(); it != _kernels.end(); it++)
+        for( std::set<boost::shared_ptr<Kernel> >::const_iterator it = _kernels.begin(); it != _kernels.end(); it++)
 		{
 			if ( (*it)->getHandle() == k )
 				return const_cast<boost::shared_ptr<Kernel>&>(*it);

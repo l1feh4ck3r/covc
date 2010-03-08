@@ -76,7 +76,7 @@ namespace CLxx
 			UNSIGNED_INT16 = CL_UNSIGNED_INT16,       /// Each channel component is an unnormalized unsigned 16-bit integer value
 			UNSIGNED_INT32 = CL_UNSIGNED_INT32,       /// Each channel component is an unnormalized unsigned 32-bit integer value
 			HALF_FLOAT = CL_HALF_FLOAT,               /// Each channel component is a 16-bit half-float value
-			FLOAT = CL_FLOAT                          /// Each channel component is a single precision floatingpoint value
+            FLOAT = CL_FLOAT                          /// Each channel component is a single precision floatingpoint value
 		};
 
 
@@ -88,13 +88,13 @@ namespace CLxx
 				image_channel_data_type = FLOAT;
 			}
 
-			ImageFormat(ChannelOrder or, ChannelDataType tp )
+            ImageFormat(ChannelOrder channelOrder, ChannelDataType channelDataType )
 			{
-				image_channel_order = or;
-				image_channel_data_type = tp;
+                image_channel_order = channelOrder;
+                image_channel_data_type = channelDataType;
 			}
 
-			void setChannelOrder( ChannelOrder ch ) { image_channel_order = ch; }
+            void setChannelOrder( ChannelOrder channelOrder ) { image_channel_order = channelOrder; }
 			ChannelOrder getChannelOrder() const { return (ChannelOrder) image_channel_order; }
 
 			void setChannelDataType( ChannelDataType ch ) { image_channel_data_type = ch; }

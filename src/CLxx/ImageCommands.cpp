@@ -35,7 +35,7 @@ namespace CLxx
 	{
 	}
 
-	ReadImage2DCommand::ReadImage2DCommand(boost::shared_ptr<Image2D>& image, void* mem, bool blocking, boost::shared_ptr<Image2DArea>& area)
+    ReadImage2DCommand::ReadImage2DCommand(boost::shared_ptr<Image2D>& image, void* mem, bool blocking, boost::shared_ptr<Image2DArea> area)
 		:Image2DCommand(image,mem,blocking,area)
 	{
 	}
@@ -75,7 +75,7 @@ namespace CLxx
 		_enquedSuccessfully = true;
 	}
 
-	ReadImage3DCommand::ReadImage3DCommand(boost::shared_ptr<Image3D>& image, void* mem, bool blocking, boost::shared_ptr<Image3DArea>& area)
+    ReadImage3DCommand::ReadImage3DCommand(boost::shared_ptr<Image3D>& image, void* mem, bool blocking, boost::shared_ptr<Image3DArea> area)
 		:Image3DCommand(image,mem,blocking,area)
 	{
 	}
@@ -115,7 +115,7 @@ namespace CLxx
 		_enquedSuccessfully = true;
 	}
 
-	WriteImage2DCommand::WriteImage2DCommand(boost::shared_ptr<Image2D>& image, void* mem, bool blocking, boost::shared_ptr<Image2DArea>& area)
+    WriteImage2DCommand::WriteImage2DCommand(boost::shared_ptr<Image2D>& image, void* mem, bool blocking, boost::shared_ptr<Image2DArea> area)
 		:Image2DCommand(image,mem,blocking,area)
 	{
 	}
@@ -156,7 +156,7 @@ namespace CLxx
 	}
 
 
-	WriteImage3DCommand::WriteImage3DCommand(boost::shared_ptr<Image3D>& image, void* mem, bool blocking, boost::shared_ptr<Image3DArea>& area)
+    WriteImage3DCommand::WriteImage3DCommand(boost::shared_ptr<Image3D>& image, void* mem, bool blocking, boost::shared_ptr<Image3DArea> area)
 		:Image3DCommand(image,mem,blocking,area)
 	{
 	}
@@ -197,7 +197,7 @@ namespace CLxx
 	}
 
 
-	MapImage2DCommand::MapImage2DCommand(boost::shared_ptr<Image2D>& image, Flags flags, bool blocking, boost::shared_ptr<Image2DArea>& area)
+    MapImage2DCommand::MapImage2DCommand(boost::shared_ptr<Image2D>& image, Flags flags, bool blocking, boost::shared_ptr<Image2DArea> area)
 		:Image2DCommand(image,NULL,blocking,area)
 	{
 		_flags = flags;
@@ -263,7 +263,7 @@ namespace CLxx
 			throw Exception(ciErrNum);
 	}
 
-	MapImage3DCommand::MapImage3DCommand(boost::shared_ptr<Image3D>& image, Flags flags, bool blocking, boost::shared_ptr<Image3DArea>& area)
+    MapImage3DCommand::MapImage3DCommand(boost::shared_ptr<Image3D>& image, Flags flags, bool blocking, boost::shared_ptr<Image3DArea> area)
 		:Image3DCommand(image,NULL,blocking,area)
 	{
 		_flags = flags;
@@ -330,7 +330,7 @@ namespace CLxx
 	}
 
 
-	CopyImageCommand::CopyImageCommand(boost::shared_ptr<Image>& src_image, boost::shared_ptr<Image>& dst_image, boost::shared_ptr<ImageArea>& src_area, boost::shared_ptr<ImageArea>& dst_area)
+    CopyImageCommand::CopyImageCommand(boost::shared_ptr<Image>& src_image, boost::shared_ptr<Image>& dst_image, boost::shared_ptr<ImageArea> src_area, boost::shared_ptr<ImageArea> dst_area)
 		:ImageCommand(src_image,NULL,true,src_area)
 	{
 		_dstImage = dst_image;
@@ -368,7 +368,7 @@ namespace CLxx
 		_enquedSuccessfully = true;
 	}
 
-	CopyImageToBufferCommand::CopyImageToBufferCommand(boost::shared_ptr<Image>& image, boost::shared_ptr<Buffer>& buffer, boost::shared_ptr<ImageCommand::ImageArea>& image_area, size_t buffer_offset)
+    CopyImageToBufferCommand::CopyImageToBufferCommand(boost::shared_ptr<Image>& image, boost::shared_ptr<Buffer>& buffer, boost::shared_ptr<ImageCommand::ImageArea> image_area, size_t buffer_offset)
 		:ImageCommand(image,NULL,true,image_area)
 	{
 		_buffer = buffer;

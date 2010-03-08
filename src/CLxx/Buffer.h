@@ -45,7 +45,7 @@ namespace CLxx
 		  /// mem_size : is the size in bytes of the buffer memory object to be allocated
 		  /// host_ptr : is a pointer to the buffer data that may already be allocated by the application. The size
           ///            of the buffer that host_ptr points to must be >= size bytes
-		  static boost::shared_ptr<Buffer> createBuffer( boost::shared_ptr<Context>& context, Flags flags, size_t mem_size, void* host_ptr = NULL);             
+          static boost::shared_ptr<Buffer> createBuffer( boost::shared_ptr<Context> context, Flags flags, size_t mem_size, void* host_ptr = NULL);
 
       protected:
 

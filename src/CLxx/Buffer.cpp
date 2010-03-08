@@ -7,7 +7,7 @@
 
 namespace CLxx
 {
-	boost::shared_ptr<Buffer> Buffer::createBuffer( boost::shared_ptr<Context>& context, Buffer::Flags props, size_t mem_size, void* host_ptr )
+    boost::shared_ptr<Buffer> Buffer::createBuffer( boost::shared_ptr<Context> context, Buffer::Flags props, size_t mem_size, void* host_ptr )
 	{
 		cl_int errorCode;
 

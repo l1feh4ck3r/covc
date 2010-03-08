@@ -30,7 +30,7 @@ namespace CLxx
 		return kernel;
 	}
 
-	void Kernel::createKernels(boost::shared_ptr<Program> prog, std::vector<boost::shared_ptr<Kernel>>& kernels )
+    void Kernel::createKernels(boost::shared_ptr<Program> prog, std::vector<boost::shared_ptr<Kernel> >& kernels )
 	{
 		cl_uint numKerns;
 		cl_kernel  kerns[1000];
@@ -118,5 +118,14 @@ namespace CLxx
 
 		return value;
 	}
+
+    template<>
+    void Kernel::setArg(cl_uint arg_index, boost::shared_ptr<Buffer>& value)
+    {
+        cl_int ciErrNum =  clSetKernelArg(_handle, arg_index, sizeof(Memory::Handle), &(value->getHandle()) );
+
+        if(ciErrNum != CL_SUCCESS)
+            throw Exception(ciErrNum);
+    }
 
 }

@@ -112,7 +112,7 @@ void MainWindow::load_metafile()
             }
 
         // create image
-        Image image(image_file_name, matrix_of_calibration, bounding_square);
+        ImageInfo image(image_file_name, matrix_of_calibration, bounding_square);
         if (image.is_valid())
         {
             images.append(image);

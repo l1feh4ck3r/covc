@@ -70,7 +70,7 @@ namespace CLxx
 		/// props    : specifies a list of properties for the command-queue. This is a bit-field and is
         ///            described in PropertyEnum
 
-		static boost::shared_ptr<CommandQueue> createCommandQueue( boost::shared_ptr<Context>& context, Properties props = PROFILING_ENABLE, boost::shared_ptr<Device>& dev = boost::shared_ptr<Device>() );
+        static boost::shared_ptr<CommandQueue> createCommandQueue( boost::shared_ptr<Context> context, Properties props = PROFILING_ENABLE, boost::shared_ptr<Device> dev = boost::shared_ptr<Device>() );
 
 	public:
 

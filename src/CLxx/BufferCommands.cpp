@@ -116,10 +116,10 @@ namespace CLxx
 	}
 
 
-	CopyBufferToImageCommand::CopyBufferToImageCommand(boost::shared_ptr<Buffer>& buffer, 
-								 boost::shared_ptr<Image>& image, 
+    CopyBufferToImageCommand::CopyBufferToImageCommand(boost::shared_ptr<Buffer> buffer,
+                                 boost::shared_ptr<Image> image,
 								 size_t buffer_offset,
-								 boost::shared_ptr<ImageCommand::ImageArea>& image_area)
+                                 boost::shared_ptr<ImageCommand::ImageArea> image_area)
 		:BufferCommand(buffer,NULL)
 	{
 		_offset = buffer_offset;

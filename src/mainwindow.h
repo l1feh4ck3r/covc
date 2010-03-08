@@ -18,7 +18,7 @@ namespace Ui
     class MainWindow;
 }
 
-#include "image.h"
+#include "imageinfo.h"
 
 class MainWindow : public QMainWindow
 {
@@ -49,7 +49,7 @@ private:
     QGraphicsView   *image_view;
     QTableWidget    *table_widget;
 
-    QVector<Image>  images;
+    QVector<ImageInfo>  images;
 };
 
 #endif // MAINWINDOW_H
