@@ -1,5 +1,3 @@
-#include "CLxx/Includes.h"
-
 #include "imageinfo.h"
 
 ImageInfo::ImageInfo()

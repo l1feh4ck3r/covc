@@ -26,7 +26,8 @@ SOURCES += src/main.cpp \
     src/CLxx/CommandQueue.cpp \
     src/CLxx/Command.cpp \
     src/CLxx/Buffer.cpp \
-    src/CLxx/BufferCommands.cpp
+    src/CLxx/BufferCommands.cpp \
+    src/colorer.cpp
 HEADERS += src/mainwindow.h \
     src/matrix/include/matrix.h \
     src/imagepreview.h \
@@ -51,8 +52,10 @@ HEADERS += src/mainwindow.h \
     src/CLxx/CommandQueue.h \
     src/CLxx/Command.h \
     src/CLxx/Buffer.h \
-    src/CLxx/BufferCommands.h
-unix:LIBS += -lOpenCL -lboost_signals
+    src/CLxx/BufferCommands.h \
+    src/colorer.h
+unix:LIBS += -lOpenCL \
+    -lboost_signals
 
 # win32:LIBS += c:/mylibs/math.lib
 FORMS += src/mainwindow.ui
