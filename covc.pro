@@ -6,16 +6,16 @@ TARGET = covc
 TEMPLATE = app
 SOURCES += src/main.cpp \
     src/mainwindow.cpp \
-    src/image.cpp \
     src/imagepreview.cpp \
     src/imagescene.cpp \
-    src/ocl.cpp
+    src/ocl.cpp \
+    src/imageinfo.cpp
 HEADERS += src/mainwindow.h \
     src/matrix/include/matrix.h \
-    src/image.h \
     src/imagepreview.h \
     src/imagescene.h \
-    src/ocl.h
+    src/ocl.h \
+    src/imageinfo.h
 unix:LIBS += -lOpenCL
 
 # win32:LIBS += c:/mylibs/math.lib

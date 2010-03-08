@@ -1,16 +1,16 @@
-#ifndef IMAGE_H
-#define IMAGE_H
+#ifndef IMAGEINFO_H
+#define IMAGEINFO_H
 
 #include <QImage>
 
 #include "matrix/include/matrix.h"
 using namespace math;
 
-class Image
+class ImageInfo
 {
 public:
-    Image();
-    Image(QString &filename, matrix<int> &_matrix_of_calibration, QRectF &_bounding_square);
+    ImageInfo();
+    ImageInfo(QString &filename, matrix<int> &_matrix_of_calibration, QRectF &_bounding_square);
 
 
 public:
@@ -27,4 +27,4 @@ private:
     bool        valid;
 };
 
-#endif // IMAGE_H
+#endif // IMAGEINFO_H

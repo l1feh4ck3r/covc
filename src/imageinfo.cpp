@@ -1,11 +1,11 @@
-#include "image.h"
+#include "imageinfo.h"
 
-Image::Image()
+ImageInfo::ImageInfo()
         :valid(false)
 {
 }
 
-Image::Image(QString &filename, matrix<int> &_matrix_of_calibration, QRectF &_bounding_rectangle)
+ImageInfo::ImageInfo(QString &filename, matrix<int> &_matrix_of_calibration, QRectF &_bounding_rectangle)
         :valid(false)
 {
     if (image.load(filename))
