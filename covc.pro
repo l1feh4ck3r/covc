@@ -64,4 +64,4 @@ OTHER_FILES += .gitignore \
     README \
     src/colorer.cl \
     LICENSE \
-    LICENCE_RUS
+    LICENSE_RUS
