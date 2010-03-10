@@ -29,29 +29,29 @@ THE SOFTWARE.
 
 namespace CLxx
 {
-	/// The Host class rappresent the host concept in OpenCL 
-	class Host
-	{
-	public:
+    /// The Host class rappresent the host concept in OpenCL
+    class Host
+    {
+    public:
 
-		/// The list of platforms available
-		static const PlatformList& getPlatformList();
+        /// The list of platforms available
+        static const PlatformList& getPlatformList();
 
-		/// Allows the implementation to release the resources allocated by the OpenCL compiler. This is a
+        /// Allows the implementation to release the resources allocated by the OpenCL compiler. This is a
         /// hint from the application and does not guarantee that the compiler will not be used in the future
-		/// or that the compiler will actually be unloaded by the implementation. Calls to buildProgram()
-		/// after unloadCompiler() will reload the compiler, if necessary, to build the appropriate program executable
-	    static void unloadCompiler();
+        /// or that the compiler will actually be unloaded by the implementation. Calls to buildProgram()
+        /// after unloadCompiler() will reload the compiler, if necessary, to build the appropriate program executable
+        static void unloadCompiler();
 
-	protected:
+    protected:
 
-		static void queryPlatforms();
+        static void queryPlatforms();
 
-	protected:
+    protected:
 
-		Host(){}
+        Host(){}
 
-	};
+    };
 }
 
 #endif

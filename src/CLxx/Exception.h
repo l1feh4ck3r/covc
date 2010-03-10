@@ -31,31 +31,31 @@ THE SOFTWARE.
 
 namespace CLxx
 {
-   class Exception
-   {
-     public:
-	   
-	   Exception(cl_int err)
-	   {
-	   		_what = contextErrorCodes(err);
-	   }
-		 
-	   Exception(std::string what)
-	   {
-			_what = what;
-	   }
+    class Exception
+    {
+    public:
 
-	   const std::string what() const
-	   {
-           return _what;
-	   }
+        Exception(cl_int err)
+        {
+            _what = contextErrorCodes(err);
+        }
 
-   protected:
-       
-	   const char* contextErrorCodes( cl_int errorCode );
+        Exception(std::string what)
+        {
+            _what = what;
+        }
 
-	   std::string _what;
-   };
+        const std::string what() const
+        {
+            return _what;
+        }
+
+    protected:
+
+        const char* contextErrorCodes( cl_int errorCode );
+
+        std::string _what;
+    };
 };
 
 

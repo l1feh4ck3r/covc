@@ -62,4 +62,6 @@ FORMS += src/mainwindow.ui
 OTHER_FILES += .gitignore \
     TODO \
     README \
-    src/colorer.cl
+    src/colorer.cl \
+    LICENSE \
+    LICENCE_RUS

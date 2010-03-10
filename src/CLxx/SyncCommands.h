@@ -29,71 +29,71 @@ THE SOFTWARE.
 
 namespace CLxx
 {
-	/// MarkerCommand can be used to queue and wait on this marker event 
-	/// i.e. wait for all commands queued before the marker command to complete.
+    /// MarkerCommand can be used to queue and wait on this marker event
+    /// i.e. wait for all commands queued before the marker command to complete.
 
-	class MarkerCommand : public Command
-	{
+    class MarkerCommand : public Command
+    {
 
-	public:
+    public:
 
-		MarkerCommand(){}
+        MarkerCommand(){}
 
-		virtual CommandType getCommandType() const { return MARKER; }		
+        virtual CommandType getCommandType() const { return MARKER; }
 
-	protected:
+    protected:
 
-		virtual void executePimp();  		
+        virtual void executePimp();
 
-	};
+    };
 
 
     /// WaitForCommand waits for a specific command or a list of commands to complete before any future commands
     /// queued in the command-queue are executed.
-	/// The list of commands is specified in CommandWaitingList
+    /// The list of commands is specified in CommandWaitingList
 
-	class WaitForCommand : public Command
-	{
-		/// Waits on the host thread for commands present in CommandWaitingList to complete. 
-		/// A command is considered complete if its execution status is COMPLETE or a negative value.
-		/// The commands specified in CommandWaitingList act as synchronization points	
-		static void toFinish(const CommandWaitingList& cmd);
+    class WaitForCommand : public Command
+    {
+        /// Waits on the host thread for commands present in CommandWaitingList to complete.
+        /// A command is considered complete if its execution status is COMPLETE or a negative value.
+        /// The commands specified in CommandWaitingList act as synchronization points
+        static void toFinish(const CommandWaitingList& cmd);
 
-		/// Waits on the host thread for the command to complete. 
-		/// A command is considered complete if its execution status is COMPLETE or a negative value.
-		/// The commands specified act as synchronization point	
-		static void toFinish(const boost::shared_ptr<Command>& cmd);
+        /// Waits on the host thread for the command to complete.
+        /// A command is considered complete if its execution status is COMPLETE or a negative value.
+        /// The commands specified act as synchronization point
+        static void toFinish(const boost::shared_ptr<Command>& cmd);
 
 
-	public:
+    public:
 
-		WaitForCommand(){}
+        WaitForCommand(){}
 
-		virtual CommandType getCommandType() const { return SYNC; }		
+        virtual CommandType getCommandType() const { return SYNC; }
 
-	protected:
+    protected:
 
-		virtual void executePimp();  		
+        virtual void executePimp();
 
-	};
+    };
 
-	/// Create a barrier operation. The BarrierCommand command ensures that all queued commands 
+    /// Create a barrier operation. The BarrierCommand command ensures that all queued commands
     /// in CommandQueue have finished execution before the next batch of commands can begin execution. 
-	/// BarrierCommand is a synchronization point.
+    /// BarrierCommand is a synchronization point.
 
-	class BarrierCommand : public Command
-	{
-	public:
+    class BarrierCommand : public Command
+    {
+    public:
 
-		BarrierCommand(){}
+        BarrierCommand(){}
 
-		virtual CommandType getCommandType() const { return SYNC; }		
+        virtual CommandType getCommandType() const { return SYNC; }
 
-	protected:
+    protected:
 
-		virtual void executePimp();  		
+        virtual void executePimp();
 
-	};
+    };
 
 }
 

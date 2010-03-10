@@ -32,23 +32,23 @@ THE SOFTWARE.
 
 namespace CLxx
 {
-   class Platform;
-   class Device;
-   class Context;
-   class Memory;
-   class Image;
-   class Image2D;
-   class Image3D;
-   class Buffer;
-   class CommandQueue;
-   class Sampler;
-   class Command;
-   class Program;
-   class Kernel;
+    class Platform;
+    class Device;
+    class Context;
+    class Memory;
+    class Image;
+    class Image2D;
+    class Image3D;
+    class Buffer;
+    class CommandQueue;
+    class Sampler;
+    class Command;
+    class Program;
+    class Kernel;
 
-   typedef std::vector< boost::shared_ptr<Platform> > PlatformList;
-   typedef std::vector< boost::shared_ptr<Device> >   DeviceList;
-   typedef std::vector< boost::shared_ptr<Context> >   ContextList;
+    typedef std::vector< boost::shared_ptr<Platform> > PlatformList;
+    typedef std::vector< boost::shared_ptr<Device> >   DeviceList;
+    typedef std::vector< boost::shared_ptr<Context> >   ContextList;
 
 }
 
