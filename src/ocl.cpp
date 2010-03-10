@@ -20,13 +20,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef COLORER_H
-#define COLORER_H
+#include "ocl.h"
 
-class Colorer
+Ocl::Ocl()
 {
-public:
-    Colorer();
-};
-
-#endif // COLORER_H
+}

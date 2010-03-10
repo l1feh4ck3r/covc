@@ -20,13 +20,24 @@
  * THE SOFTWARE.
  */
 
-#ifndef COLORER_H
-#define COLORER_H
+#ifndef OCL_H
+#define OCL_H
 
-class Colorer
+#include "CLxx/Includes.h"
+
+class Ocl
 {
 public:
-    Colorer();
+    Ocl();
+
+
+public:
+    bool prepare_opencl();
+
+
+private:
+    boost::shared_ptr<Context> ocl_context;
+    boost::shared_ptr<Program> ocl_program;
 };
 
-#endif // COLORER_H
+#endif // OCL_H
