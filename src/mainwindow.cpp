@@ -57,7 +57,7 @@ void MainWindow::image_selected(QModelIndex index)
     else
         image_view->scale(image.height()/595.0, image.height()/595.0);
 
-    const matrix<int> & calibration_matrix = images[index.row()].get_matrix_of_calibration();
+    const matrix<float> & calibration_matrix = images[index.row()].get_matrix_of_calibration();
 
     for (int i = 0; i < calibration_matrix.RowNo(); ++i)
         for (int j = 0; j < calibration_matrix.ColNo(); ++j)
@@ -101,12 +101,12 @@ void MainWindow::load_metafile()
         in >> bounding_square;
 
         // loading matrix of calibration
-        matrix<int> matrix_of_calibration(3,3);
+        matrix<float> matrix_of_calibration(3,3);
         // CAUTION: type-specific code
         for (size_t i=0; i < matrix_of_calibration.RowNo(); i++)
             for (size_t j=0; j < matrix_of_calibration.ColNo(); j++)
             {
-                int x;
+                float x;
                 in >> x;
                 matrix_of_calibration(i,j) = x;
             }

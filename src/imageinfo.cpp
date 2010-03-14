@@ -5,7 +5,7 @@ ImageInfo::ImageInfo()
 {
 }
 
-ImageInfo::ImageInfo(QString &filename, matrix<int> &_matrix_of_calibration, QRectF &_bounding_rectangle)
+ImageInfo::ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, QRectF &_bounding_rectangle)
         :valid(false)
 {
     if (image.load(filename))

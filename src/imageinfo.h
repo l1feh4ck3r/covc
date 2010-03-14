@@ -10,20 +10,20 @@ class ImageInfo
 {
 public:
     ImageInfo();
-    ImageInfo(QString &filename, matrix<int> &_matrix_of_calibration, QRectF &_bounding_square);
+    ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, QRectF &_bounding_square);
 
 
 public:
     bool is_valid () const {return valid;}
     const QImage & get_image () const {return image;}
     QRectF get_bounding_rectangle() const {return bounding_rectangle;}
-    const matrix<int> & get_matrix_of_calibration() const {return matrix_of_calibration;}
+    const matrix<float> & get_matrix_of_calibration() const {return matrix_of_calibration;}
 
 
 private:
     QRectF      bounding_rectangle;
     QImage      image;
-    matrix<int> matrix_of_calibration;
+    matrix<float> matrix_of_calibration;
     bool        valid;
 };
 
