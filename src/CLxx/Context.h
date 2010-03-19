@@ -33,148 +33,148 @@ THE SOFTWARE.
 
 namespace CLxx
 {
-   /// The environment within which the kernels execute and the domain in which
-   /// synchronization and memory management is defined. The context includes a set of devices, the
-   /// memory accessible to those devices, the corresponding memory properties and one or more
-   /// command-queues used to schedule execution of a kernel(s) or operations on memory objects
+    /// The environment within which the kernels execute and the domain in which
+    /// synchronization and memory management is defined. The context includes a set of devices, the
+    /// memory accessible to those devices, the corresponding memory properties and one or more
+    /// command-queues used to schedule execution of a kernel(s) or operations on memory objects
 
-   class Context
-   {
-      public:
+    class Context
+    {
+    public:
 
-	    typedef cl_context Handle;
+        typedef cl_context Handle;
 
-	    enum PropertiesEnum
-		{
-		   CONTEXT_PLATFORM = CL_CONTEXT_PLATFORM
-		};
+        enum PropertiesEnum
+        {
+            CONTEXT_PLATFORM = CL_CONTEXT_PLATFORM
+                           };
 
-		typedef cl_context_properties PropertyValue;
+        typedef cl_context_properties PropertyValue;
 
-		typedef std::pair<PropertiesEnum, PropertyValue> Property;
-		
+        typedef std::pair<PropertiesEnum, PropertyValue> Property;
 
-		/// Creates an OpenCL context. An OpenCL context is created with one or more devices. Contexts
+
+        /// Creates an OpenCL context. An OpenCL context is created with one or more devices. Contexts
         /// are used by the OpenCL runtime for managing objects such as command-queues, memory,
         /// program and kernel objects and for executing kernels on one or more devices specified in the context.
-		///
-		/// devices : list of unique devices5
+        ///
+        /// devices : list of unique devices5
 
         static boost::shared_ptr<Context> createContext( const std::vector<boost::shared_ptr<Device> >& devices)
-		{ 
-			return createContextImpl(devices, NULL); 
-		}
+        {
+            return createContextImpl(devices, NULL);
+        }
 
-		/// Creates an OpenCL context. An OpenCL context is created with one or more devices. Contexts
+        /// Creates an OpenCL context. An OpenCL context is created with one or more devices. Contexts
         /// are used by the OpenCL runtime for managing objects such as command-queues, memory,
         /// program and kernel objects and for executing kernels on one or more devices specified in the context.
-		///
-		/// devices    : list of unique devices5
-		/// properties : specifies a list of context property names and their corresponding values. 
+        ///
+        /// devices    : list of unique devices5
+        /// properties : specifies a list of context property names and their corresponding values.
         ///              Each property name is immediately followed by the corresponding desired value. 
         ///              The list of supported properties is described in PropertiesEnum. 
         ///              The property vector can be empty in which case the platform that is selected is implementation-defined
 
-		static boost::shared_ptr<Context> createContext( const std::vector<boost::shared_ptr<Device> >& devices, const std::vector<Property>& properties )
-		{ 
-			return createContextImpl(devices, &properties); 
-		}
+        static boost::shared_ptr<Context> createContext( const std::vector<boost::shared_ptr<Device> >& devices, const std::vector<Property>& properties )
+        {
+            return createContextImpl(devices, &properties);
+        }
 
-		/// Creates an OpenCL context from a device type that identifies the specific device(s) to use
-		///
-		/// deviceType : is a bit-field that identifies the type of device and is described in Device::DeviceTypes
-	 
-		static boost::shared_ptr<Context> createContext( Device::DeviceType deviceType )
-		{ 
-			return createContextImpl(deviceType, NULL); 
-		}
+        /// Creates an OpenCL context from a device type that identifies the specific device(s) to use
+        ///
+        /// deviceType : is a bit-field that identifies the type of device and is described in Device::DeviceTypes
 
-		/// Creates an OpenCL context from a device type that identifies the specific device(s) to use
-		///
-		/// deviceType : is a bit-field that identifies the type of device and is described in Device::DeviceTypes
-		/// properties : specifies a list of context property names and their corresponding values. 
+        static boost::shared_ptr<Context> createContext( Device::DeviceType deviceType )
+        {
+            return createContextImpl(deviceType, NULL);
+        }
+
+        /// Creates an OpenCL context from a device type that identifies the specific device(s) to use
+        ///
+        /// deviceType : is a bit-field that identifies the type of device and is described in Device::DeviceTypes
+        /// properties : specifies a list of context property names and their corresponding values.
         ///              Each property name is immediately followed by the corresponding desired value. 
         ///              The list of supported properties is described in PropertiesEnum. 
         ///              The property vector can be empty in which case the platform that is selected is implementation-defined
 
-		static boost::shared_ptr<Context> createContext( Device::DeviceType deviceType, const std::vector<Property>& properties)
-		{ 
-			return createContextImpl(deviceType,  &properties); 
-		}
+        static boost::shared_ptr<Context> createContext( Device::DeviceType deviceType, const std::vector<Property>& properties)
+        {
+            return createContextImpl(deviceType,  &properties);
+        }
 
-      protected:
+    protected:
 
-           static boost::shared_ptr<Context> createContextImpl( const std::vector<boost::shared_ptr<Device> >& devices, const std::vector<Property>* properties);
+        static boost::shared_ptr<Context> createContextImpl( const std::vector<boost::shared_ptr<Device> >& devices, const std::vector<Property>* properties);
 
-	   	   static boost::shared_ptr<Context> createContextImpl( Device::DeviceType deviceType, const std::vector<Property>* properties);
+        static boost::shared_ptr<Context> createContextImpl( Device::DeviceType deviceType, const std::vector<Property>* properties);
 
-     public:
+    public:
 
-	   
-	   ~Context() { clReleaseContext(_handle);  }
 
-	   const Handle& getHandle() const { return _handle; }
+        ~Context() { clReleaseContext(_handle);  }
 
-	   cl_uint getContextReferenceCount() const;
+        const Handle& getHandle() const { return _handle; }
 
-       const std::vector<boost::shared_ptr<Device> >& getDevices() const { return _devices; }
+        cl_uint getContextReferenceCount() const;
 
-	   const std::vector<Property>& getProperties() const { return _properties; }
+        const std::vector<boost::shared_ptr<Device> >& getDevices() const { return _devices; }
 
-       const std::set<boost::shared_ptr<CommandQueue> >& getCommandQueues() const { return _commandQueues; }
+        const std::vector<Property>& getProperties() const { return _properties; }
 
-       const std::set<boost::shared_ptr<Program> >& getPrograms() const { return _programs; }
+        const std::set<boost::shared_ptr<CommandQueue> >& getCommandQueues() const { return _commandQueues; }
 
-	   /// Callbacks registered by the application. This signal
-       /// will be used by the OpenCL implementation to report information on errors that occur in this
-       /// context. This signal may be called asynchronously by the OpenCL implementation.
-       /// It is the application’s responsibility to ensure that the callback function is thread-safe. 
+        const std::set<boost::shared_ptr<Program> >& getPrograms() const { return _programs; }
 
-	   typedef boost::signal<void (const char *errinfo, const void *private_info, size_t cb)>  ErrorCallback;
+        /// Callbacks registered by the application. This signal
+        /// will be used by the OpenCL implementation to report information on errors that occur in this
+        /// context. This signal may be called asynchronously by the OpenCL implementation.
+        /// It is the application’s responsibility to ensure that the callback function is thread-safe.
 
-	   ErrorCallback& getErrorSignal() { return _errorCallbacks; }
+        typedef boost::signal<void (const char *errinfo, const void *private_info, size_t cb)>  ErrorCallback;
 
-	   boost::shared_ptr<CommandQueue> createCommandQueue( CommandQueue::Properties props = CommandQueue::PROFILING_ENABLE, boost::shared_ptr<Device> dev = boost::shared_ptr<Device>() );
+        ErrorCallback& getErrorSignal() { return _errorCallbacks; }
 
-	   boost::shared_ptr<Program> createProgram(const char* source);
+        boost::shared_ptr<CommandQueue> createCommandQueue( CommandQueue::Properties props = CommandQueue::PROFILING_ENABLE, boost::shared_ptr<Device> dev = boost::shared_ptr<Device>() );
 
-	   boost::shared_ptr<Program> createProgramFromFile(const char* path);
+        boost::shared_ptr<Program> createProgram(const char* source);
 
-	   boost::shared_ptr<Buffer> createBuffer(Memory::Flags props, size_t mem_size, void* host_ptr = NULL);
+        boost::shared_ptr<Program> createProgramFromFile(const char* path);
 
-       
+        boost::shared_ptr<Buffer> createBuffer(Memory::Flags props, size_t mem_size, void* host_ptr = NULL);
 
-   protected:
 
-       friend class CommandQueue;
-	   friend class Program;
 
-	   Context(){}
+    protected:
 
-	   void addCommandQueue(boost::shared_ptr<CommandQueue>& cmd);
+        friend class CommandQueue;
+        friend class Program;
 
-	   void removeCommandQueue(boost::shared_ptr<CommandQueue>& cmd);
+        Context(){}
 
-	   void addProgram(boost::shared_ptr<Program>& cmd) { _programs.insert(cmd); }
+        void addCommandQueue(boost::shared_ptr<CommandQueue>& cmd);
 
-	   void removeProgram(boost::shared_ptr<Program>& cmd) { _programs.erase(cmd); }
+        void removeCommandQueue(boost::shared_ptr<CommandQueue>& cmd);
 
-	   void retriveDevices(Device::DeviceType deviceType);
+        void addProgram(boost::shared_ptr<Program>& cmd) { _programs.insert(cmd); }
 
-	   Handle _handle;
+        void removeProgram(boost::shared_ptr<Program>& cmd) { _programs.erase(cmd); }
 
-	   std::vector<Property> _properties;
+        void retriveDevices(Device::DeviceType deviceType);
 
-       std::vector<boost::shared_ptr<Device> > _devices;
+        Handle _handle;
 
-       std::set<boost::shared_ptr<CommandQueue> > _commandQueues;
+        std::vector<Property> _properties;
 
-       std::set<boost::shared_ptr<Program> > _programs;
+        std::vector<boost::shared_ptr<Device> > _devices;
 
-	   ErrorCallback _errorCallbacks;
+        std::set<boost::shared_ptr<CommandQueue> > _commandQueues;
 
-	   boost::weak_ptr<Context> _this;
-   };
+        std::set<boost::shared_ptr<Program> > _programs;
+
+        ErrorCallback _errorCallbacks;
+
+        boost::weak_ptr<Context> _this;
+    };
 };
 
 

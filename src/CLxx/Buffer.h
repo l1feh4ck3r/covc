@@ -29,29 +29,29 @@ THE SOFTWARE.
 
 namespace CLxx
 {
- 	
-	/// A memory object that stores a linear collection of bytes
-	///	Elements of a buffer object can be a scalar data type (such as an int, float), vector data type, or a
-	/// user-defined structure.
-   class Buffer : public Memory
-   {
-      public:
 
-		  /// Create a buffer object 
-		  /// context  : is a valid OpenCL context used to create the buffer object
-		  /// flags    : is a bit-field that is used to specify allocation and usage information such as the memory
-          ///            arena that should be used to allocate the buffer object and how it will be used.
-		  ///            See Memory::FlagEnum for the possible values of flags 
-		  /// mem_size : is the size in bytes of the buffer memory object to be allocated
-		  /// host_ptr : is a pointer to the buffer data that may already be allocated by the application. The size
-          ///            of the buffer that host_ptr points to must be >= size bytes
-          static boost::shared_ptr<Buffer> createBuffer( boost::shared_ptr<Context> context, Flags flags, size_t mem_size, void* host_ptr = NULL);
+    /// A memory object that stores a linear collection of bytes
+    ///	Elements of a buffer object can be a scalar data type (such as an int, float), vector data type, or a
+    /// user-defined structure.
+    class Buffer : public Memory
+    {
+    public:
 
-      protected:
+        /// Create a buffer object
+        /// context  : is a valid OpenCL context used to create the buffer object
+        /// flags    : is a bit-field that is used to specify allocation and usage information such as the memory
+        ///            arena that should be used to allocate the buffer object and how it will be used.
+        ///            See Memory::FlagEnum for the possible values of flags
+        /// mem_size : is the size in bytes of the buffer memory object to be allocated
+        /// host_ptr : is a pointer to the buffer data that may already be allocated by the application. The size
+        ///            of the buffer that host_ptr points to must be >= size bytes
+        static boost::shared_ptr<Buffer> createBuffer( boost::shared_ptr<Context> context, Flags flags, size_t mem_size, void* host_ptr = NULL);
 
-		  Buffer(Handle h) 
-			  : Memory(h){}
-   };
+    protected:
+
+        Buffer(Handle h)
+            : Memory(h){}
+    };
 }
 
 #endif

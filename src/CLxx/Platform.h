@@ -30,36 +30,36 @@ THE SOFTWARE.
 
 namespace CLxx
 {
-	class Platform
-	{
+    class Platform
+    {
 
-	public:
+    public:
 
-		typedef cl_platform_id Handle;
+        typedef cl_platform_id Handle;
 
-		const Handle& getHandle() const { return _handle; }
+        const Handle& getHandle() const { return _handle; }
 
-		std::string getName() const;
-		std::string getProfile() const;
-		std::string getVersion() const;
-		std::string getVendor() const;
-		std::string getExtensions() const;
+        std::string getName() const;
+        std::string getProfile() const;
+        std::string getVersion() const;
+        std::string getVendor() const;
+        std::string getExtensions() const;
 
-		const DeviceList& getDeviceList();
+        const DeviceList& getDeviceList();
 
-	protected:
+    protected:
 
-		friend class Host;
+        friend class Host;
 
-		Platform(Handle h);
+        Platform(Handle h);
 
-		void queryDevices();
+        void queryDevices();
 
-		Handle _handle;
+        Handle _handle;
 
-		DeviceList  _deviceList;
+        DeviceList  _deviceList;
 
-	};
+    };
 };
 
 

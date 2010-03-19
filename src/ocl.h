@@ -20,33 +20,24 @@
  * THE SOFTWARE.
  */
 
-#ifndef IMAGEINFO_H
-#define IMAGEINFO_H
+#ifndef OCL_H
+#define OCL_H
 
-#include <QImage>
+#include "CLxx/Includes.h"
 
-#include "matrix/include/matrix.h"
-using namespace math;
-
-class ImageInfo
+class Ocl
 {
 public:
-    ImageInfo();
-    ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, QRectF &_bounding_square);
+    Ocl();
 
 
 public:
-    bool is_valid () const {return valid;}
-    const QImage & get_image () const {return image;}
-    QRectF get_bounding_rectangle() const {return bounding_rectangle;}
-    const matrix<float> & get_matrix_of_calibration() const {return matrix_of_calibration;}
+    bool prepare_opencl();
 
 
 private:
-    QRectF      bounding_rectangle;
-    QImage      image;
-    matrix<float> matrix_of_calibration;
-    bool        valid;
+    boost::shared_ptr<Context> ocl_context;
+    boost::shared_ptr<Program> ocl_program;
 };
 
-#endif // IMAGEINFO_H
+#endif // OCL_H

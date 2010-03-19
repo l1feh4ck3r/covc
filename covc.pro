@@ -27,7 +27,8 @@ SOURCES += src/main.cpp \
     src/CLxx/Command.cpp \
     src/CLxx/Buffer.cpp \
     src/CLxx/BufferCommands.cpp \
-    src/colorer.cpp
+    src/colorer.cpp \
+    src/ocl.cpp
 HEADERS += src/mainwindow.h \
     src/matrix/include/matrix.h \
     src/imagepreview.h \
@@ -53,7 +54,8 @@ HEADERS += src/mainwindow.h \
     src/CLxx/Command.h \
     src/CLxx/Buffer.h \
     src/CLxx/BufferCommands.h \
-    src/colorer.h
+    src/colorer.h \
+    src/ocl.h
 unix:LIBS += -lOpenCL \
     -lboost_signals
 
@@ -62,4 +64,6 @@ FORMS += src/mainwindow.ui
 OTHER_FILES += .gitignore \
     TODO \
     README \
-    src/colorer.cl
+    src/colorer.cl \
+    LICENSE \
+    LICENSE_RUS
