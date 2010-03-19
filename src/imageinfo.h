@@ -32,6 +32,7 @@ class ImageInfo
 {
 public:
     ImageInfo();
+    ImageInfo(QString &filename);
     ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, QRectF &_bounding_square);
 
 

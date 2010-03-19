@@ -53,6 +53,18 @@ MainWindow::~MainWindow()
 
 void MainWindow::add_image()
 {
+    QString image_file_name = QFileDialog::getOpenFileName(this, tr("Select meta file."));
+    if (image_file_name.isEmpty())
+        return;
+
+    // create image
+    ImageInfo image(image_file_name);
+    if (image.is_valid())
+    {
+        images.append(image);
+        // add image to the preview widget
+        image_preview_model->add_image(image.get_image());
+    }
 }
 
 
@@ -161,7 +173,10 @@ void MainWindow::save_metafile()
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::setup_connections()
 {
+    connect(ui->actionAdd_image, SIGNAL(triggered()), this, SLOT(add_image()));
     connect(ui->actionLoad_metafile, SIGNAL(triggered()), this, SLOT(load_metafile()));
+    connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
+
     connect(image_preview_list, SIGNAL(clicked(QModelIndex)), this, SLOT(image_selected(QModelIndex)));
 }
 

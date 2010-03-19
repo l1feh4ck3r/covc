@@ -25,6 +25,8 @@
 
 #include "CLxx/Includes.h"
 
+using namespace CLxx;
+
 class Ocl
 {
 public:

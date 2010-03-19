@@ -27,8 +27,19 @@ ImageInfo::ImageInfo()
 {
 }
 
+
+ImageInfo::ImageInfo(QString &filename)
+        :valid(false), matrix_of_calibration(3,3)
+{
+    if (image.load(filename))
+    {
+        valid = true;
+    }
+}
+
+
 ImageInfo::ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, QRectF &_bounding_rectangle)
-        :valid(false)
+        :valid(false), matrix_of_calibration(3,3)
 {
     if (image.load(filename))
     {

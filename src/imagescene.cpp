@@ -26,7 +26,7 @@
 #include <QGraphicsRectItem>
 
 ImageScene::ImageScene(QObject *parent)
-        :QGraphicsScene(parent), rectangle(NULL)
+        :QGraphicsScene(parent), rectangle(NULL), image(NULL)
 {
 }
 
