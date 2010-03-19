@@ -53,8 +53,10 @@ public:
 
 private slots:
     void add_image();
+    void element_of_matrix_of_calibration_changed(int row, int column);
     void image_selected(QModelIndex index);
     void load_metafile();
+    void rectangle_changed(QRectF rectangle);
     void save_metafile();
 
 
@@ -72,6 +74,8 @@ private:
     QTableWidget    *table_widget;
 
     QVector<ImageInfo>  images;
+
+    QModelIndex last_selected_image;
 };
 
 #endif // MAINWINDOW_H

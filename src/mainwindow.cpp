@@ -53,7 +53,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::add_image()
 {
-    QString image_file_name = QFileDialog::getOpenFileName(this, tr("Select meta file."));
+    QString image_file_name = QFileDialog::getOpenFileName(this,
+                                                           tr("Select meta file."),
+                                                           "",
+                                                           tr("Images (*.png *.jpg)"));
     if (image_file_name.isEmpty())
         return;
 
@@ -68,6 +71,15 @@ void MainWindow::add_image()
 }
 
 
+void MainWindow::element_of_matrix_of_calibration_changed(int row, int column)
+{
+    bool ok;
+    float value = table_widget->item(row, column)->data(Qt::EditRole).toFloat(&ok);
+    if (ok)
+        images[image_preview_list->currentIndex().row()].set_element_of_matrif_of_calibration(row, column, value);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 //! Setting up selected image and it's bounding rectangle to image view
 //!
@@ -75,23 +87,17 @@ void MainWindow::add_image()
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::image_selected(QModelIndex index)
 {
-    const QImage &image = images[index.row()].get_image();
+    int image_index = index.row();
+    const QImage &image = images[image_index].get_image();
 
-    image_scene->set_image(images[index.row()].get_image());
-    // set scene size to image size
-    image_view->setSceneRect(0.0,
-                             0.0,
-                             image.width(),
-                             image.height());
-    image_scene->set_rectangle(images[index.row()].get_bounding_rectangle());
+    // add image to the scene
+    image_scene->set_image(image);
 
-    // scale image view size
-    if (image.width() > image.height())
-        image_view->scale(image.width()/645.0, image.width()/645.0);
-    else
-        image_view->scale(image.height()/595.0, image.height()/595.0);
+    // add bounding rectangle to the scene
+    image_scene->set_rectangle(images[image_index].get_bounding_rectangle());
 
-    const matrix<float> & calibration_matrix = images[index.row()].get_matrix_of_calibration();
+    // set calibration matrix
+    const matrix<float> & calibration_matrix = images[image_index].get_matrix_of_calibration();
 
     for (int i = 0; i < calibration_matrix.RowNo(); ++i)
         for (int j = 0; j < calibration_matrix.ColNo(); ++j)
@@ -159,6 +165,11 @@ void MainWindow::load_metafile()
     file.close();
 }
 
+void MainWindow::rectangle_changed(QRectF rectangle)
+{
+    images[image_preview_list->currentIndex().row()].set_bounding_rectangle(rectangle);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //! TODO May be one day it will be saving function
@@ -178,6 +189,8 @@ void MainWindow::setup_connections()
     connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
 
     connect(image_preview_list, SIGNAL(clicked(QModelIndex)), this, SLOT(image_selected(QModelIndex)));
+    connect(image_scene, SIGNAL(rectangle_changed(QRectF)) , this, SLOT(rectangle_changed(QRectF)));
+    connect(table_widget, SIGNAL(cellChanged(int,int)), this, SLOT(element_of_matrix_of_calibration_changed(int,int)));
 }
 
 
@@ -217,6 +230,7 @@ void MainWindow::setup_ui()
     image_view->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
 
     image_scene = new ImageScene(this);
+    //TODO: magic numbers
     image_scene->setSceneRect(0.0, 0.0, 645.0, 595.0);
     image_scene->set_rectangle(QRectF(0.0, 0.0, 0.0, 0.0));
     image_view->setScene(image_scene);

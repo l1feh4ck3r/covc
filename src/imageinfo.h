@@ -42,6 +42,11 @@ public:
     QRectF get_bounding_rectangle() const {return bounding_rectangle;}
     const matrix<float> & get_matrix_of_calibration() const {return matrix_of_calibration;}
 
+    void set_image (const QImage &_image);
+    void set_bounding_rectangle(const QRectF &_bounding_rectangle);
+    void set_matrix_of_calibration(const matrix<float> &_matrix_of_calibration);
+    void set_element_of_matrif_of_calibration(int row, int column, float value);
+
 
 private:
     QRectF      bounding_rectangle;

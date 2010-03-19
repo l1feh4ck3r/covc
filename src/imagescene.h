@@ -37,6 +37,8 @@ public:
     void set_rectangle(QRectF _rectangle);
     void set_image(const QImage &_image);
 
+public slots:
+
 signals:
     void rectangle_changed(QRectF rectangle);
 

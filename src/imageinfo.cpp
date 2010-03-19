@@ -29,22 +29,59 @@ ImageInfo::ImageInfo()
 
 
 ImageInfo::ImageInfo(QString &filename)
-        :valid(false), matrix_of_calibration(3,3)
+        :valid(false),
+        matrix_of_calibration(3,3)
 {
-    if (image.load(filename))
-    {
-        valid = true;
-    }
+    QImage temp_image;
+    if (!temp_image.load(filename))
+        return;
+
+
+    //TODO: magic numbers
+    image = temp_image.scaled(645, 595,
+                              Qt::IgnoreAspectRatio,
+                              Qt::SmoothTransformation);
+    valid = true;
 }
 
 
 ImageInfo::ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, QRectF &_bounding_rectangle)
-        :valid(false), matrix_of_calibration(3,3)
+        :valid(false),
+        matrix_of_calibration(3,3)
 {
-    if (image.load(filename))
-    {
-        matrix_of_calibration = _matrix_of_calibration;
-        bounding_rectangle = _bounding_rectangle;
-        valid = true;
-    }
+    QImage temp_image;
+    if (!temp_image.load(filename))
+        return;
+
+    //TODO: magic numbers
+    image = temp_image.scaled(645, 595,
+                              Qt::IgnoreAspectRatio,
+                              Qt::SmoothTransformation);
+
+    matrix_of_calibration = _matrix_of_calibration;
+    bounding_rectangle = _bounding_rectangle;
+    valid = true;
+}
+
+
+void ImageInfo::set_element_of_matrif_of_calibration(int row, int column, float value)
+{
+    matrix_of_calibration(row, column) = value;
+}
+
+void ImageInfo::set_image (const QImage &_image)
+{
+    image=_image;
+}
+
+
+void ImageInfo::set_bounding_rectangle(const QRectF &_bounding_rectangle)
+{
+    bounding_rectangle = _bounding_rectangle;
+}
+
+
+void ImageInfo::set_matrix_of_calibration(const matrix<float> &_matrix_of_calibration)
+{
+    matrix_of_calibration = _matrix_of_calibration;
 }
