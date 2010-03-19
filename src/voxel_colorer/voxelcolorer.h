@@ -20,13 +20,18 @@
  * THE SOFTWARE.
  */
 
-#ifndef COLORER_H
-#define COLORER_H
+#ifndef VOXELCOLORER_H
+#define VOXELCOLORER_H
 
-class Colorer
+class VoxelColorer
 {
 public:
-    Colorer();
+    VoxelColorer();
+
+public:
+//    void add_image(image, matrix);
+//    void add_image(image, matrix, boundingrectangle);
+
 };
 
-#endif // COLORER_H
+#endif // VOXELCOLORER_H

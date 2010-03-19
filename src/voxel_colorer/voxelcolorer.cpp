@@ -20,8 +20,8 @@
  * THE SOFTWARE.
  */
 
-#include "colorer.h"
+#include "voxelcolorer.h"
 
-Colorer::Colorer()
+VoxelColorer::VoxelColorer()
 {
 }

@@ -79,6 +79,7 @@ void ImageScene::set_image(const QImage &_image)
     {
         removeItem(image);
         delete image;
+        image = NULL;
     }
 
     QPixmap pixmap = QPixmap::fromImage(_image);
@@ -91,6 +92,7 @@ void ImageScene::set_rectangle(QRectF _rectangle)
     {
         removeItem(rectangle);
         delete rectangle;
+        rectangle = NULL;
     }
 
     rectangle = addRect(_rectangle);
