@@ -29,8 +29,6 @@ public:
     VoxelColorer();
 
 public:
-//    void add_image(image, matrix);
-//    void add_image(image, matrix, boundingrectangle);
 
 };
 

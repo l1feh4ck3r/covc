@@ -2,19 +2,23 @@ Realization of voxel coloring algorithm on C++ via OpenCL.
 
 Using openclxx library. More info search in src/CLxx/README file.
 
-Dependancies:
+Dependencies:
     boost signals
+    opencl
+
+covc:
+    library.
+
+dependencies/CLxx:
+    OpenCLxx lib. Find more info in dependencies/CLxx/README .
+
+dependencies/matrix:
+    matrix lib.
+
+example/qcovc:
+    GUI application shows how to use covc.
 
 tools/oclc:
   oclc - OpenCL Compiler.
   oclc only compiles OpenCL sources and showing errors.
 
-===============================================================================
-
-Done:
-
-- Loading of metafile, containing file names of images, bounding sqares and matrices of calibration.
-  (added Sun Jan 24 21:55:42 2010, completed on Sun Jan 31 22:30:12 2010, priority high)
-
-- Drawing bounding rectangle.
-  (added Tue Feb  2 22:09:57 2010, completed on Tue Feb  2 22:11:36 2010, priority medium)
