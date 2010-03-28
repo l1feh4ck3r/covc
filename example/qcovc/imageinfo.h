@@ -25,7 +25,7 @@
 
 #include <QImage>
 
-#include "matrix/include/matrix.h"
+#include "../dependencies/matrix/include/matrix.h"
 using namespace math;
 
 class ImageInfo
