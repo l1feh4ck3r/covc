@@ -1,0 +1,18 @@
+#project name
+PROJECT (COVC)
+
+#cmake minimum version
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+OPTION (BUILD_EXAMPLES "Build all examples." ON)
+
+ADD_SUBDIRECTORY(covc)
+
+IF (BUILD_EXAMPLES)
+    ADD_SUBDIRECTORY(examples)
+ENDIF (BUILD_EXAMPLES)
+
+ADD_SUBDIRECTORY(dependencies)
+
+ADD_SUBDIRECTORY(tools)
+
