@@ -1,9 +1,11 @@
-PROJECT(COVCLIB)
+cmake_minimum_required(VERSION 2.6)
 
-SET (COVC_LIB_SRCS_CXX
+project(covclib)
+
+set(COVC_LIB_SRCS_CXX
     src/ocl.cpp
     src/voxelcolorer.cpp
     )
 
-ADD_LIBRARY (covclib ${COVC_LIB_SRCS_CXX})
+add_library(covclib ${COVC_LIB_SRCS_CXX})
 

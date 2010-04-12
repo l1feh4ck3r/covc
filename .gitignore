@@ -1,5 +1,3 @@
-covc.pro.user
-qcovc.pro.user
-oclc.pro.user
+*.user
 .todo
 build/
