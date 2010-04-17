@@ -8,4 +8,3 @@ set(COVC_LIB_SRCS_CXX
     )
 
 add_library(covclib ${COVC_LIB_SRCS_CXX})
-
