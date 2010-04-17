@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include "ocl.h"
+#include "../include/ocl.h"
 
 Ocl::Ocl()
 {

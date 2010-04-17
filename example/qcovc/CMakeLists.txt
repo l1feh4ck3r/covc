@@ -28,7 +28,7 @@ set (QCOVC_UI
 # build ui_XXX files from the XML-style .ui files
 QT4_WRAP_UI(QCOVC_SRCS_CXX ${QCOVC_UI})
 # this moc's the above variable and appends to the cxx sources
-QT4_WRAP_CPP(QCOVC_SRCS_CXX ${QCOVC_MOC_SRCS}
+QT4_WRAP_CPP(QCOVC_SRCS_CXX ${QCOVC_MOC_SRCS})
 
 if(UNIX)
   add_executable(qcovc ${QCOVC_SRCS_CXX})
@@ -38,4 +38,4 @@ elseif(WIN32)
   add_executable(qcovc WIN32 ${QCOVC_SRCS_CXX})
 endif()
 
-target_link(qcovc ${QT_LIBRARIES})
+target_link_libraries(qcovc ${QT_LIBRARIES})
