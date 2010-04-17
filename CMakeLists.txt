@@ -11,7 +11,7 @@ add_subdirectory(covc)
 add_subdirectory(dependencies)
 
 if (BUILD_EXAMPLES)
-    add_subdirectory(examples)
+    add_subdirectory(example)
 endif (BUILD_EXAMPLES)
 
 add_subdirectory(tools)
