@@ -6,9 +6,9 @@ cmake_minimum_required(VERSION 2.6)
 
 option(BUILD_EXAMPLES "Build all examples." ON)
 
-add_subdirectory(covc)
-
 add_subdirectory(dependencies)
+
+add_subdirectory(covc)
 
 if (BUILD_EXAMPLES)
     add_subdirectory(example)

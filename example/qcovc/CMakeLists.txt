@@ -6,6 +6,8 @@ find_package(Qt4 REQUIRED)
 
 include(${QT_USE_FILE})
 
+include_directories("${matrix_tcl_lite_SOURCE_DIR}/include")
+
 set (QCOVC_SRCS_CXX
   imageinfo.cpp
   imagepreview.cpp
@@ -29,6 +31,8 @@ set (QCOVC_UI
 QT4_WRAP_UI(QCOVC_SRCS_CXX ${QCOVC_UI})
 # this moc's the above variable and appends to the cxx sources
 QT4_WRAP_CPP(QCOVC_SRCS_CXX ${QCOVC_MOC_SRCS})
+
+include_directories ("${PROJECT_BINARY_DIR}")
 
 if(UNIX)
   add_executable(qcovc ${QCOVC_SRCS_CXX})

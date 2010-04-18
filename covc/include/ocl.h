@@ -23,7 +23,7 @@
 #ifndef OCL_H
 #define OCL_H
 
-#include "../dependencies/CLxx/Includes.h"
+#include "Includes.h"
 
 using namespace CLxx;
 
