@@ -25,3 +25,36 @@
 Ocl::Ocl()
 {
 }
+
+bool Ocl::build_program(std::string path_to_file_with_program)
+{
+    bool result = false;
+
+    try
+    {
+        ocl_program.reset(ocl_context->createProgramFromFile(path_to_file_with_program.data()));
+        result = true;
+    }
+    catch(Exception ex)
+    {
+        result = false;
+    }
+}
+
+bool Ocl::prepare_opencl()
+{
+    bool result = false;
+
+    try
+    {
+        if (!ocl_context.use_count())
+            ocl_context = Context::createContext(Device::GPU);
+        result = true;
+    }
+    catch(Exception ex)
+    {
+        result = false;
+    }
+
+    return result;
+}
