@@ -26,17 +26,18 @@ Ocl::Ocl()
 {
 }
 
-bool Ocl::build_program(std::string path_to_file_with_program)
+bool Ocl::build_program(const std::string & path_to_file_with_program)
 {
     bool result = false;
 
     try
     {
-        ocl_program.reset(ocl_context->createProgramFromFile(path_to_file_with_program.data()));
-        result = true;
+        ocl_program = ocl_context->createProgramFromFile(path_to_file_with_program);
 
         if ( !ocl_program->buildProgram("-cl-mad-enable") )
             result = false;
+
+        result = true;
     }
     catch(Exception ex)
     {

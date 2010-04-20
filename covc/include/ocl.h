@@ -34,7 +34,7 @@ public:
 
 
 public:
-    bool build_program();
+    bool build_program(const std::string & path_to_file_with_program);
     bool prepare_opencl();
 
     boost::shared_ptr<Context> get_context () const  {return ocl_context;}

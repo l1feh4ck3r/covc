@@ -66,7 +66,7 @@ namespace CLxx
         /// source  : null-terminated character strings that make up the source code
         static boost::shared_ptr<Program> createProgram(boost::shared_ptr<Context> context, const char* source);
 
-        static boost::shared_ptr<Program> createProgramFromFile(boost::shared_ptr<Context> context, const char* path);
+        static boost::shared_ptr<Program> createProgramFromFile(boost::shared_ptr<Context> context, const std::string & path);
 
 
         //static boost::shared_ptr<Program> createProgram(boost::shared_ptr<Context> context, std::vector<Device> devs, boost::shared_ptr<unsigned char> binary );

@@ -138,7 +138,7 @@ namespace CLxx
 
         boost::shared_ptr<Program> createProgram(const char* source);
 
-        boost::shared_ptr<Program> createProgramFromFile(const char* path);
+        boost::shared_ptr<Program> createProgramFromFile(const std::string & path);
 
         boost::shared_ptr<Buffer> createBuffer(Memory::Flags props, size_t mem_size, void* host_ptr = NULL);
 

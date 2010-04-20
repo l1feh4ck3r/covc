@@ -154,7 +154,7 @@ namespace CLxx
         return Program::createProgram(_this.lock(), source);
     }
 
-    boost::shared_ptr<Program> Context::createProgramFromFile(const char* path)
+    boost::shared_ptr<Program> Context::createProgramFromFile(const std::string & path)
     {
         return Program::createProgramFromFile(_this.lock(), path);
     }

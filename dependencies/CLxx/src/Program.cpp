@@ -27,9 +27,9 @@ namespace CLxx
     {
     }
 
-    boost::shared_ptr<Program> Program::createProgramFromFile(boost::shared_ptr<Context> context, const char* path)
+    boost::shared_ptr<Program> Program::createProgramFromFile(boost::shared_ptr<Context> context, const std::string & path)
     {
-        std::ifstream file(path);
+        std::ifstream file(path.data());
 
         if ( !file )
             throw Exception(std::string("Error while opening ") + path);
