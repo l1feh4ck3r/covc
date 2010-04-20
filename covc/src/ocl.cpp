@@ -34,11 +34,16 @@ bool Ocl::build_program(std::string path_to_file_with_program)
     {
         ocl_program.reset(ocl_context->createProgramFromFile(path_to_file_with_program.data()));
         result = true;
+
+        if ( !ocl_program->buildProgram("-cl-mad-enable") )
+            result = false;
     }
     catch(Exception ex)
     {
         result = false;
     }
+
+    return result;
 }
 
 bool Ocl::prepare_opencl()
