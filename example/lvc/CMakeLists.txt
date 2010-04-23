@@ -8,5 +8,5 @@ set(LVC_SRCS
 
 add_executable(lvc ${LVC_SRCS})
 
-target_link_libraries(lvc OpenCL)
+target_link_libraries(lvc jpeglib)
 

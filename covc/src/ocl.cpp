@@ -22,6 +22,8 @@
 
 #include "ocl.h"
 
+#include <iostream>
+
 Ocl::Ocl()
 {
 }
@@ -34,10 +36,10 @@ bool Ocl::build_program(const std::string & path_to_file_with_program)
     {
         ocl_program = ocl_context->createProgramFromFile(path_to_file_with_program);
 
-        if ( !ocl_program->buildProgram("-cl-mad-enable") )
-            result = false;
+        result = ocl_program->buildProgram("-cl-mad-enable");
 
-        result = true;
+        if (!result)
+            std::cerr << ocl_program->getBuildLog() << std::endl;
     }
     catch(Exception ex)
     {
@@ -59,6 +61,7 @@ bool Ocl::prepare_opencl()
     }
     catch(Exception ex)
     {
+        std::cerr << ex.what() << std::endl;
         result = false;
     }
 
