@@ -23,6 +23,7 @@
 #include "pictureinfo.h"
 
 #include <jpeglib.h>
+#include <stdio.h>
 
 PictureInfo::PictureInfo()
 {
