@@ -23,8 +23,16 @@
 #ifndef PICTUREINFO_H
 #define PICTUREINFO_H
 
+#include <iostream>
+
 class PictureInfo
 {
+public:
+    PictureInfo();
+
+
+public:
+    int load_jpg(const std::string & file_name);
 
 };
 

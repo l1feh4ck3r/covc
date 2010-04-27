@@ -4,7 +4,7 @@ project(lvc)
 
 set(LVC_SRCS
     lvc.cpp
-    jpg.cpp
+    pictureinfo.cpp
     )
 
 add_executable(lvc ${LVC_SRCS})

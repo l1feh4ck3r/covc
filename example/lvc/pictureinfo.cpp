@@ -20,9 +20,14 @@
  * THE SOFTWARE.
  */
 
+#include "pictureinfo.h"
+
 #include <jpeglib.h>
 
-#include <iostream>
+PictureInfo::PictureInfo()
+{
+
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Read jpeg file.
@@ -32,7 +37,7 @@
 //!
 //! @param file_name Name of the jpeg image file
 ///////////////////////////////////////////////////////////////////////////////
-int load_jpg(const std::string & file_name)
+int PictureInfo::load_jpg(const std::string & file_name)
 {
     unsigned char a,r,g,b;
     int width, height;
