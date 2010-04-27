@@ -4,9 +4,10 @@ project(lvc)
 
 set(LVC_SRCS
     lvc.cpp
+    jpg.cpp
     )
 
 add_executable(lvc ${LVC_SRCS})
 
-target_link_libraries(lvc jpeglib)
+target_link_libraries(lvc jpeg)
 
