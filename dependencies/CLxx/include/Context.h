@@ -128,7 +128,7 @@ namespace CLxx
         /// Callbacks registered by the application. This signal
         /// will be used by the OpenCL implementation to report information on errors that occur in this
         /// context. This signal may be called asynchronously by the OpenCL implementation.
-        /// It is the application’s responsibility to ensure that the callback function is thread-safe.
+        /// It is the applicationâ€™s responsibility to ensure that the callback function is thread-safe.
 
         typedef boost::signal<void (const char *errinfo, const void *private_info, size_t cb)>  ErrorCallback;
 
