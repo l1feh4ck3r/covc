@@ -31,7 +31,14 @@ using namespace math;
 
 struct Img
 {
-    unsigned char b, g, r, a;
+    union
+    {
+        unsigned char p[4];
+        struct
+        {
+            unsigned char b, g, r, a;
+        };
+    };
 };
 
 class PictureInfo
@@ -42,6 +49,9 @@ public:
 
 
 public:
+    int init(const vector<float> &_bounding_rectangle,
+             const matrix<float> &_matrix_of_calibration,
+             const std::string & file_name);
     int load_jpg(const std::string & file_name);
 
 

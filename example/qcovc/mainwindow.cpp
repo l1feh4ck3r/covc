@@ -128,7 +128,7 @@ void MainWindow::load_metafile()
 
     // loading matrix of calibration
     // TODO: CAUTION: type-specific code
-    // TODO: code duplication with "from 159 line"
+    // TODO: code duplication with "from line 159"
     for (size_t i=0; i < matrix_of_camera_calibration.RowNo(); i++)
         for (size_t j=0; j < matrix_of_camera_calibration.ColNo(); j++)
         {

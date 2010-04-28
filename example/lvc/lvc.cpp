@@ -39,6 +39,10 @@ int main(int argc, char * argv[])
         return 1;
     }
 
+    // all variables
+    vector<PictureInfo> pictures;
+    matrix<float>   camera_calibration_matrix(3, 3);
+
     // 1. load all info
     ifstream meta_file;
     meta_file.open(argv[1]);
@@ -48,8 +52,48 @@ int main(int argc, char * argv[])
         return 1;
     }
 
+    // load number of images
     size_t image_number;
     meta_file >> image_number;
+
+    // loading camera calibration matrix
+    // TODO: CAUTION: type-specific code
+    // TODO: code duplication with "from line 80"
+    for (size_t i=0; i < camera_calibration_matrix.RowNo(); i++)
+        for (size_t j=0; j < camera_calibration_matrix.ColNo(); j++)
+        {
+            float x;
+            meta_file >> x;
+            camera_calibration_matrix(i,j) = x;
+        }
+
+
+    pictures.reserve(image_number);
+
+    for (size_t i = 0; i < image_number; ++i)
+    {
+        PictureInfo picture;
+
+        string image_name;
+        meta_file >> image_name;
+
+        vector<float> bounding_rectangle(4);
+        for (size_t i = 0; i < 4; ++i)
+            meta_file >> bounding_rectangle[i];
+
+        // loading camera calibration matrix for current image
+        matrix<float> matrix_of_calibration(3,3);
+        // TODO: CAUTION: type-specific code
+        for (size_t i=0; i < matrix_of_calibration.RowNo(); i++)
+            for (size_t j=0; j < matrix_of_calibration.ColNo(); j++)
+            {
+                float x;
+                meta_file >> x;
+                matrix_of_calibration(i,j) = x;
+            }
+
+        picture.init(bounding_rectangle, matrix_of_calibration, image_name);
+    }
 
     meta_file.close();
 

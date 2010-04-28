@@ -104,6 +104,8 @@
 #  include <iostream>
 #endif
 
+#include <memory.h>
+
 #if defined(_MSC_VER) && _MSC_VER <= 1000
 #  define _NO_EXCEPTION        // stdexception is not fully supported in MSVC++ 4.0
 typedef int bool;

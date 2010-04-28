@@ -45,6 +45,30 @@ PictureInfo::~PictureInfo()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//! Init picture info with values
+//!
+//! @param _bounding_rectangle Main object bounding rectangle
+//! @param _matrix_of_calibration Matrix of camera calibration for current image
+//! @param file_name Name of the file with image
+///////////////////////////////////////////////////////////////////////////////
+int PictureInfo::init(const vector<float> &_bounding_rectangle,
+                      const matrix<float> &_matrix_of_calibration,
+                      const std::string & file_name)
+{
+    bounding_rectangle = _bounding_rectangle;
+    matrix_of_calibration = _matrix_of_calibration;
+    if (!load_jpg(file_name))
+    {
+        valid = false;
+        return 0;
+    }
+
+    valid = true;
+    return 1;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 //! Read jpeg file.
 //! Based on code from
 //! http://stackoverflow.com/questions/694080/how-do-i-read-jpeg-and-png-pixels-in-c-on-linux
@@ -117,4 +141,6 @@ int PictureInfo::load_jpg(const std::string & file_name)
 
     // TODO: bad magic !!!
     bmap = reinterpret_cast<Img*>(test_data); //static_cast<Img*>(test_data);
+
+    return 1;
 }
