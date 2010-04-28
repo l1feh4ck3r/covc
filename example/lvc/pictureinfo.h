@@ -24,16 +24,37 @@
 #define PICTUREINFO_H
 
 #include <iostream>
+#include <vector>
+
+#include "matrix.h"
+using namespace math;
+
+struct Img
+{
+    unsigned char b, g, r, a;
+};
 
 class PictureInfo
 {
 public:
     PictureInfo();
+    ~PictureInfo();
 
 
 public:
     int load_jpg(const std::string & file_name);
 
+
+private:
+    vector<float> bounding_rectangle;
+    matrix<float> matrix_of_calibration;
+    bool        valid;
+
+    // image info
+    Img * bmap;
+    int height;
+    int width;
+    int depth;
 };
 
 #endif  //  PICTUREINFO_H

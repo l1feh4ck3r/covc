@@ -26,8 +26,22 @@
 #include <stdio.h>
 
 PictureInfo::PictureInfo()
+    :bounding_rectangle(4),
+    matrix_of_calibration(3, 3),
+    valid(false),
+    bmap(NULL), height(0),
+    width(0), depth(32)
 {
 
+}
+
+PictureInfo::~PictureInfo()
+{
+    if (bmap)
+    {
+        delete bmap;
+        bmap = NULL;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,7 +55,6 @@ PictureInfo::PictureInfo()
 int PictureInfo::load_jpg(const std::string & file_name)
 {
     unsigned char a,r,g,b;
-    int width, height;
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
 
@@ -102,8 +115,6 @@ int PictureInfo::load_jpg(const std::string & file_name)
     (void) jpeg_finish_decompress(&cinfo);
     jpeg_destroy_decompress(&cinfo);
 
-//    BMap = static_cast<int*>(test_data);
-//    Height = height;
-//    Width = width;
-//    Depht = 32;
+    // TODO: bad magic !!!
+    bmap = reinterpret_cast<Img*>(test_data); //static_cast<Img*>(test_data);
 }
