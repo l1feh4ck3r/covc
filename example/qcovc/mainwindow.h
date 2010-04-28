@@ -73,6 +73,7 @@ private:
     QGraphicsView   *image_view;
     QTableWidget    *table_widget;
 
+    matrix<float>   matrix_of_camera_calibration;
     QVector<ImageInfo>  images;
 
     QModelIndex last_selected_image;

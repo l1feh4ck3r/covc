@@ -31,7 +31,8 @@
 #include "imagescene.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow)
+    : QMainWindow(parent), ui(new Ui::MainWindow),
+    matrix_of_camera_calibration(3,3)
 {
     ui->setupUi(this);
 
@@ -125,6 +126,17 @@ void MainWindow::load_metafile()
     size_t image_number;
     in >> image_number;
 
+    // loading matrix of calibration
+    // TODO: CAUTION: type-specific code
+    // TODO: code duplication with "from 159 line"
+    for (size_t i=0; i < matrix_of_camera_calibration.RowNo(); i++)
+        for (size_t j=0; j < matrix_of_camera_calibration.ColNo(); j++)
+        {
+            float x;
+            in >> x;
+            matrix_of_camera_calibration(i,j) = x;
+        }
+
     image_preview_model->clear();
 
     images.clear();
@@ -142,7 +154,7 @@ void MainWindow::load_metafile()
 
         // loading matrix of calibration
         matrix<float> matrix_of_calibration(3,3);
-        // CAUTION: type-specific code
+        // TODO: CAUTION: type-specific code
         for (size_t i=0; i < matrix_of_calibration.RowNo(); i++)
             for (size_t j=0; j < matrix_of_calibration.ColNo(); j++)
             {
