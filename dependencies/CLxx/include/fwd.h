@@ -48,7 +48,7 @@ namespace CLxx
 
     typedef std::vector< boost::shared_ptr<Platform> > PlatformList;
     typedef std::vector< boost::shared_ptr<Device> >   DeviceList;
-    typedef std::vector< boost::shared_ptr<Context> >   ContextList;
+    typedef std::vector< boost::shared_ptr<Context> >  ContextList;
 
 }
 

@@ -21,6 +21,29 @@ int main(int argc, char * argv[])
     try
     {
 
+        //show info
+        PlatformList platformList(Host::getPlatformList());
+
+        for (PlatformList::const_iterator i = platformList.begin(); i < platformList.end(); ++i)
+        {
+            std::cout << "Platform name: "       << (*i)->getName() << std::endl;
+            std::cout << "Platform vendor: "     << (*i)->getVendor() << std::endl;
+            std::cout << "Platform version: "    << (*i)->getVersion() << std::endl;
+            std::cout << "Platform profile: "    << (*i)->getProfile() << std::endl;
+            std::cout << "Platform extensions: " << (*i)->getExtensions() << std::endl;
+
+            DeviceList   deviceList((*i)->getDeviceList());
+            for (DeviceList::const_iterator j = deviceList.begin(); j < deviceList.end(); ++j)
+            {
+                std::cout << "\tDevice type: "    << (*j)->getDeviceType() << std::endl;
+                std::cout << "\tDevice name: "    << (*j)->getName() << std::endl;
+                std::cout << "\tDevice vendor: "  << (*j)->getVendor() << std::endl;
+                std::cout << "\tDevice version: " << (*j)->getVersion() << std::endl;
+            }
+
+        }
+
+
         // init data
 
         const int numElements = 114447;
@@ -44,45 +67,45 @@ int main(int argc, char * argv[])
         // Steps :
 
         // 1) create context
-	boost::shared_ptr<Context> ctx = Context::createContext(Device::GPU); 
+        boost::shared_ptr<Context> ctx = Context::createContext(Device::GPU);
 
-	// 2) create a program using source code
-	boost::shared_ptr<Program> prog = ctx->createProgram(code);
+        // 2) create a program using source code
+        boost::shared_ptr<Program> prog = ctx->createProgram(code);
 
-	// 3) compile
-	if ( !prog->buildProgram("-cl-mad-enable") )
-	{
+        // 3) compile
+        if ( !prog->buildProgram("-cl-mad-enable") )
+        {
             std::cout << prog->getBuildLog() << std::endl;
             return 1;
-	}
+        }
 
 
         // 4) allocate memory on the device to hold the vectors data
-   	boost::shared_ptr<Buffer>  vecBufferA =  ctx->createBuffer(Memory::READ_ONLY, sizeof(float) * globalGroupSize);
-	boost::shared_ptr<Buffer>  vecBufferB =  ctx->createBuffer(Memory::READ_ONLY, sizeof(float) * globalGroupSize);
-	boost::shared_ptr<Buffer>  verBufferR =  ctx->createBuffer(Memory::WRITE_ONLY, sizeof(float) * globalGroupSize);
+        boost::shared_ptr<Buffer>  vecBufferA =  ctx->createBuffer(Memory::READ_ONLY, sizeof(float) * globalGroupSize);
+        boost::shared_ptr<Buffer>  vecBufferB =  ctx->createBuffer(Memory::READ_ONLY, sizeof(float) * globalGroupSize);
+        boost::shared_ptr<Buffer>  verBufferR =  ctx->createBuffer(Memory::WRITE_ONLY, sizeof(float) * globalGroupSize);
 
-	// 5) create the commands to copy the data to and from the device
-	boost::shared_ptr<WriteBufferCommand> wrtBufferA( new WriteBufferCommand(vecBufferA,&vecA[0]) );
-	boost::shared_ptr<WriteBufferCommand> wrtBufferB( new WriteBufferCommand(vecBufferB,&vecB[0]) );
+        // 5) create the commands to copy the data to and from the device
+        boost::shared_ptr<WriteBufferCommand> wrtBufferA( new WriteBufferCommand(vecBufferA,&vecA[0]) );
+        boost::shared_ptr<WriteBufferCommand> wrtBufferB( new WriteBufferCommand(vecBufferB,&vecB[0]) );
         boost::shared_ptr<ReadBufferCommand>  readBuffer( new ReadBufferCommand (verBufferR,&vecR[0]) );
 
-	// 6) create the kernel to use and set the arguments 
-	boost::shared_ptr<Kernel> kernel = prog->createKernel("VectorAdd");
-	kernel->setArguments(vecBufferA,vecBufferB,verBufferR,numElements);
+        // 6) create the kernel to use and set the arguments
+        boost::shared_ptr<Kernel> kernel = prog->createKernel("VectorAdd");
+        kernel->setArguments(vecBufferA,vecBufferB,verBufferR,numElements);
 
 
         // 7) create the command to execute the kernel
         boost::shared_ptr<Range1DCommand> calculateOnDataRange( new Range1DCommand(kernel,globalGroupSize,localWorkSize) );
 
-	// 8) create a command queue
-	boost::shared_ptr<CommandQueue> cmdQueue = ctx->createCommandQueue();
+        // 8) create a command queue
+        boost::shared_ptr<CommandQueue> cmdQueue = ctx->createCommandQueue();
 
-	// 9) enque the commands
-	cmdQueue->enque(wrtBufferA);  // copy vecA to device
-	cmdQueue->enque(wrtBufferB);  // copy vecB to device
-	cmdQueue->enque(calculateOnDataRange); // execute kernel 
-	cmdQueue->enque(readBuffer); // read the results
+        // 9) enque the commands
+        cmdQueue->enque(wrtBufferA);  // copy vecA to device
+        cmdQueue->enque(wrtBufferB);  // copy vecB to device
+        cmdQueue->enque(calculateOnDataRange); // execute kernel
+        cmdQueue->enque(readBuffer); // read the results
 
     }
     catch(Exception ex)

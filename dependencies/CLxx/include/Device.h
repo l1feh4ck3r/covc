@@ -88,7 +88,7 @@ namespace CLxx
         /// OpenCL profile string. Returns the profile name supported by the device.
         /// The profile name returned can be one of the following strings
         ///
-        /// FULL_PROFILE – if the device supports the OpenCL specification
+        /// FULL_PROFILE â€“ if the device supports the OpenCL specification
         /// (functionality defined as part of the core specification and
         /// does not require any extensions to be supported).
         ///
@@ -172,7 +172,7 @@ namespace CLxx
             /// round to zero rounding mode supported
             ROUND_TO_ZERO = CL_FP_ROUND_TO_ZERO,
 
-            /// round to +ve and –ve infinity rounding modes supported
+            /// round to +ve and â€“ve infinity rounding modes supported
             ROUND_TO_INF = CL_FP_ROUND_TO_INF,
 
             /// IEEE754-2008 fused multiply-add is supported
