@@ -20,51 +20,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef PICTUREINFO_H
-#define PICTUREINFO_H
+#include "pictureinfo.h"
 
-#include <iostream>
 #include <vector>
+using namespace std;
 
-#include "matrix.h"
-using namespace math;
-
-struct Img
+int calculate_bounding_volume (const vector<PictureInfo> & pictures,
+                               matrix<float> & bounding_volume)
 {
-    union
+    for (vector<PictureInfo>::const_iterator i = pictures.begin(); i < pictures.end(); ++i)
     {
-        unsigned char p[4];
-        struct
-        {
-            unsigned char b, g, r, a;
-        };
-    };
-};
+    }
 
-class PictureInfo
-{
-public:
-    PictureInfo();
-    ~PictureInfo();
-
-
-public:
-    int init(const matrix<float> &_bounding_rectangle,
-             const matrix<float> &_matrix_of_calibration,
-             const std::string & file_name);
-    int load_jpg(const std::string & file_name);
-
-
-private:
-    matrix<float> bounding_rectangle;
-    matrix<float> matrix_of_calibration;
-    bool        valid;
-
-    // image info
-    Img * bmap;
-    int height;
-    int width;
-    int depth;
-};
-
-#endif  //  PICTUREINFO_H
+    return 1;
+}

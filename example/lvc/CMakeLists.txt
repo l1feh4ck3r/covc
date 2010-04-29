@@ -5,6 +5,7 @@ project(lvc)
 include_directories("${matrix_tcl_lite_SOURCE_DIR}/include")
 
 set(LVC_SRCS
+    bounding_volume_calculation.cpp
     lvc.cpp
     pictureinfo.cpp
     )

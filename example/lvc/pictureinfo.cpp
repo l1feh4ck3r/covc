@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 PictureInfo::PictureInfo()
-    :bounding_rectangle(4),
+    :bounding_rectangle(1, 4),
     matrix_of_calibration(3, 3),
     valid(false),
     bmap(NULL), height(0),
@@ -51,7 +51,7 @@ PictureInfo::~PictureInfo()
 //! @param _matrix_of_calibration Matrix of camera calibration for current image
 //! @param file_name Name of the file with image
 ///////////////////////////////////////////////////////////////////////////////
-int PictureInfo::init(const vector<float> &_bounding_rectangle,
+int PictureInfo::init(const matrix<float> &_bounding_rectangle,
                       const matrix<float> &_matrix_of_calibration,
                       const std::string & file_name)
 {

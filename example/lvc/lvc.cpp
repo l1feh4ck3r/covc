@@ -27,6 +27,13 @@ using namespace std;
 #include "pictureinfo.h"
 
 ///////////////////////////////////////////////////////////////////////////////
+//! Functions definition
+///////////////////////////////////////////////////////////////////////////////
+int calculate_bounding_volume (const vector<PictureInfo> & pictures,
+                               matrix<float> & camera_calibration_matrix,
+                               matrix<float> & bounding_volume);
+
+///////////////////////////////////////////////////////////////////////////////
 //! Main function
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char * argv[])
@@ -39,9 +46,16 @@ int main(int argc, char * argv[])
         return 1;
     }
 
-    // all variables
+    ///////////////////////////////////////////////////////////////////////////////
+    //! All variables
+    ///////////////////////////////////////////////////////////////////////////////
     vector<PictureInfo> pictures;
     matrix<float>   camera_calibration_matrix(3, 3);
+    matrix<float>   bounding_volume(2, 3);  // first  line define left  bottom near point,
+                                            // second line define right top    far  point
+                                            // of bounding volume
+    ///////////////////////////////////////////////////////////////////////////////
+
 
     // 1. load all info
     ifstream meta_file;
@@ -58,13 +72,13 @@ int main(int argc, char * argv[])
 
     // loading camera calibration matrix
     // TODO: CAUTION: type-specific code
-    // TODO: code duplication with "from line 80"
+    // TODO: code duplication with "from line 93"
     for (size_t i=0; i < camera_calibration_matrix.RowNo(); i++)
         for (size_t j=0; j < camera_calibration_matrix.ColNo(); j++)
         {
             float x;
             meta_file >> x;
-            camera_calibration_matrix(i,j) = x;
+            camera_calibration_matrix(i, j) = x;
         }
 
 
@@ -77,19 +91,19 @@ int main(int argc, char * argv[])
         string image_name;
         meta_file >> image_name;
 
-        vector<float> bounding_rectangle(4);
+        matrix<float> bounding_rectangle(1, 4);
         for (size_t i = 0; i < 4; ++i)
-            meta_file >> bounding_rectangle[i];
+            meta_file >> bounding_rectangle(1, i);
 
         // loading camera calibration matrix for current image
-        matrix<float> matrix_of_calibration(3,3);
+        matrix<float> matrix_of_calibration(3, 3);
         // TODO: CAUTION: type-specific code
         for (size_t i=0; i < matrix_of_calibration.RowNo(); i++)
             for (size_t j=0; j < matrix_of_calibration.ColNo(); j++)
             {
                 float x;
                 meta_file >> x;
-                matrix_of_calibration(i,j) = x;
+                matrix_of_calibration(i, j) = x;
             }
 
         picture.init(bounding_rectangle, matrix_of_calibration, image_name);
@@ -97,7 +111,9 @@ int main(int argc, char * argv[])
 
     meta_file.close();
 
-    // 2. calculate bounding box
+    // 2. calculate bounding volume
+    calculate_bounding_volume(pictures, camera_calibration_matrix, bounding_volume);
+
     // 3. color voxels
     // 4. save resulting voxel cube
 
