@@ -26,10 +26,40 @@
 using namespace std;
 
 int calculate_bounding_volume (const vector<PictureInfo> & pictures,
+                               matrix<float> & camera_calibration_matrix,
                                matrix<float> & bounding_volume)
 {
     for (vector<PictureInfo>::const_iterator i = pictures.begin(); i < pictures.end(); ++i)
     {
+        matrix<float> zero_zero_zero_one_vector(1, 4);
+        zero_zero_zero_one_vector(0, 3) = 1;
+
+        matrix<float> point_in_global_space(1, 3);
+        matrix<float> camera_in_global_space((!camera_calibration_matrix)*(~zero_zero_zero_one_vector));
+
+        //TODO: optimize it!
+
+        for (size_t i = 0; i < 2; ++i)
+        {
+            for (size_t j = 0; j < 2; ++j)
+            {
+                matrix<float> corner_point(1, 3);
+
+                // bounding rectangle: (x1,y1)(x2,y2)
+                //                      0  1   2  3
+                // getting points: (x1,y1), (x1,y2), (x2,y1), (x2,y2)
+                //                 (0, 1),  (0, 3),  (2, 1),  (2, 3)
+
+                corner_point(0, 0) = (*i)->bounding_rectangle(0, i*2);
+                corner_point(0, 1) = (*i)->bounding_rectangle(0, 1+j*3);
+                corner_point(0, 2) = 1.0f;
+
+                matrix<float> point_in_picture_space = (!camera_calibration_matrix)*(~corner_point);
+                point_in_global_space = (!((*i)->matrix_of_calibration))*point_in_picture_space;
+
+                //point_in_global_space = (*i)->
+            }
+        }
     }
 
     return 1;
