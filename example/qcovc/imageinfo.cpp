@@ -36,6 +36,7 @@ ImageInfo::ImageInfo(QString &filename)
     if (!temp_image.load(filename))
         return;
 
+    path_to_image = filename;
 
     //TODO: magic numbers
     image = temp_image.scaled(645, 595,
@@ -52,6 +53,8 @@ ImageInfo::ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, Q
     QImage temp_image;
     if (!temp_image.load(filename))
         return;
+
+    path_to_image = filename;
 
     //TODO: magic numbers
     image = temp_image.scaled(645, 595,

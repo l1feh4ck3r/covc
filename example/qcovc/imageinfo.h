@@ -38,9 +38,11 @@ public:
 
 public:
     bool is_valid () const {return valid;}
-    const QImage & get_image () const {return image;}
-    QRectF get_bounding_rectangle() const {return bounding_rectangle;}
-    const matrix<float> & get_matrix_of_calibration() const {return matrix_of_calibration;}
+
+    const QImage &          get_image () const {return image;}
+    QRectF                  get_bounding_rectangle() const {return bounding_rectangle;}
+    const matrix<float> &   get_matrix_of_calibration() const {return matrix_of_calibration;}
+    const QString &         get_path_to_image () const {return path_to_image;}
 
     void set_image (const QImage &_image);
     void set_bounding_rectangle(const QRectF &_bounding_rectangle);
@@ -53,6 +55,7 @@ private:
     QImage      image;
     matrix<float> matrix_of_calibration;
     bool        valid;
+    QString     path_to_image;
 };
 
 #endif // IMAGEINFO_H

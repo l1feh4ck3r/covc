@@ -129,8 +129,8 @@ void MainWindow::load_metafile()
     // loading matrix of calibration
     // TODO: CAUTION: type-specific code
     // TODO: code duplication with "from line 159"
-    for (size_t i=0; i < matrix_of_camera_calibration.RowNo(); i++)
-        for (size_t j=0; j < matrix_of_camera_calibration.ColNo(); j++)
+    for (size_t i=0; i < matrix_of_camera_calibration.RowNo(); ++i)
+        for (size_t j=0; j < matrix_of_camera_calibration.ColNo(); ++j)
         {
             float x;
             in >> x;
@@ -155,8 +155,8 @@ void MainWindow::load_metafile()
         // loading matrix of calibration
         matrix<float> matrix_of_calibration(3,3);
         // TODO: CAUTION: type-specific code
-        for (size_t i=0; i < matrix_of_calibration.RowNo(); i++)
-            for (size_t j=0; j < matrix_of_calibration.ColNo(); j++)
+        for (size_t i=0; i < matrix_of_calibration.RowNo(); ++i)
+            for (size_t j=0; j < matrix_of_calibration.ColNo(); ++j)
             {
                 float x;
                 in >> x;
@@ -188,6 +188,51 @@ void MainWindow::rectangle_changed(QRectF rectangle)
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::save_metafile()
 {
+    QString filename = QFileDialog::getOpenFileName(this, tr("Select meta file."));
+
+    if (filename.isEmpty())
+        return;
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    if (!file.isOpen())
+        return;
+
+    QDataStream out(&file);
+
+    out << images.size();
+
+    //save matrix of camera calibration
+    // TODO: CAUTION: type-specific code
+    for (size_t i=0; i < matrix_of_camera_calibration.RowNo(); ++i)
+        for (size_t j=0; j < matrix_of_camera_calibration.ColNo(); ++j)
+            out << matrix_of_camera_calibration(i,j);
+
+    // saving images names with bounding sqares from meta file
+    for (size_t i = 0; i < images.size(); ++i)
+    {
+        // save image file name
+        out << images[i].get_path_to_image();
+
+        out << "\n";
+
+        out << images[i].get_bounding_rectangle();
+
+        out << "\n";
+
+        // saving matrix of calibration
+        // TODO: CAUTION: type-specific code
+        for (size_t i=0; i < matrix_of_calibration.RowNo(); ++i)
+        {
+            for (size_t j=0; j < matrix_of_calibration.ColNo(); ++j)
+                out << matrix_of_calibration(i,j);
+
+            out << "\n";
+        }
+    }
+
+    //close input file
+    file.close();
 }
 
 
