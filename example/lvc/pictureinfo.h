@@ -55,7 +55,7 @@ public:
     int load_jpg(const std::string & file_name);
 
 
-private:
+public:
     matrix<float> bounding_rectangle;
     matrix<float> matrix_of_calibration;
     bool        valid;

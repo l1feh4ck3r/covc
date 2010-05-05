@@ -39,9 +39,9 @@ int calculate_bounding_volume (const vector<PictureInfo> & pictures,
 
         //TODO: optimize it!
 
-        for (size_t i = 0; i < 2; ++i)
+        for (size_t x = 0; x < 2; ++x)
         {
-            for (size_t j = 0; j < 2; ++j)
+            for (size_t y = 0; y < 2; ++y)
             {
                 matrix<float> corner_point(1, 3);
 
@@ -50,12 +50,12 @@ int calculate_bounding_volume (const vector<PictureInfo> & pictures,
                 // getting points: (x1,y1), (x1,y2), (x2,y1), (x2,y2)
                 //                 (0, 1),  (0, 3),  (2, 1),  (2, 3)
 
-                corner_point(0, 0) = (*i)->bounding_rectangle(0, i*2);
-                corner_point(0, 1) = (*i)->bounding_rectangle(0, 1+j*3);
+                corner_point(0, 0) = (*i).bounding_rectangle(0, x*2);
+                corner_point(0, 1) = (*i).bounding_rectangle(0, 1+y*3);
                 corner_point(0, 2) = 1.0f;
 
                 matrix<float> point_in_picture_space = (!camera_calibration_matrix)*(~corner_point);
-                point_in_global_space = (!((*i)->matrix_of_calibration))*point_in_picture_space;
+                point_in_global_space = (!((*i).matrix_of_calibration))*point_in_picture_space;
 
                 //point_in_global_space = (*i)->
             }

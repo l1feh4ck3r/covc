@@ -184,7 +184,7 @@ void MainWindow::rectangle_changed(QRectF rectangle)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-//! TODO May be one day it will be saving function
+//! Save all information in meta file.
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::save_metafile()
 {
@@ -224,10 +224,10 @@ void MainWindow::save_metafile()
 
         // saving matrix of calibration
         // TODO: CAUTION: type-specific code
-        for (size_t i=0; i < matrix_of_calibration.RowNo(); ++i)
+        for (size_t i=0; i < images[i].get_matrix_of_calibration().RowNo(); ++i)
         {
-            for (size_t j=0; j < matrix_of_calibration.ColNo(); ++j)
-                out << matrix_of_calibration(i,j);
+            for (size_t j=0; j < images[i].get_matrix_of_calibration().ColNo(); ++j)
+                out << images[i].get_matrix_of_calibration()(i,j);
 
             out << "\n";
         }
