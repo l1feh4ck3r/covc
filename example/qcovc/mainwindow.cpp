@@ -202,6 +202,8 @@ void MainWindow::save_metafile()
 
     out << images.size();
 
+    out << "\n";
+
     //save matrix of camera calibration
     // TODO: CAUTION: type-specific code
     for (size_t i=0; i < matrix_of_camera_calibration.RowNo(); ++i)
