@@ -129,12 +129,12 @@ void MainWindow::load_metafile()
     // loading matrix of calibration
     // TODO: CAUTION: type-specific code
     // TODO: code duplication with "from line 159"
-    for (size_t i=0; i < matrix_of_camera_calibration.RowNo(); ++i)
-        for (size_t j=0; j < matrix_of_camera_calibration.ColNo(); ++j)
+    for (size_t r=0; r < matrix_of_camera_calibration.RowNo(); ++r)
+        for (size_t c=0; c < matrix_of_camera_calibration.ColNo(); ++c)
         {
             float x;
             in >> x;
-            matrix_of_camera_calibration(i,j) = x;
+            matrix_of_camera_calibration(r,c) = x;
         }
 
     image_preview_model->clear();
@@ -155,12 +155,12 @@ void MainWindow::load_metafile()
         // loading matrix of calibration
         matrix<float> matrix_of_calibration(3,3);
         // TODO: CAUTION: type-specific code
-        for (size_t i=0; i < matrix_of_calibration.RowNo(); ++i)
-            for (size_t j=0; j < matrix_of_calibration.ColNo(); ++j)
+        for (size_t r=0; r < matrix_of_calibration.RowNo(); ++r)
+            for (size_t c=0; c < matrix_of_calibration.ColNo(); ++c)
             {
                 float x;
                 in >> x;
-                matrix_of_calibration(i,j) = x;
+                matrix_of_calibration(r,c) = x;
             }
 
         // create image
@@ -206,9 +206,9 @@ void MainWindow::save_metafile()
 
     //save matrix of camera calibration
     // TODO: CAUTION: type-specific code
-    for (size_t i=0; i < matrix_of_camera_calibration.RowNo(); ++i)
-        for (size_t j=0; j < matrix_of_camera_calibration.ColNo(); ++j)
-            out << matrix_of_camera_calibration(i,j);
+    for (size_t r=0; r < matrix_of_camera_calibration.RowNo(); ++r)
+        for (size_t c=0; c < matrix_of_camera_calibration.ColNo(); ++c)
+            out << matrix_of_camera_calibration(r,c);
 
     // saving images names with bounding sqares from meta file
     for (size_t i = 0; i < images.size(); ++i)
@@ -224,9 +224,9 @@ void MainWindow::save_metafile()
 
         // saving matrix of calibration
         // TODO: CAUTION: type-specific code
-        for (size_t i=0; i < images[i].get_matrix_of_calibration().RowNo(); ++r)
+        for (size_t r=0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
         {
-            for (size_t j=0; j < images[i].get_matrix_of_calibration().ColNo(); ++c)
+            for (size_t c=0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
                 out << images[i].get_matrix_of_calibration()(r,c);
 
             out << "\n";
