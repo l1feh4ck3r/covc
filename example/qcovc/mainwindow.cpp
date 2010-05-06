@@ -204,7 +204,7 @@ void MainWindow::save_metafile()
 
     out << "\n";
 
-    //save matrix of camera calibration
+    // save matrix of camera calibration
     // TODO: CAUTION: type-specific code
     for (size_t r=0; r < matrix_of_camera_calibration.RowNo(); ++r)
         for (size_t c=0; c < matrix_of_camera_calibration.ColNo(); ++c)
@@ -245,6 +245,7 @@ void MainWindow::setup_connections()
 {
     connect(ui->actionAdd_image, SIGNAL(triggered()), this, SLOT(add_image()));
     connect(ui->actionLoad_metafile, SIGNAL(triggered()), this, SLOT(load_metafile()));
+    connect(ui->actionSave_metafile, SIGNAL(triggered()), this, SLOT(save_metafile()));
     connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
 
     connect(image_preview_list, SIGNAL(clicked(QModelIndex)), this, SLOT(image_selected(QModelIndex)));
