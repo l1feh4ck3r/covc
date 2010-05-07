@@ -51,7 +51,9 @@ MainWindow::~MainWindow()
     images.clear();
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
+//! Add new image
+///////////////////////////////////////////////////////////////////////////////
 void MainWindow::add_image()
 {
     QString image_file_name = QFileDialog::getOpenFileName(this,
@@ -71,7 +73,9 @@ void MainWindow::add_image()
     }
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
+//! Setting up new element of image calibration matrix
+///////////////////////////////////////////////////////////////////////////////
 void MainWindow::element_of_matrix_of_calibration_changed(int row, int column)
 {
     bool ok;
@@ -100,9 +104,9 @@ void MainWindow::image_selected(QModelIndex index)
     // set calibration matrix
     const matrix<float> & calibration_matrix = images[image_index].get_matrix_of_calibration();
 
-    for (int i = 0; i < calibration_matrix.RowNo(); ++i)
-        for (int j = 0; j < calibration_matrix.ColNo(); ++j)
-            table_widget->setItem(i, j, new QTableWidgetItem(QString("%1").arg(calibration_matrix(i, j))));
+    for (int i = 0; i < calibration_matrix.RowNo(); ++r)
+        for (int j = 0; j < calibration_matrix.ColNo(); ++c)
+            table_widget->setItem(i, j, new QTableWidgetItem(QString("%1").arg(calibration_matrix(r, c))));
 }
 
 
@@ -177,11 +181,26 @@ void MainWindow::load_metafile()
     file.close();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//! Set new rectangle
+///////////////////////////////////////////////////////////////////////////////
 void MainWindow::rectangle_changed(QRectF rectangle)
 {
     images[image_preview_list->currentIndex().row()].set_bounding_rectangle(rectangle);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//! Run voxel colorer algorithm
+///////////////////////////////////////////////////////////////////////////////
+void MainWindow::run()
+{
+    try()
+    {
+    }
+    catch (...)
+    {
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Save all information in meta file.
@@ -247,6 +266,8 @@ void MainWindow::setup_connections()
     connect(ui->actionLoad_metafile, SIGNAL(triggered()), this, SLOT(load_metafile()));
     connect(ui->actionSave_metafile, SIGNAL(triggered()), this, SLOT(save_metafile()));
     connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
+
+    connect(ui->actionRun, SIGNAL(triggered()), this, SLOT(run()));
 
     connect(image_preview_list, SIGNAL(clicked(QModelIndex)), this, SLOT(image_selected(QModelIndex)));
     connect(image_scene, SIGNAL(rectangle_changed(QRectF)) , this, SLOT(rectangle_changed(QRectF)));

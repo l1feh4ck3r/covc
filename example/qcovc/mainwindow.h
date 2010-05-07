@@ -57,6 +57,7 @@ private slots:
     void image_selected(QModelIndex index);
     void load_metafile();
     void rectangle_changed(QRectF rectangle);
+    void run();
     void save_metafile();
 
 

@@ -17,7 +17,6 @@ set (QCOVC_SRCS_CXX
 )
 
 set (QCOVC_MOC_SRCS
-  imageinfo.h
   imagepreview.h
   imagescene.h
   mainwindow.h
