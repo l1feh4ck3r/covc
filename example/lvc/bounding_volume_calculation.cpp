@@ -39,27 +39,31 @@ int calculate_bounding_volume (const vector<PictureInfo> & pictures,
 
         //TODO: optimize it!
 
-        for (size_t x = 0; x < 2; ++x)
-        {
-            for (size_t y = 0; y < 2; ++y)
-            {
-                matrix<float> corner_point(1, 3);
+        matrix<float> x0_y0(1, 3);
+        x0_y0(0, 0) = (*i).bounding_rectangle(0, 0);
+        x0_y0(0, 1) = (*i).bounding_rectangle(0, 1);
+        x0_y0(0, 2) = 1.0f;
+        x0_y0 = (!((*i).matrix_of_calibration))*((!camera_calibration_matrix)*(~x0_y0));
 
-                // bounding rectangle: (x1,y1)(x2,y2)
-                //                      0  1   2  3
-                // getting points: (x1,y1), (x1,y2), (x2,y1), (x2,y2)
-                //                 (0, 1),  (0, 3),  (2, 1),  (2, 3)
+        matrix<float> x0_y1(1, 3);
+        x0_y1(0, 0) = (*i).bounding_rectangle(0, 0);
+        x0_y1(0, 1) = (*i).bounding_rectangle(0, 3);
+        x0_y1(0, 2) = 1.0f;
+        x0_y1 = (!((*i).matrix_of_calibration))*((!camera_calibration_matrix)*(~x0_y1));
 
-                corner_point(0, 0) = (*i).bounding_rectangle(0, x*2);
-                corner_point(0, 1) = (*i).bounding_rectangle(0, 1+y*3);
-                corner_point(0, 2) = 1.0f;
+        matrix<float> x1_y0(1, 3);
+        x1_y0(0, 0) = (*i).bounding_rectangle(0, 2);
+        x1_y0(0, 1) = (*i).bounding_rectangle(0, 1);
+        x1_y0(0, 2) = 1.0f;
+        x1_y0 = (!((*i).matrix_of_calibration))*((!camera_calibration_matrix)*(~x1_y0));
 
-                matrix<float> point_in_picture_space = (!camera_calibration_matrix)*(~corner_point);
-                point_in_global_space = (!((*i).matrix_of_calibration))*point_in_picture_space;
+        matrix<float> x1_y1(1, 3);
+        x1_y1(0, 0) = (*i).bounding_rectangle(0, 2);
+        x1_y1(0, 1) = (*i).bounding_rectangle(0, 3);
+        x1_y1(0, 2) = 1.0f;
+        x1_y1 = (!((*i).matrix_of_calibration))*((!camera_calibration_matrix)*(~x1_y1));
 
-                //point_in_global_space = (*i)->
-            }
-        }
+
     }
 
     return 1;

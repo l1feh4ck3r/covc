@@ -104,9 +104,9 @@ void MainWindow::image_selected(QModelIndex index)
     // set calibration matrix
     const matrix<float> & calibration_matrix = images[image_index].get_matrix_of_calibration();
 
-    for (int i = 0; i < calibration_matrix.RowNo(); ++r)
-        for (int j = 0; j < calibration_matrix.ColNo(); ++c)
-            table_widget->setItem(i, j, new QTableWidgetItem(QString("%1").arg(calibration_matrix(r, c))));
+    for (int r = 0; r < calibration_matrix.RowNo(); ++r)
+        for (int c = 0; c < calibration_matrix.ColNo(); ++c)
+            table_widget->setItem(r, c, new QTableWidgetItem(QString("%1").arg(calibration_matrix(r, c))));
 }
 
 
@@ -194,12 +194,12 @@ void MainWindow::rectangle_changed(QRectF rectangle)
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::run()
 {
-    try()
-    {
-    }
-    catch (...)
-    {
-    }
+//    try()
+//    {
+//    }
+//    catch (...)
+//    {
+//    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
