@@ -82,6 +82,8 @@ namespace CLxx
 
             prop = &(*propertiesWithZero)[0];
         }
+        //TODO: if property list is empty, NVIDIA driver return INVALID_PLATFORM error
+        // handle this and raise exception or create propery list with first available platform in it
 
         boost::shared_ptr<Context> ctx(new Context());
         ctx->_this = ctx;

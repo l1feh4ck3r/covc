@@ -67,7 +67,12 @@ int main(int argc, char * argv[])
         // Steps :
 
         // 1) create context
-        boost::shared_ptr<Context> ctx = Context::createContext(Device::GPU);
+        // BUG: fucking woodoo magic
+        std::vector<Context::Property> properties;
+        properties.push_back(Context::Property(Context::CONTEXT_PLATFORM,
+                                               // using of reinterpret cast in this case is abnormal !!!
+                                               reinterpret_cast<Context::PropertyValue>(platformList[0]->getHandle())));
+        boost::shared_ptr<Context> ctx = Context::createContext(Device::GPU, properties);
 
         // 2) create a program using source code
         boost::shared_ptr<Program> prog = ctx->createProgram(code);
