@@ -1,7 +1,7 @@
 #include <CL/cl.h>
 #include <iostream>
 
-#include "Includes.h"
+#include "CLxxIncludes.h"
 
 using namespace CLxx;
 
