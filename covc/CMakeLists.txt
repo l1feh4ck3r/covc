@@ -8,7 +8,6 @@ include_directories("include"
     )
 
 set(COVC_LIB_SRCS_CXX
-    src/ocl.cpp
     src/voxelcolorer.cpp
     )
 

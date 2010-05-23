@@ -55,7 +55,7 @@ namespace CLxx
             RGBA = CL_RGBA,
             ARGB = CL_ARGB,
             BGRA = CL_BGRA
-               };
+        };
 
         /// Describes the size of the channel data type
 
