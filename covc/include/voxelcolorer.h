@@ -23,18 +23,18 @@
 #ifndef VOXELCOLORER_H
 #define VOXELCOLORER_H
 
+
 #include "boost/shared_ptr.hpp"
 
 namespace CLxx
 {
     class Context;
     class Program;
+    class Kernel;
+    class CommandQueue;
 }
 
-namespace math
-{
-    template <class T> class matrix;
-}
+#include <vector>
 
 class VoxelColorer
 {
@@ -44,12 +44,12 @@ public:
 
 
 public:
-    void add_image(const char * image, int width, int height, const math::matrix<float> & image_calibration_matrix);
+    void add_image(const char * image, int width, int height, const float * image_calibration_matrix);
     void build_voxel_model();
     bool prepare();
 
     // setters
-    void set_camera_calibration_matrix(const math::matrix<float> & _camera_calibration_matrix);
+    void set_camera_calibration_matrix(const float * _camera_calibration_matrix);
     void set_resulting_voxel_cube_dimensions(unsigned int _dimension_x, unsigned int _dimension_y, unsigned int _dimension_z);
 
     // getters
@@ -66,12 +66,48 @@ private:
 private:
     boost::shared_ptr<CLxx::Context> ocl_context;
     boost::shared_ptr<CLxx::Program> ocl_program;
+    boost::shared_ptr<CLxx::Kernel>  ocl_kernel;
+    boost::shared_ptr<CLxx::CommandQueue> ocl_command_queue;
 
 
-    // dimensions of resulting voxel cube
-    unsigned int dimension_x, dimension_y, dimension_z;
+    //! dimensions of resulting voxel cube by x, y, z
+    unsigned int dimensions[3];
 
-    math::matrix<float> camera_calibration_matrix;
+    //! rusult cube. size = dimension[0]*dimension[1]*dimension[2]*3*size_of(color)
+    boost::shared_ptr<char> result_cube;
+
+    ///////////////////////////////////////////////////////////////////////////
+    //! Info about images
+    ///////////////////////////////////////////////////////////////////////////
+    //! images. number of pixels = width*height*number_of_images*3*size_of(color)
+    boost::shared_ptr<char> pixels;
+
+    //! image dimensions
+    size_t width, height;
+
+    //! number of images
+    size_t number_of_images;
+
+    //! projection matrices for images
+    //! size = number_of_images*16*size_of(float)
+    std::vector<float[16]> projection_matrices;
+    ///////////////////////////////////////////////////////////////////////////
+    //! End of info about images
+    ///////////////////////////////////////////////////////////////////////////
+
+    //! visibility buffer. size = width*height*number_of_images*size_of(bool or char)
+    boost::shared_ptr<char> z_buffer;
+
+    float camera_calibration_matrix[16];
+
+    struct
+    {
+        float pos_x, pos_y, pos_z;
+        float size_x, size_y, size_z;
+    } bounding_box;
+
+    //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*number_of_images*3*size_of(color)
+    boost::shared_ptr<char> hypotheses;
 };
 
 #endif // VOXELCOLORER_H

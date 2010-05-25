@@ -133,7 +133,17 @@ bool VoxelColorer::prepare_opencl()
 
 void VoxelColorer::run_program()
 {
+    set_parameters_to_program();
 
+    boost::shared_ptr<Kernel> kernel = prog->createKernel("VectorAdd");
+    kernel->setArguments(vecBufferA,vecBufferB,verBufferR,numElements);
+
+}
+
+void VoxelColorer::set_camera_calibration_matrix(const float *_camera_calibration_matrix)
+{
+    for (size_t i = 0; i < 16; ++i)
+        camera_calibration_matrix[i] = _camera_calibration_matrix[i];
 }
 
 void VoxelColorer::set_parameters_to_program()
