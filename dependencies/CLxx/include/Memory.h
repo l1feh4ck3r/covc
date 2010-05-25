@@ -34,12 +34,12 @@ namespace CLxx
     /// two- or three- dimensional texture, frame-buffer or image.
     ///
     /// The fundamental differences between a buffer and an image object are :
-    /// · Elements in a buffer are stored in sequential fashion and can be accessed using a pointer
+    /// Â· Elements in a buffer are stored in sequential fashion and can be accessed using a pointer
     ///   by a kernel executing on a device. Elements of an image are stored in a format that is
     ///   opaque to the user and cannot be directly accessed using a pointer. Built-in functions are
     ///   provided by the OpenCL C programming language to allow a kernel to read from or write to an image
     ///
-    /// · For a buffer object, the data is stored in the same format as it is accessed by the kernel,
+    /// Â· For a buffer object, the data is stored in the same format as it is accessed by the kernel,
     ///   but in the case of an image object the data format used to store the image elements may
     ///   not be the same as the data format used inside the kernel. Image elements are always a 4-
     ///   component vector (each component can be a float or signed/unsigned integer) in a kernel.
@@ -63,14 +63,14 @@ namespace CLxx
             USE_HOST_PTR = CL_MEM_USE_HOST_PTR,
             ALLOC_HOST_PTR = CL_MEM_ALLOC_HOST_PTR,
             COPY_HOST_PTR = CL_MEM_COPY_HOST_PTR
-                        };
+        };
 
         enum MemoryType
         {
             BUFFER = CL_MEM_OBJECT_BUFFER,
             IMAGE2D = CL_MEM_OBJECT_IMAGE2D,
             IMAGE3D = CL_MEM_OBJECT_IMAGE3D
-		  };
+        };
 
         typedef int Flags;
 

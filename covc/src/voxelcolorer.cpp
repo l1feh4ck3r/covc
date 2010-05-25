@@ -29,10 +29,13 @@ using namespace CLxx;
 #include <iostream>
 
 VoxelColorer::VoxelColorer()
-    :dimension_x(0),
-    dimension_y(0),
-    dimension_z(0)
+    :width(0), height(0),
+    number_of_images(0)
+
 {
+    memset(dimensions, 0, sizeof(dimensions));
+    memset(camera_calibration_matrix, 0, sizeof(camera_calibration_matrix));
+    memset(bounding_box, 0, sizeof(bounding_box));
 }
 
 
@@ -44,12 +47,53 @@ VoxelColorer::~VoxelColorer()
 ///////////////////////////////////////////////////////////////////////////////
 //! Build voxel model from seqence of images and matrices
 ///////////////////////////////////////////////////////////////////////////////
-void VoxelColorer::build_voxel_model()
+bool VoxelColorer::build_voxel_model()
 {
     build_program("ocl/voxelcolorer.cl");
+
     calculate_bounding_box();
-    set_parameters_to_program();
-    run_program();
+
+    //boost::shared_ptr<Buffer> imagesBuffer = ocl_context->
+                                             //createBuffer(Memory::READ_ONLY,
+                                                          //             width*height*number_of_images*3*sizeof(char),
+                                                          //             pixels.get());
+
+    boost::shared_ptr<Image3D> images_buffer = Image3D::createImage3D(ocl_context,
+                                                                     Memory::READ_ONLY,
+                                                                     width,
+                                                                     height,
+                                                                     number_of_images,
+                                                                     Image::ImageFormat(Image::RGB, Image::UNSIGNED_INT8),
+                                                                     width*3*sizeof(char),
+                                                                     width*3*sizeof(char)*height,
+                                                                     pixels.get());
+
+    boost::shared_ptr<Buffer> projection_matrices_buffer = ocl_context->createBuffer(Memory::READ_ONLY,
+                                                                                   number_of_images*16*sizeof(float),
+                                                                                   projection_matrices.data());
+
+    boost::shared_ptr<Buffer> hypotheses_buffer = ocl_context->createBuffer(Memory::READ_WRITE,
+                                                                            dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*3*sizeof(char),
+                                                                            hypotheses.get());
+
+    boost::shared_ptr<Buffer> bounding_box_buffer = ocl_context->createBuffer(Memory::READ_ONLY,
+                                                                              sizeof(bounding_box),
+                                                                              bounding_box);
+
+    boost::shared_ptr<Buffer> z_buffer = ocl_context->createBuffer(Memory::READ_WRITE | Memory::ALLOC_HOST_PTR ,
+                                                                  width*height*number_of_images*sizeof(char),
+                                                                  nil);
+
+    boost::shared_ptr<Image3D> result_cube_buffer = Image3D::createImage3D(ocl_context,
+                                                                           Memory::WRITE_ONLY,
+                                                                           dimensions[0],
+                                                                           dimensions[1],
+                                                                           dimensions[2],
+                                                                           Image::ImageFormat(Image::RGB, Image::UNSIGNED_INT8),
+                                                                           dimensions[0]*3*sizeof(char),
+                                                                           dimensions[0]*3*sizeof(char)*dimensions[1],
+                                                                           result_cube.get());
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,33 +174,23 @@ bool VoxelColorer::prepare_opencl()
     return result;
 }
 
-
-void VoxelColorer::run_program()
-{
-    set_parameters_to_program();
-
-    boost::shared_ptr<Kernel> kernel = prog->createKernel("VectorAdd");
-    kernel->setArguments(vecBufferA,vecBufferB,verBufferR,numElements);
-
-}
-
+///////////////////////////////////////////////////////////////////////////////
+//! Set camera calibration matrix
+//!
+//! @param _camera_calibration_matrix Pointer to camera calibration matrix
+///////////////////////////////////////////////////////////////////////////////
 void VoxelColorer::set_camera_calibration_matrix(const float *_camera_calibration_matrix)
 {
     for (size_t i = 0; i < 16; ++i)
         camera_calibration_matrix[i] = _camera_calibration_matrix[i];
 }
 
-void VoxelColorer::set_parameters_to_program()
-{
-
-}
-
 void VoxelColorer::set_resulting_voxel_cube_dimensions
-        (unsigned int _dimension_x,
-         unsigned int _dimension_y,
-         unsigned int _dimension_z)
+        (unsigned int dimension_x,
+         unsigned int dimension_y,
+         unsigned int dimension_z)
 {
-    dimension_x = _dimension_x;
-    dimension_y = _dimension_y;
-    dimension_z = _dimension_z;
+    dimensions[0] = dimension_x;
+    dimensions[1] = dimension_y;
+    dimensions[2] = dimension_z;
 }

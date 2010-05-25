@@ -45,7 +45,7 @@ public:
 
 public:
     void add_image(const char * image, int width, int height, const float * image_calibration_matrix);
-    void build_voxel_model();
+    bool build_voxel_model();
     bool prepare();
 
     // setters
@@ -59,8 +59,6 @@ private:
     bool build_program(const std::string & path_to_file_with_program);
     void calculate_bounding_box();
     bool prepare_opencl();
-    void run_program();
-    void set_parameters_to_program();
 
 
 private:
@@ -95,16 +93,10 @@ private:
     //! End of info about images
     ///////////////////////////////////////////////////////////////////////////
 
-    //! visibility buffer. size = width*height*number_of_images*size_of(bool or char)
-    boost::shared_ptr<char> z_buffer;
-
     float camera_calibration_matrix[16];
 
-    struct
-    {
-        float pos_x, pos_y, pos_z;
-        float size_x, size_y, size_z;
-    } bounding_box;
+    //! bounding box. elements: pos_x, pos_y, pos_z, size_x, size_y, size_z;
+    float bounding_box[6];
 
     //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*number_of_images*3*size_of(color)
     boost::shared_ptr<char> hypotheses;
