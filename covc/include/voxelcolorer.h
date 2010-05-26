@@ -56,16 +56,13 @@ public:
     boost::shared_ptr<CLxx::Context> get_context () const  {return ocl_context;}
 
 private:
-    bool build_program(const std::string & path_to_file_with_program);
+    bool build_program(boost::shared_ptr<Program> & program, const std::string & path_to_file_with_program);
     void calculate_bounding_box();
     bool prepare_opencl();
 
 
 private:
     boost::shared_ptr<CLxx::Context> ocl_context;
-    boost::shared_ptr<CLxx::Program> ocl_program;
-    boost::shared_ptr<CLxx::Kernel>  ocl_kernel;
-    boost::shared_ptr<CLxx::CommandQueue> ocl_command_queue;
 
 
     //! dimensions of resulting voxel cube by x, y, z
@@ -100,6 +97,9 @@ private:
 
     //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*number_of_images*3*size_of(color)
     boost::shared_ptr<char> hypotheses;
+
+    //! threshold.
+    float threshold;
 };
 
 #endif // VOXELCOLORER_H
