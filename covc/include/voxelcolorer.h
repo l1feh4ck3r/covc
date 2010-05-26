@@ -71,8 +71,8 @@ private:
     //! dimensions of resulting voxel cube by x, y, z
     unsigned int dimensions[3];
 
-    //! rusult cube. size = dimension[0]*dimension[1]*dimension[2]*3*size_of(color)
-    boost::shared_ptr<char> result_cube;
+    //! rusulting voxel model. size = dimension[0]*dimension[1]*dimension[2]*3*size_of(color)
+    boost::shared_ptr<char> voxel_model;
 
     ///////////////////////////////////////////////////////////////////////////
     //! Info about images

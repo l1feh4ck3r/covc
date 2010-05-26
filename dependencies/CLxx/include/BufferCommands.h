@@ -72,9 +72,9 @@ namespace CLxx
     ///        set to host_ptr + offset, where host_ptr is a pointer to the memory region specified when the
     ///        buffer object being read is created with USE_HOST_PTR, must meet the following requirements 
     ///        in order to avoid undefined behavior:
-    ///        • All commands that use this buffer object have finished execution before the read command begins execution.
-    ///        • The buffer object is not mapped.
-    ///        • The buffer object is not used by any command-queue until the read command has finished execution.
+    ///        â€¢ All commands that use this buffer object have finished execution before the read command begins execution.
+    ///        â€¢ The buffer object is not mapped.
+    ///        â€¢ The buffer object is not used by any command-queue until the read command has finished execution.
 
     class ReadBufferCommand : public BufferCommand
     {
@@ -113,13 +113,13 @@ namespace CLxx
 
     /// Write buffer operation.
     ///
-    /// Note : Enqueing ReadBufferCommand to update the latest bits in a region of the buffer object with the
+    /// Note : Enqueing WriteBufferCommand to update the latest bits in a region of the buffer object with the
     ///        host_ptr argument value set to host_ptr + offset, where host_ptr is a pointer to the memory region
     ///        specified when the buffer object being written is created with USE_HOST_PTR, must meet the following 
     ///        requirements in order to avoid undefined behavior:
-    ///        • The host memory region given by (host_ptr + offset, mem_size) contains the latest bits when the enqueued write command begins execution.
-    ///        • The buffer object is not mapped.
-    ///        • The buffer object is not used by any command-queue until the write command has finished execution.
+    ///        â€¢ The host memory region given by (host_ptr + offset, mem_size) contains the latest bits when the enqueued write command begins execution.
+    ///        â€¢ The buffer object is not mapped.
+    ///        â€¢ The buffer object is not used by any command-queue until the write command has finished execution.
 
     class WriteBufferCommand : public BufferCommand
     {

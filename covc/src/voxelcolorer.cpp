@@ -49,50 +49,58 @@ VoxelColorer::~VoxelColorer()
 ///////////////////////////////////////////////////////////////////////////////
 bool VoxelColorer::build_voxel_model()
 {
-    build_program("ocl/voxelcolorer.cl");
+
+    // BUG
+    // remove this strange thing
+    #define b_sh_p boost::shared_ptr
 
     calculate_bounding_box();
 
-    //boost::shared_ptr<Buffer> imagesBuffer = ocl_context->
-                                             //createBuffer(Memory::READ_ONLY,
-                                                          //             width*height*number_of_images*3*sizeof(char),
-                                                          //             pixels.get());
-
+///////////////////////////////////////////////////////////////////////////////
+//! Create buffers
+///////////////////////////////////////////////////////////////////////////////
+    // create opencl buffer for images
     boost::shared_ptr<Image3D> images_buffer = Image3D::createImage3D(ocl_context,
-                                                                     Memory::READ_ONLY,
-                                                                     width,
-                                                                     height,
-                                                                     number_of_images,
-                                                                     Image::ImageFormat(Image::RGB, Image::UNSIGNED_INT8),
-                                                                     width*3*sizeof(char),
-                                                                     width*3*sizeof(char)*height,
-                                                                     pixels.get());
+                                                                      Memory::READ_ONLY,
+                                                                      width,
+                                                                      height,
+                                                                      number_of_images,
+                                                                      Image::ImageFormat(Image::RGB, Image::UNSIGNED_INT8));
 
-    boost::shared_ptr<Buffer> projection_matrices_buffer = ocl_context->createBuffer(Memory::READ_ONLY,
-                                                                                   number_of_images*16*sizeof(float),
-                                                                                   projection_matrices.data());
+    // create opencl buffer for projection matricies
+    boost::shared_ptr<Buffer> projection_matrices_buffer = ocl_context->createBuffer(Memory::READ_ONLY, number_of_images*16*sizeof(float));
 
+    // create opencl buffer for hypotheses
     boost::shared_ptr<Buffer> hypotheses_buffer = ocl_context->createBuffer(Memory::READ_WRITE,
-                                                                            dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*3*sizeof(char),
-                                                                            hypotheses.get());
+                                                                            dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*3*sizeof(char));
 
-    boost::shared_ptr<Buffer> bounding_box_buffer = ocl_context->createBuffer(Memory::READ_ONLY,
-                                                                              sizeof(bounding_box),
-                                                                              bounding_box);
+    // create opencl buffer for bounding box
+    boost::shared_ptr<Buffer> bounding_box_buffer = ocl_context->createBuffer(Memory::READ_ONLY, sizeof(bounding_box));
 
-    boost::shared_ptr<Buffer> z_buffer = ocl_context->createBuffer(Memory::READ_WRITE | Memory::ALLOC_HOST_PTR ,
-                                                                  width*height*number_of_images*sizeof(char),
-                                                                  nil);
+    // create opencl buffer for z buffer
+    boost::shared_ptr<Buffer> z_buffer = ocl_context->createBuffer(Memory::READ_WRITE | Memory::ALLOC_HOST_PTR,
+                                                                   width*height*number_of_images*sizeof(char));
 
-    boost::shared_ptr<Image3D> result_cube_buffer = Image3D::createImage3D(ocl_context,
+    // create opencl buffer for resulting voxel model
+    boost::shared_ptr<Image3D> voxel_model_buffer = Image3D::createImage3D(ocl_context,
                                                                            Memory::WRITE_ONLY,
                                                                            dimensions[0],
                                                                            dimensions[1],
                                                                            dimensions[2],
-                                                                           Image::ImageFormat(Image::RGB, Image::UNSIGNED_INT8),
-                                                                           dimensions[0]*3*sizeof(char),
-                                                                           dimensions[0]*3*sizeof(char)*dimensions[1],
-                                                                           result_cube.get());
+                                                                           Image::ImageFormat(Image::RGB, Image::UNSIGNED_INT8));
+
+    b_sh_p<WriteImage3DCommand> write_images_buffer_command (new WriteImage3DCommand(images_buffer, pixels.get()));
+    b_sh_p<WriteBufferCommand> write_projection_matrices_buffer_command (new WriteBufferCommand(projection_matrices_buffer, projection_matrices.data()));
+    b_sh_p<WriteBufferCommand> write_hypotheses_buffer_command (new WriteBufferCommand(hypotheses_buffer,  hypotheses.get()));
+    b_sh_p<WriteBufferCommand> write_bounding_box_buffer_command (new WriteBufferCommand(bounding_box_buffer, bounding_box));
+    b_sh_p<ReadBufferCommand> read_voxel_model_buffer_command (new ReadBufferCommand(voxel_model_buffer, voxel_model.get()));
+///////////////////////////////////////////////////////////////////////////////
+//! end of create buffers
+///////////////////////////////////////////////////////////////////////////////
+
+    build_program("ocl/voxelcolorer.cl");
+
+    ocl_kernel = ocl_program->createKernel("build_variety_of_hypotheses");
 
 }
 

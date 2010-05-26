@@ -6,7 +6,13 @@
 
 namespace CLxx
 {
-    boost::shared_ptr<Image2D> Image2D::createImage2D( boost::shared_ptr<Context>& context, Image::Flags flags, size_t image_width, size_t image_height, const Image::ImageFormat& image_format, size_t image_row_pitch, void* host_ptr)
+    boost::shared_ptr<Image2D> Image2D::createImage2D( boost::shared_ptr<Context>& context,
+                                                       Image::Flags flags,
+                                                       size_t image_width,
+                                                       size_t image_height,
+                                                       const Image::ImageFormat& image_format,
+                                                       size_t image_row_pitch,
+                                                       void* host_ptr)
     {
         cl_int errorCode;
 
@@ -25,7 +31,15 @@ namespace CLxx
         return image;
     }
 
-    boost::shared_ptr<Image3D> Image3D::createImage3D( boost::shared_ptr<Context>& context, Flags flags, size_t image_width, size_t image_height, size_t image_depth, const Image::ImageFormat& image_format, size_t image_row_pitch,size_t image_slice_pitch,  void* host_ptr)
+    boost::shared_ptr<Image3D> Image3D::createImage3D( boost::shared_ptr<Context>& context,
+                                                       Flags flags,
+                                                       size_t image_width,
+                                                       size_t image_height,
+                                                       size_t image_depth,
+                                                       const Image::ImageFormat& image_format,
+                                                       size_t image_row_pitch,
+                                                       size_t image_slice_pitch,
+                                                       void* host_ptr)
     {
         cl_int errorCode;
 

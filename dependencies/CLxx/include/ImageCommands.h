@@ -165,10 +165,10 @@ namespace CLxx
     ///        where host_ptr is a pointer to the memory region specified when the image
     ///        object being read is created with USE_HOST_PTR, must meet the following
     ///        requirements in order to avoid undefined behavior:
-    ///        • All commands that use this image object have finished execution before the read command begins execution.
-    ///        • The row_pitch argument values in Image2DArea must be set to the image row pitch.
-    ///        • The image object is not mapped.
-    ///        • The image object is not used by any command-queue until the read command has finished execution.
+    ///        â€¢ All commands that use this image object have finished execution before the read command begins execution.
+    ///        â€¢ The row_pitch argument values in Image2DArea must be set to the image row pitch.
+    ///        â€¢ The image object is not mapped.
+    ///        â€¢ The image object is not used by any command-queue until the read command has finished execution.
     class ReadImage2DCommand : public Image2DCommand
     {
 
@@ -199,10 +199,10 @@ namespace CLxx
     ///        where host_ptr is a pointer to the memory region specified when the image
     ///        object being read is created with USE_HOST_PTR, must meet the following
     ///        requirements in order to avoid undefined behavior:
-    ///        • All commands that use this image object have finished execution before the read command begins execution.
-    ///        • The row_pitch and slice_pitch argument values in Image3DArea must be set to the image row pitch and slice pitch.
-    ///        • The image object is not mapped.
-    ///        • The image object is not used by any command-queue until the read command has finished execution.
+    ///        â€¢ All commands that use this image object have finished execution before the read command begins execution.
+    ///        â€¢ The row_pitch and slice_pitch argument values in Image3DArea must be set to the image row pitch and slice pitch.
+    ///        â€¢ The image object is not mapped.
+    ///        â€¢ The image object is not used by any command-queue until the read command has finished execution.
     class ReadImage3DCommand : public Image3DCommand
     {
 
@@ -233,12 +233,12 @@ namespace CLxx
     ///        where host_ptr is a pointer to the memory region specified when
     ///        the image object being written is created with USE_HOST_PTR, must meet the
     ///        following requirements in order to avoid undefined behavior:
-    ///        • The host memory region being written contains the latest bits when the enqueued write
+    ///        â€¢ The host memory region being written contains the latest bits when the enqueued write
     ///          command begins execution.
-    ///        • The input_row_pitch argument values in Image2DArea
+    ///        â€¢ The input_row_pitch argument values in Image2DArea
     ///          must be set to the image row pitch and slice pitch.
-    ///        • The image object is not mapped.
-    ///        • The image object is not used by any command-queue until the write command has
+    ///        â€¢ The image object is not mapped.
+    ///        â€¢ The image object is not used by any command-queue until the write command has
     ///          finished execution.
     class WriteImage2DCommand : public Image2DCommand
     {
@@ -273,12 +273,12 @@ namespace CLxx
     ///        where host_ptr is a pointer to the memory region specified when
     ///        the image object being written is created with USE_HOST_PTR, must meet the
     ///        following requirements in order to avoid undefined behavior:
-    ///        • The host memory region being written contains the latest bits when the enqueued write
+    ///        â€¢ The host memory region being written contains the latest bits when the enqueued write
     ///          command begins execution.
-    ///        • The input_row_pitch and input_slice_pitch argument values in Image3DArea
+    ///        â€¢ The input_row_pitch and input_slice_pitch argument values in Image3DArea
     ///          must be set to the image row pitch and slice pitch.
-    ///        • The image object is not mapped.
-    ///        • The image object is not used by any command-queue until the write command has
+    ///        â€¢ The image object is not mapped.
+    ///        â€¢ The image object is not used by any command-queue until the write command has
     ///          finished execution.
     class WriteImage3DCommand : public Image3DCommand
     {
@@ -409,10 +409,10 @@ namespace CLxx
     /// Command to copy image objects. src_image and dst_image can be 2D or 3D image
     /// objects allowing to perform the following actions:
     ///
-    ///   • Copy a 2D image object to a 2D image object.
-    ///   • Copy a 2D image object to a 2D slice of a 3D image object.
-    ///   • Copy a 2D slice of a 3D image object to a 2D image object.
-    ///   • Copy a 3D image object to a 3D image object.
+    ///   â€¢ Copy a 2D image object to a 2D image object.
+    ///   â€¢ Copy a 2D image object to a 2D slice of a 3D image object.
+    ///   â€¢ Copy a 2D slice of a 3D image object to a 2D image object.
+    ///   â€¢ Copy a 3D image object to a 3D image object.
     ///
     /// The OpenCL context associated with command_queue, src_image and dst_image must be the same
     class CopyImageCommand : public ImageCommand
