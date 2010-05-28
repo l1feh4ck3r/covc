@@ -134,6 +134,7 @@ bool VoxelColorer::build_voxel_model()
 
     ///////////////////////////////////////////////////////////////////////////////
     //! step 2: initial inconsistent voxels rejection
+    //! CONSISTENCY CHECK AND HYPOTHESIS REMOVAL
     ///////////////////////////////////////////////////////////////////////////////
     build_program(ocl_program, "ocl/step_2_initial_inconsistent_voxels_rejection_by_hypotheses.cl");
 
@@ -252,9 +253,19 @@ bool VoxelColorer::build_voxel_model()
     }
 
     ///////////////////////////////////////////////////////////////////////////////
-    //! step 4: build from variety of hypotheses voxel model
+    //! step 4: build voxel model from variety of hypotheses
     ///////////////////////////////////////////////////////////////////////////////
 
+    build_program(ocl_program, "step_4_build_voxel_model_from_variety_of_hypotheses.cl");
+
+    ocl_kernel = ocl_program->createKernel("build_voxel_model");
+    ocl_kernel->setArguments(hypotheses_buffer, voxel_model_buffer, number_of_images);
+
+    boost::shared_ptr<Range3DCommand> build_voxel_model_command (new Range3DCommand(ocl_kernel, dimensions[0], dimensions[1], dimensions[2]));
+
+    ocl_command_queue->enque(build_voxel_model_command);
+    ocl_command_queue->finish();
+    ocl_command_queue->enque(read_voxel_model_buffer_command);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
