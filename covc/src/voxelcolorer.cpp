@@ -75,8 +75,10 @@ bool VoxelColorer::build_voxel_model()
     boost::shared_ptr<Buffer> projection_matrices_buffer = ocl_context->createBuffer(Memory::READ_ONLY, number_of_images*16*sizeof(float));
 
     // create opencl buffer for hypotheses
+
     boost::shared_ptr<Buffer> hypotheses_buffer = ocl_context->createBuffer(Memory::READ_WRITE | Memory::ALLOC_HOST_PTR,
-                                                                            dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*3*sizeof(char));
+                                                                            dimensions[0]*dimensions[1]*dimensions[2]*
+                                                                            (2*sizeof(char)+number_of_images*3*sizeof(char)));
 
     // create opencl buffer for number of consistent hypotheses
     boost::shared_ptr<Buffer> consistent_hypotheses_buffer = ocl_context->createBuffer(Memory::READ_WRITE | Memory::ALLOC_HOST_PTR,
@@ -133,24 +135,12 @@ bool VoxelColorer::build_voxel_model()
     ///////////////////////////////////////////////////////////////////////////////
     //! step 2: initial inconsistent voxels rejection
     ///////////////////////////////////////////////////////////////////////////////
-#define CALCULATE_BY_VOXELS 1
-
-#ifdef CALCULATE_BY_VOXELS
-
-    build_program(ocl_program, "ocl/step_2_initial_inconsistent_voxels_rejection_by_voxels.cl");
-
-    ocl_kernel = ocl_program->createKernel("initial_inconsistent_voxels_rejection");
-    ocl_kernel->setArguments(bounding_box_buffer, hypotheses_buffer);
-
-    calculate_by_voxels = new Range3DCommand(ocl_kernel, dimensions[0], dimensions[1], dimensions[2]);
-
-    ocl_command_queue->enque(calculate_by_voxels);
-
-#else
-
     build_program(ocl_program, "ocl/step_2_initial_inconsistent_voxels_rejection_by_hypotheses.cl");
 
     ocl_kernel = ocl_program->createKernel("initial_inconsistent_voxels_rejection");
+
+    // size of data for (voxel visibility + number_of_consistent_hypotheses + hypotheses)
+    size_t hypotheses_size = 2*sizeof(char)+number_of_images*3*sizeof(char);
 
     for (size_t x = 0; x < dimensions[0]; ++x)
         for (size_t y = 0; y < dimensions[1]; ++y)
@@ -158,20 +148,21 @@ bool VoxelColorer::build_voxel_model()
             {
                 // offset to hypothesis for voxel with coordinates [x][y][z]
                 ocl_kernel->setArguments(hypotheses_buffer,
-                                         z*3*sizeof(char) +
-                                         y*dimensions[2]*number_of_images*3*sizeof(char) +
-                                         x*dimensions[1]*dimensions[0]*number_of_images*3*sizeof(char),
+                                         z*hypotheses_size +
+                                         y*dimensions[2]*hypotheses_size +
+                                         x*dimensions[1]*dimensions[0]*hypotheses_size,
                                          threshold);
 
                 boost::shared_ptr<Range1DCommand> calculate_by_hypotheses (new Range1DCommand(ocl_kernel, number_of_images));
 
                 ocl_command_queue->enque(calculate_by_voxels);
             }
-#endif
 
     ocl_command_queue->finish();
 
     // calculate number of consistent hypotheses for each voxel
+    // if number of consistent hypotheses for one voxel is zero,
+    // make this voxel transparent
     build_program(ocl_program, "ocl/step_2_3_calculate_number_of_consistent_hypotheses_by_voxels.cl");
     boost::shared_ptr<Kernel> number_of_consistent_hypotheses_by_voxel_calculator_kernel = ocl_program->createKernel("calculate_number_of_consistent_hypotheses_by_voxels");
     number_of_consistent_hypotheses_by_voxel_calculator_kernel->setArguments(hypotheses_buffer, consistent_hypotheses_buffer, number_of_images);
@@ -189,9 +180,80 @@ bool VoxelColorer::build_voxel_model()
     ocl_command_queue->finish();
     ocl_command_queue->enque(number_of_consistent_hypotheses_calculator);
     ocl_command_queue->finish();
-    ocl_command_queue->enque(read_number_of_consistent_hypotheses_command);;
+    ocl_command_queue->enque(read_number_of_consistent_hypotheses_command);
     ocl_command_queue->finish();
 
+    threshold = const_cast<float>(number_of_consistent_hypotheses)/const_cast<float>(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //! step 3: inconsistent hypotheses rejection. visibility buffer in use
+    ///////////////////////////////////////////////////////////////////////////////
+
+    build_program(ocl_program, "ocl/step_3_inconsistent_voxels_rejection.cl");
+
+    ocl_kernel = ocl_program->createKernel("inconsistent_voxel_rejection");
+
+    // size of data for (voxel visibility + number_of_consistent_hypotheses + hypotheses)
+    size_t hypotheses_size = 2*sizeof(char)+number_of_images*3*sizeof(char);
+
+    unsigned int old_number_of_consistent_hypotheses = UINT_MAX;
+
+    while (number_of_consistent_hypotheses != old_number_of_consistent_hypotheses)
+    {
+        old_number_of_consistent_hypotheses = number_of_consistent_hypotheses;
+
+        for (size_t x = 0; x < dimensions[0]; ++x)
+        {
+            for (size_t y = 0; y < dimensions[1]; ++y)
+            {
+                for (size_t z = 0; z < dimensions[2]; ++z)
+                {
+
+                    ocl_kernel->setArguments(hypotheses_buffer,
+                                             // offset to hypothesis for voxel with coordinates [x][y][z]
+                                             z*hypotheses_size +
+                                             y*dimensions[2]*hypotheses_size +
+                                             x*dimensions[1]*dimensions[0]*hypotheses_size,
+                                             z_buffer,
+                                             threshold);
+
+                    boost::shared_ptr<Range1DCommand> calculate_by_hypotheses (new Range1DCommand(ocl_kernel, number_of_images));
+
+                    ocl_command_queue->enque(calculate_by_voxels);
+                }
+            }
+        }
+
+        ocl_command_queue->finish();
+
+        // calculate number of consistent hypotheses for each voxel
+        // if number of consistent hypotheses for one voxel is zero,
+        // make this voxel transparent
+        build_program(ocl_program, "ocl/step_2_3_calculate_number_of_consistent_hypotheses_by_voxels.cl");
+        boost::shared_ptr<Kernel> number_of_consistent_hypotheses_by_voxel_calculator_kernel = ocl_program->createKernel("calculate_number_of_consistent_hypotheses_by_voxels");
+        number_of_consistent_hypotheses_by_voxel_calculator_kernel->setArguments(hypotheses_buffer, consistent_hypotheses_buffer, number_of_images);
+        boost::shared_ptr<Range3DCommand> number_of_consistent_hypotheses_by_voxel_calculator (new Range3DCommand(number_of_consistent_hypotheses_by_voxel_calculator_kernel,
+                                                                                                                  dimensions[0],
+                                                                                                                  dimensions[1],
+                                                                                                                  dimensions[2]));
+
+        build_program(ocl_program, "ocl/step_2_3_calculate_number_of_consistent_hypotheses.cl");
+        boost::shared_ptr<Kernel> number_of_consistent_hypotheses_calculator_kernel = ocl_program->createKernel("calculate_number_of_consistent_hypotheses");
+        number_of_consistent_hypotheses_calculator_kernel->setArguments(consistent_hypotheses_buffer, number_of_images, number_of_consistent_hypotheses);
+        boost::shared_ptr<Range1DCommand> number_of_consistent_hypotheses_calculator (new Range1DCommand(number_of_consistent_hypotheses_by_voxel_calculator_kernel, 1));
+
+        ocl_command_queue->enque(number_of_consistent_hypotheses_by_voxel_calculator);
+        ocl_command_queue->finish();
+        ocl_command_queue->enque(number_of_consistent_hypotheses_calculator);
+        ocl_command_queue->finish();
+        ocl_command_queue->enque(read_number_of_consistent_hypotheses_command);
+        ocl_command_queue->finish();
+
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    //! step 4: build from variety of hypotheses voxel model
+    ///////////////////////////////////////////////////////////////////////////////
 
 }
 

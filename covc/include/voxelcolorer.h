@@ -95,7 +95,17 @@ private:
     //! bounding box. elements: pos_x, pos_y, pos_z, size_x, size_y, size_z;
     float bounding_box[6];
 
-    //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*number_of_images*3*size_of(color)
+    //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*number_of_images*(2*sizeof(char)+3*size_of(color))
+    // hypotheses:
+    //  _
+    // |_| - voxel visibility
+    // |_| - number of consistent hypoteses on previous iteration
+    // |_|-
+    // |_| \
+    // ...  - hypotheses
+    // |_| /
+    // |_|-
+    //
     boost::shared_ptr<char> hypotheses;
 
     //! threshold.
