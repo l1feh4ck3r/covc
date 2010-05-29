@@ -22,8 +22,6 @@
 
 #include "voxelcolorer.h"
 
-#include "cl.hpp"
-
 #include <iostream>
 
 VoxelColorer::VoxelColorer()
