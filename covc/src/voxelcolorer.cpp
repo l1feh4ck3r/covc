@@ -22,9 +22,7 @@
 
 #include "voxelcolorer.h"
 
-#include "CLxxIncludes.h"
-
-using namespace CLxx;
+#include "cl.hpp"
 
 #include <iostream>
 

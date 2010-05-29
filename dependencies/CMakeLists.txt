@@ -1,6 +1,9 @@
 #cmake minimum version
 cmake_minimum_required(VERSION 2.6)
 
-add_subdirectory(CLxx)
+project(deps)
 
-add_subdirectory(matrix)
+include(ocl/)
+
+include(matrix/)
+

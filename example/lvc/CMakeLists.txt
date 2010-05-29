@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(lvc)
 
-include_directories("${matrix_tcl_lite_SOURCE_DIR}/include")
+include_directories("${deps_SOURCE_DIR}/matrix")
 
 set(LVC_SRCS
     bounding_volume_calculation.cpp

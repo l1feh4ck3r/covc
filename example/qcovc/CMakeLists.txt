@@ -6,7 +6,8 @@ find_package(Qt4 REQUIRED)
 
 include(${QT_USE_FILE})
 
-include_directories("${matrix_tcl_lite_SOURCE_DIR}/include")
+include_directories("${deps_SOURCE_DIR}/matrix"
+                    "${deps_SOURCE_DIR}/ocl")
 
 set (QCOVC_SRCS_CXX
   imageinfo.cpp

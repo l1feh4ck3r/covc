@@ -23,18 +23,11 @@
 #ifndef VOXELCOLORER_H
 #define VOXELCOLORER_H
 
+#define __CL_ENABLE_EXCEPTIONS
 
-#include "boost/shared_ptr.hpp"
+#include "cl.hpp"
 
-namespace CLxx
-{
-    class Context;
-    class Program;
-    class Kernel;
-    class CommandQueue;
-}
-
-#include <vector>
+//#include <vector>
 
 class VoxelColorer
 {
