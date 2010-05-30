@@ -46,29 +46,29 @@ public:
     void set_resulting_voxel_cube_dimensions(unsigned int _dimension_x, unsigned int _dimension_y, unsigned int _dimension_z);
 
     // getters
-    boost::shared_ptr<CLxx::Context> get_context () const  {return ocl_context;}
+    const cl::Context get_context () const  {return ocl_context;}
 
 private:
-    bool build_program(boost::shared_ptr<Program> & program, const std::string & path_to_file_with_program);
+    bool build_program(cl::Program & program, const std::string & path_to_file_with_program);
     void calculate_bounding_box();
     bool prepare_opencl();
 
 
 private:
-    boost::shared_ptr<CLxx::Context> ocl_context;
+    cl::Context ocl_context;
 
 
     //! dimensions of resulting voxel cube by x, y, z
-    unsigned int dimensions[3];
+    size_t dimensions[3];
 
     //! rusulting voxel model. size = dimension[0]*dimension[1]*dimension[2]*3*size_of(color)
-    boost::shared_ptr<char> voxel_model;
+    std::vector<char> voxel_model;
 
     ///////////////////////////////////////////////////////////////////////////
     //! Info about images
     ///////////////////////////////////////////////////////////////////////////
     //! images. number of pixels = width*height*number_of_images*3*size_of(color)
-    boost::shared_ptr<char> pixels;
+    std::vector<char> pixels;
 
     //! image dimensions
     size_t width, height;
@@ -99,7 +99,7 @@ private:
     // |_| /
     // |_|-
     //
-    boost::shared_ptr<char> hypotheses;
+    std::vector<char> hypotheses;
 
     //! threshold.
     float threshold;

@@ -5060,13 +5060,13 @@ public:
      *  rectangle being read or written. If image is a 2D image object, the
      *  depth value given by region[2] must be 1.
      *
-     *  \param input_row_pitch in is the length of each row in bytes.
+     *  \param row_pitch in is the length of each row in bytes.
      *  This value must be greater than or equal to the element size in bytes
      *  width. If \a input_row_pitch is set to 0, the appropriate row pitch is
      *  calculated based on the size of each element in bytes multiplied by
      *  width.
      *
-     *  \param input_slice_pitch is the size
+     *  \param slice_pitch is the size
      *  in bytes of the 2D slice of the 3D region of a 3D image being read or
      *  written respectively. This must be 0 if image is a 2D image. This value
      *  must be greater than or equal to input_row_pitch * height. If
