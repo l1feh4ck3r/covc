@@ -26,6 +26,8 @@
 #include <sstream>
 #include <iostream>
 
+#include <limits.h>
+
 VoxelColorer::VoxelColorer()
     :width(0), height(0),
     number_of_images(0),
@@ -60,8 +62,6 @@ bool VoxelColorer::build_voxel_model()
 //! Create buffers
 ///////////////////////////////////////////////////////////////////////////////
 
-    size_t offsets[3] = {0, 0, 0};
-
     // create opencl buffer for images
     cl::Image3D images_buffer(ocl_context,
                               CL_MEM_READ_ONLY,
@@ -81,7 +81,7 @@ bool VoxelColorer::build_voxel_model()
     cl::Buffer hypotheses_buffer(ocl_context,
                                  CL_MEM_READ_WRITE,
                                  dimensions[0]*dimensions[1]*dimensions[2]*
-                                 (2*sizeof(char)+number_of_images*3*sizeof(char));
+                                 (2*sizeof(char)+number_of_images*3*sizeof(char)));
 
     // create opencl buffer for number of consistent hypotheses
     cl::Buffer consistent_hypotheses_buffer(ocl_context,
@@ -141,7 +141,9 @@ bool VoxelColorer::build_voxel_model()
                                          sizeof(bounding_box),
                                          bounding_box);
 
-    size_t sizes[3] = {width, height, number_of_images};
+    cl::size_t<3> offsets; //size_t offsets[3] = {0, 0, 0};
+    cl::size_t<3> sizes;
+    sizes[0] = width; sizes[1] = height; sizes[2] = number_of_images;
 
     ocl_command_queue.enqueueWriteImage(images_buffer,
                                         CL_TRUE,
@@ -320,10 +322,15 @@ bool VoxelColorer::build_voxel_model()
     func_step_4().wait();
     ocl_command_queue.finish();
 
+    cl::size_t<3> voxel_model_sizes;
+    voxel_model_sizes[0] = dimensions[0];
+    voxel_model_sizes[1] = dimensions[1];
+    voxel_model_sizes[2] = dimensions[2];
+
     ocl_command_queue.enqueueReadImage(voxel_model_buffer,
                                        CL_TRUE,
                                        offsets,
-                                       dimensions,
+                                       voxel_model_sizes,
                                        dimensions[0]*3*sizeof(char),
                                        dimensions[0]*dimensions[1]*3*sizeof(char),
                                        voxel_model.data());
@@ -360,7 +367,7 @@ bool VoxelColorer::build_program(cl::Program & program, const std::string & path
 
         result = true;
     }
-    catch(Exception ex)
+    catch(cl::Error ex)
     {
         std::cerr << "COVC: " << ex.what() << "(" << ex.err() << ": " << ex.error() << "):" << std::endl;
         result = false;
