@@ -58,7 +58,7 @@ build_variety_of_hypotheses (__local __read_only float * bounding_box,
                              voxel_pos.x*dimensions[2]*dimensions[1]*hypotheses_size;
 
     hypotheses[hypotheses_offset - 2] = 1;  // set voxel visible
-    hypotheses[hypotheses_offset - 1] = 1;  // set non zero number of consists hypotheses
+    hypotheses[hypotheses_offset - 1] = UINT_MAX;  // set non zero number of consists hypotheses
 
     for (uint i = 0; i < number_of_images; ++i)
     {

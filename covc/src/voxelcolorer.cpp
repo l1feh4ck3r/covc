@@ -100,6 +100,7 @@ bool VoxelColorer::build_voxel_model()
     cl::Buffer bounding_box_buffer (ocl_context, CL_MEM_READ_ONLY, sizeof(bounding_box));
 
     // create opencl buffer for z buffer
+    // z buffer element contain only one value: free or occupied
     cl::Buffer z_buffer (ocl_context,
                          CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
                          width*height*number_of_images*sizeof(unsigned char));
@@ -226,8 +227,8 @@ bool VoxelColorer::build_voxel_model()
     build_program(ocl_program, "ocl/step_2_3_calculate_number_of_consistent_hypotheses.cl");
     cl::Kernel ocl_kernel_step_2_3_second = cl::Kernel(ocl_program, "calculate_number_of_consistent_hypotheses");
     ocl_kernel_step_2_3_second.setArg(0, hypotheses_buffer);
-    ocl_kernel_step_2_3_second.setArg(1, number_of_images);
-    ocl_kernel_step_2_3_second.setArg(2, dimensions_buffer);
+    ocl_kernel_step_2_3_second.setArg(1, dimensions_buffer);
+    ocl_kernel_step_2_3_second.setArg(2, number_of_images);
     ocl_kernel_step_2_3_second.setArg(3, number_of_consistent_hypotheses);
 
     cl::KernelFunctor func_step_2_3_second = ocl_kernel_step_2_3_second.bind(ocl_command_queue,
@@ -267,12 +268,14 @@ bool VoxelColorer::build_voxel_model()
                 for (size_t z = 0; z < dimensions[2]; ++z)
                 {
                     ocl_kernel_step_3.setArg(0, hypotheses);
-                    ocl_kernel_step_3.setArg(1,
-                                      z*hypotheses_size +
-                                      y*dimensions[2]*hypotheses_size +
-                                      x*dimensions[2]*dimensions[1]*hypotheses_size);
-                    ocl_kernel_step_3.setArg(2, z_buffer);
-                    ocl_kernel_step_3.setArg(3, threshold);
+                    ocl_kernel_step_3.setArg(1, x);
+                    ocl_kernel_step_3.setArg(2, y);
+                    ocl_kernel_step_3.setArg(3, z);
+                    ocl_kernel_step_3.setArg(4, bounding_box_buffer);
+                    ocl_kernel_step_3.setArg(5, dimensions_buffer);
+                    ocl_kernel_step_3.setArg(6, z_buffer);
+                    ocl_kernel_step_3.setArg(7, projection_matrices_buffer);
+                    ocl_kernel_step_3.setArg(8, threshold);
 
                     cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
                                            cl::NDRange(number_of_images),

@@ -23,6 +23,17 @@
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
 
 
+float4 mul_mat_vec (float16 mat, float4 vec)
+{
+    float4 res;
+    res.x = dot((float4)(mat.s0, mat.s1, mat.s2, mat.s3), vec);
+    res.y = dot((float4)(mat.s4, mat.s5, mat.s6, mat.s7), vec);
+    res.z = dot((float4)(mat.s8, mat.s9, mat.sA, mat.sB), vec);
+    res.w = dot((float4)(mat.sC, mat.sD, mat.sE, mat.sF), vec);
+    return res;
+}
+
+
 uint isequalui(uint4 vec1, uint4 vec2)
 {
     if (vec1.x != vec2.x || vec1.y != vec2.y ||
@@ -32,12 +43,18 @@ uint isequalui(uint4 vec1, uint4 vec2)
         return 1;
 }
 
+//TODO: remove this hardcoded image sizes
+#define width   512
+#define height  512
 
 __kernel void
 inconsistent_voxels_rejection ( __global uchar * hypotheses,
-                                        uint x, uint y, uint z,
-                                        __local __read_only uint * dimensions,
-                                        float threshold)
+                                uint x, uint y, uint z,
+                                __local __read_only float * bounding_box,
+                                __local __read_only uint * dimensions,
+                                __global uchar * z_buffer,
+                                __global float16 * projection_matrices,
+                                float threshold)
 {
     // current hypothesis number
     uint pos = get_global_id(0);
@@ -60,6 +77,24 @@ inconsistent_voxels_rejection ( __global uchar * hypotheses,
 
     // if hypothesis is not consist
     if (isequalui(hypothesis_color, (uint4)(0)))
+        return;
+
+
+    // project voxel to z buffer
+    // calculate voxel position in 3d
+    float4 pos3d = (float4) (bounding_box[0] + x*(bounding_box[4]/dimensions[0]),
+                             bounding_box[1] + y*(bounding_box[5]/dimensions[1]),
+                             bounding_box[2] + z*(bounding_box[6]/dimensions[2]),
+                             1);
+
+    // calculate voxel pos in voxel model
+    uint4 voxel_pos = (uint4) (get_global_id(0), get_global_id(1), get_global_id(2), 0);
+    float4 pos_at_image_3d = mul_mat_vec(projection_matrices[pos], pos3d);
+    float4 pos_at_image = (float4) (pos_at_image_3d.x/pos_at_image_3d.z, pos_at_image_3d.y/pos_at_image_3d.z, pos, 0);
+
+    uint z_buffer_offset = pos_at_image.z + pos_at_image.y*number_of_images + pos_at_image.x*height*number_of_images;
+    // if hypothesis occupied
+    if (z_buffer[z_buffer_offset] == 1)
         return;
 
     uint consistent = 0;
@@ -89,5 +124,10 @@ inconsistent_voxels_rejection ( __global uchar * hypotheses,
         hypotheses[hypotheses_offset + pos*3] = 0;
         hypotheses[hypotheses_offset + pos*3 + 1] = 0;
         hypotheses[hypotheses_offset + pos*3 + 2] = 0;
+    }
+    else
+    {
+        //set hypothesis occupied on z buffer
+        z_buffer[z_buffer_offset] = 1;
     }
 }
