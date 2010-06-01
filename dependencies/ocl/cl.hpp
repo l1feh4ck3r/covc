@@ -373,7 +373,7 @@ public:
      *
      *  \return The error code.
      */
-    const cl_int err(void) const { return err_; }
+    const cl_int error_code(void) const { return err_; }
 
     /*! \brief Get error message string associated with exception's error code
      *

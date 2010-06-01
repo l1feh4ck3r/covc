@@ -20,7 +20,6 @@ int main(int argc, char * argv[])
 {
     try
     {
-
         // init data
 
         const int numElements = 114432;
@@ -92,7 +91,7 @@ int main(int argc, char * argv[])
     }
     catch(cl::Error ex)
     {
-        std::cerr << "ERROR:" << ex.what() << "(" << ex.err() << ")" << std::endl;
+        std::cerr << "ERROR:" << ex.what() << "(" << ex.error_code() << ": " << ex.error() << ")" << std::endl;
         return EXIT_FAILURE;
     }
     

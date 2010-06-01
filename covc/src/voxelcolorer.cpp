@@ -369,7 +369,7 @@ bool VoxelColorer::build_program(cl::Program & program, const std::string & path
     }
     catch(cl::Error ex)
     {
-        std::cerr << "COVC: " << ex.what() << "(" << ex.err() << ": " << ex.error() << "):" << std::endl;
+        std::cerr << "COVC: " << ex.what() << "(" << ex.error_code() << ": " << ex.error() << "):" << std::endl;
         result = false;
     }
 
@@ -419,7 +419,7 @@ bool VoxelColorer::prepare_opencl()
     }
     catch(cl::Error ex)
     {
-        std::cerr << "COVC: " << ex.what() << "(" << ex.err() << ": " << ex.error() << ")" << std::endl;
+        std::cerr << "COVC: " << ex.what() << "(" << ex.error_code() << ": " << ex.error() << ")" << std::endl;
         result = false;
     }
 
