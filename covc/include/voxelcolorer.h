@@ -37,13 +37,13 @@ public:
 
 
 public:
-    void add_image(const char * image, int width, int height, const float * image_calibration_matrix);
+    void add_image(const unsigned char * image, int width, int height, const float * image_calibration_matrix);
     bool build_voxel_model();
     bool prepare();
 
     // setters
     void set_camera_calibration_matrix(const float * _camera_calibration_matrix);
-    void set_resulting_voxel_cube_dimensions(unsigned int _dimension_x, unsigned int _dimension_y, unsigned int _dimension_z);
+    void set_resulting_voxel_cube_dimensions(size_t dimension_x, size_t dimension_y, size_t dimension_z);
 
     // getters
     const cl::Context get_context () const  {return ocl_context;}
@@ -62,13 +62,13 @@ private:
     size_t dimensions[3];
 
     //! rusulting voxel model. size = dimension[0]*dimension[1]*dimension[2]*3*size_of(color)
-    std::vector<char> voxel_model;
+    std::vector<unsigned char> voxel_model;
 
     ///////////////////////////////////////////////////////////////////////////
     //! Info about images
     ///////////////////////////////////////////////////////////////////////////
     //! images. number of pixels = width*height*number_of_images*3*size_of(color)
-    std::vector<char> pixels;
+    std::vector<unsigned char> pixels;
 
     //! image dimensions
     size_t width, height;
@@ -99,7 +99,7 @@ private:
     // |_| /
     // |_|-
     //
-    std::vector<char> hypotheses;
+    std::vector<unsigned char> hypotheses;
 
     //! threshold.
     float threshold;

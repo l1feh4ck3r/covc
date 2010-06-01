@@ -69,8 +69,8 @@ bool VoxelColorer::build_voxel_model()
                               width,
                               height,
                               number_of_images,
-                              width*3*sizeof(char),
-                              width*height*3*sizeof(char));
+                              width*3*sizeof(unsigned char),
+                              width*height*3*sizeof(unsigned char));
 
     // create opencl buffer for projection matricies
     cl::Buffer projection_matrices_buffer(ocl_context,
@@ -81,14 +81,14 @@ bool VoxelColorer::build_voxel_model()
     cl::Buffer hypotheses_buffer(ocl_context,
                                  CL_MEM_READ_WRITE,
                                  dimensions[0]*dimensions[1]*dimensions[2]*
-                                 (2*sizeof(char)+number_of_images*3*sizeof(char)));
+                                 (2*sizeof(unsigned char)+number_of_images*3*sizeof(unsigned char)));
 
     // create opencl buffer for number of consistent hypotheses
     cl::Buffer consistent_hypotheses_buffer(ocl_context,
                                             CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                                            dimensions[0]*dimensions[1]*dimensions[2]*sizeof(char));
+                                            dimensions[0]*dimensions[1]*dimensions[2]*sizeof(unsigned char));
 
-    cl::Buffer number_of_consistent_hypotheses_buffer (ocl_context,
+    cl::Buffer number_of_consistent_hypotheses_buffer(ocl_context,
                                                       CL_MEM_READ_WRITE,
                                                       sizeof(unsigned int));
 
@@ -98,7 +98,7 @@ bool VoxelColorer::build_voxel_model()
     // create opencl buffer for z buffer
     cl::Buffer z_buffer ( ocl_context,
                           CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                          width*height*number_of_images*sizeof(char));
+                          width*height*number_of_images*sizeof(unsigned char));
 
     // create opencl buffer for resulting voxel model
     cl::Image3D voxel_model_buffer ( ocl_context,
@@ -107,8 +107,8 @@ bool VoxelColorer::build_voxel_model()
                                      dimensions[0],
                                      dimensions[1],
                                      dimensions[2],
-                                     dimensions[0]*3*sizeof(char),
-                                     dimensions[0]*dimensions[1]*3*sizeof(char));
+                                     dimensions[0]*3*sizeof(unsigned char),
+                                     dimensions[0]*dimensions[1]*3*sizeof(unsigned char));
 
 //    cl::WriteImage3DCommand> write_images_buffer_command (new WriteImage3DCommand(images_buffer, pixels.get()));
 //    cl::WriteBufferCommand> write_projection_matrices_buffer_command (new WriteBufferCommand(projection_matrices_buffer, projection_matrices.data()));
@@ -149,8 +149,8 @@ bool VoxelColorer::build_voxel_model()
                                         CL_TRUE,
                                         offsets,
                                         sizes,
-                                        width*3*sizeof(char),
-                                        width*height*3*sizeof(char),
+                                        width*3*sizeof(unsigned char),
+                                        width*height*3*sizeof(unsigned char),
                                         pixels.data());
 
     ocl_command_queue.enqueueWriteBuffer(projection_matrices_buffer,
@@ -163,7 +163,7 @@ bool VoxelColorer::build_voxel_model()
                                          CL_TRUE,
                                          0,
                                          dimensions[0]*dimensions[1]*dimensions[2]*
-                                         (2*sizeof(char)+number_of_images*3*sizeof(char)),
+                                         (2*sizeof(unsigned char)+number_of_images*3*sizeof(unsigned char)),
                                          hypotheses.data());
 
     cl::KernelFunctor func_step_1 = ocl_kernel_step_1.bind(ocl_command_queue,
@@ -183,7 +183,7 @@ bool VoxelColorer::build_voxel_model()
     cl::Kernel ocl_kernel_step_2 = cl::Kernel(ocl_program, "initial_inconsistent_voxels_rejection");
 
     // size of data for (voxel visibility + number_of_consistent_hypotheses + hypotheses)
-    size_t hypotheses_size = 2*sizeof(char)+number_of_images*3*sizeof(char);
+    size_t hypotheses_size = 2*sizeof(unsigned char)+number_of_images*3*sizeof(unsigned char);
 
     for (size_t x = 0; x < dimensions[0]; ++x)
     {
@@ -331,8 +331,8 @@ bool VoxelColorer::build_voxel_model()
                                        CL_TRUE,
                                        offsets,
                                        voxel_model_sizes,
-                                       dimensions[0]*3*sizeof(char),
-                                       dimensions[0]*dimensions[1]*3*sizeof(char),
+                                       dimensions[0]*3*sizeof(unsigned char),
+                                       dimensions[0]*dimensions[1]*3*sizeof(unsigned char),
                                        voxel_model.data());
 }
 
@@ -437,10 +437,7 @@ void VoxelColorer::set_camera_calibration_matrix(const float *_camera_calibratio
         camera_calibration_matrix[i] = _camera_calibration_matrix[i];
 }
 
-void VoxelColorer::set_resulting_voxel_cube_dimensions
-        (unsigned int dimension_x,
-         unsigned int dimension_y,
-         unsigned int dimension_z)
+void VoxelColorer::set_resulting_voxel_cube_dimensions (size_t dimension_x, size_t dimension_y, size_t dimension_z)
 {
     dimensions[0] = dimension_x;
     dimensions[1] = dimension_y;
