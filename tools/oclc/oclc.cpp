@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
     // load source code
     char * source_code = NULL;
     size_t source_length;
-    source_code = load_source("matrixMul.cl", &source_length);
+    source_code = load_source(argv[1], &source_length);
     if (!source_code)
         return -1;
 
@@ -192,8 +192,19 @@ int prepare_opencl()
     cl_uint ocl_device_count = 0;
     cl_int ocl_error_number = CL_SUCCESS;
 
+    cl_platform_id cl_platforms[2];
+    cl_uint number_of_platforms = 0;
+
+    clGetPlatformIDs(2, cl_platforms, &number_of_platforms);
+
+    cl_context_properties context_properties[] = {
+        CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties>(cl_platforms[0]),
+        0
+    };
+
+
     // try to create opencl context on GPU device
-    ocl_context = clCreateContextFromType(NULL, CL_DEVICE_TYPE_GPU, NULL, NULL, &ocl_error_number);
+    ocl_context = clCreateContextFromType(context_properties, CL_DEVICE_TYPE_GPU, NULL, NULL, &ocl_error_number);
     if (ocl_error_number != CL_SUCCESS)
     {
         cout << "Error " << ocl_error_number << ": Failed to create OpenCL context!" << endl;
