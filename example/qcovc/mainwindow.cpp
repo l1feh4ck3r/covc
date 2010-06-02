@@ -201,7 +201,7 @@ void MainWindow::load_metafile()
         ImageInfo image(image_file_name, matrix_of_calibration, bounding_rectangle);
         if (image.is_valid())
         {
-            images.append(image);
+            images.push_back(image);
             // add image to the preview widget
             image_preview_model->add_image(image.get_image());
         }

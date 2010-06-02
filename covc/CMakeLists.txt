@@ -11,4 +11,4 @@ set(COVC_LIB_SRCS_CXX
     src/voxelcolorer.cpp
     )
 
-add_library(covclib ${COVC_LIB_SRCS_CXX})
+add_library(covclib STATIC ${COVC_LIB_SRCS_CXX})

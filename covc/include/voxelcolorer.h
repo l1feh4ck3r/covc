@@ -88,9 +88,9 @@ private:
 
     //! projection matrices for images
     //! size = number_of_images*16*size_of(float)
-    std::vector<float[16]> projection_matrices;
+    std::vector<std::vector<float> > projection_matrices;
 
-    std::vector<float[16]> image_calibration_matrices;
+    std::vector<std::vector<float> > image_calibration_matrices;
     ///////////////////////////////////////////////////////////////////////////
     //! End of info about images
     ///////////////////////////////////////////////////////////////////////////

@@ -79,11 +79,12 @@ build_variety_of_hypotheses (__local __read_only float * bounding_box,
         {
             //if voxel is projected in image
 
+            // we have ARGB format
             uint4 color = read_imageui(images, imageSampler, pos_at_image);
 
-            hypotheses[hypothesis_offset] = color.x;     //r
-            hypotheses[hypothesis_offset + 1] = color.y; //g
-            hypotheses[hypothesis_offset + 2] = color.z; //b
+            hypotheses[hypothesis_offset] = color.y;     //r
+            hypotheses[hypothesis_offset + 1] = color.z; //g
+            hypotheses[hypothesis_offset + 2] = color.w; //b
         }
     }
 }
