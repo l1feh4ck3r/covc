@@ -40,6 +40,8 @@ namespace Ui
     class MainWindow;
 }
 
+class VoxelColorer;
+
 #include "imageinfo.h"
 
 class MainWindow : public QMainWindow
@@ -59,6 +61,7 @@ private slots:
     void rectangle_changed(QRectF rectangle);
     void run();
     void save_metafile();
+    void save_voxel_model();
 
 
 private:
@@ -78,6 +81,8 @@ private:
     QVector<ImageInfo>  images;
 
     QModelIndex last_selected_image;
+
+    VoxelColorer * vc;
 };
 
 #endif // MAINWINDOW_H

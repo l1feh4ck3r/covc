@@ -37,6 +37,7 @@ public:
 public:
     void add_image(const unsigned char * image, size_t width, size_t height, const float * image_calibration_matrix);
     bool build_voxel_model();
+    std::vector<unsigned char> & get_voxel_model() {return voxel_model;}
     bool prepare();
 
     // setters

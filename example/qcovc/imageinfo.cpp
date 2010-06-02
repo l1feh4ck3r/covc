@@ -30,7 +30,7 @@ ImageInfo::ImageInfo()
 
 ImageInfo::ImageInfo(QString &filename)
         :valid(false),
-        matrix_of_calibration(3,3)
+        matrix_of_calibration(4, 4)
 {
     QImage temp_image;
     if (!temp_image.load(filename))
@@ -48,7 +48,7 @@ ImageInfo::ImageInfo(QString &filename)
 
 ImageInfo::ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, QRectF &_bounding_rectangle)
         :valid(false),
-        matrix_of_calibration(3,3)
+        matrix_of_calibration(4, 4)
 {
     QImage temp_image;
     if (!temp_image.load(filename))
@@ -59,7 +59,7 @@ ImageInfo::ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, Q
     //TODO: magic numbers
     image = temp_image.scaled(512, 512,
                               Qt::IgnoreAspectRatio,
-                              Qt::SmoothTransformation);
+                              Qt::SmoothTransformation).convertToFormat(QImage::Format_RGB888);
 
     matrix_of_calibration = _matrix_of_calibration;
     bounding_rectangle = _bounding_rectangle;

@@ -71,6 +71,7 @@
      <string>Colorer</string>
     </property>
     <addaction name="actionRun"/>
+    <addaction name="actionSave_voxel_model"/>
    </widget>
    <addaction name="menuSave"/>
    <addaction name="menuCalculate"/>
@@ -102,6 +103,11 @@
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionSave_voxel_model">
+   <property name="text">
+    <string>Save voxel model</string>
    </property>
   </action>
  </widget>

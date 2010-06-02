@@ -34,7 +34,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
-    matrix_of_camera_calibration(3,3)
+    matrix_of_camera_calibration(4, 4)
 {
     ui->setupUi(this);
 
@@ -43,12 +43,29 @@ MainWindow::MainWindow(QWidget *parent)
     setup_connections();
 
     setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+
+    vc = new VoxelColorer();
+
+    matrix_of_camera_calibration(0, 0) = 50;
+    matrix_of_camera_calibration(0, 1) = 0;
+    matrix_of_camera_calibration(0, 2) = 256;
+    matrix_of_camera_calibration(0, 3) = 0;
+    matrix_of_camera_calibration(1, 0) = 0;
+    matrix_of_camera_calibration(1, 1) = 50;
+    matrix_of_camera_calibration(1, 2) = 256;
+    matrix_of_camera_calibration(1, 3) = 0;
+    matrix_of_camera_calibration(2, 0) = 0;
+    matrix_of_camera_calibration(2, 1) = 0;
+    matrix_of_camera_calibration(2, 2) = 1;
+    matrix_of_camera_calibration(2, 3) = 0;
 }
 
 
 MainWindow::~MainWindow()
 {
     delete ui;
+
+    delete vc;
 
     images.clear();
 }
@@ -80,6 +97,9 @@ void MainWindow::add_image()
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::element_of_matrix_of_calibration_changed(int row, int column)
 {
+    if (row == -1 || column == -1)
+        return;
+
     bool ok;
     float value = table_widget->item(row, column)->data(Qt::EditRole).toFloat(&ok);
     if (ok)
@@ -127,7 +147,7 @@ void MainWindow::load_metafile()
     if (!file.isOpen())
         return;
 
-    QDataStream in(&file);
+    QTextStream in(&file);
 
     size_t image_number;
     in >> image_number;
@@ -146,7 +166,7 @@ void MainWindow::load_metafile()
     image_preview_model->clear();
 
     images.clear();
-    images.resize(image_number);
+    images.reserve(image_number);
 
     // load images names with bounding sqares from meta file
     for (size_t i = 0; i < image_number; ++i)
@@ -155,11 +175,19 @@ void MainWindow::load_metafile()
         QString image_file_name;
         in >> image_file_name;
 
-        QRectF bounding_square;
-        in >> bounding_square;
+        QRectF bounding_rectangle;
+        float temp[4];
+        in >> temp[0];
+        in >> temp[1];
+        in >> temp[2];
+        in >> temp[3];
+        bounding_rectangle.setLeft(temp[0]);
+        bounding_rectangle.setTop(temp[1]);
+        bounding_rectangle.setRight(temp[2]);
+        bounding_rectangle.setBottom(temp[3]);
 
         // loading matrix of calibration
-        matrix<float> matrix_of_calibration(3,3);
+        matrix<float> matrix_of_calibration(4, 4);
         // TODO: CAUTION: type-specific code
         for (size_t r=0; r < matrix_of_calibration.RowNo(); ++r)
             for (size_t c=0; c < matrix_of_calibration.ColNo(); ++c)
@@ -170,7 +198,7 @@ void MainWindow::load_metafile()
             }
 
         // create image
-        ImageInfo image(image_file_name, matrix_of_calibration, bounding_square);
+        ImageInfo image(image_file_name, matrix_of_calibration, bounding_rectangle);
         if (image.is_valid())
         {
             images.append(image);
@@ -198,35 +226,34 @@ void MainWindow::run()
 {
 //    try
 //    {
-    VoxelColorer vc;
-    if (!vc.prepare())
+    if (!vc->prepare())
         return;
 
-    vc.set_number_of_images(images.size());
+    vc->set_number_of_images(images.size());
 
     float camera_calibration_matrix[16];
-    for (size_t c = 0; c < matrix_of_camera_calibration.ColNo(); ++c)
-        for (size_t r = 0; r < matrix_of_camera_calibration.RowNo(); ++r)
-            camera_calibration_matrix[r + c*4] = matrix_of_camera_calibration(r, c);
+    for (size_t r = 0; r < matrix_of_camera_calibration.RowNo(); ++r)
+        for (size_t c = 0; c < matrix_of_camera_calibration.ColNo(); ++c)
+            camera_calibration_matrix[r*4 + c] = matrix_of_camera_calibration(r, c);
 
-    vc.set_camera_calibration_matrix(camera_calibration_matrix);
+    vc->set_camera_calibration_matrix(camera_calibration_matrix);
 
     for (size_t i = 0; i <  images.size(); ++i)
     {
         float matrix[16];
-        for (size_t c = 0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
-            for (size_t r = 0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
-                matrix[r + c*4] = images[i].get_matrix_of_calibration()(r, c);
+        for (size_t r = 0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
+            for (size_t c = 0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
+                matrix[r*4 + c] = images[i].get_matrix_of_calibration()(r, c);
 
-        vc.add_image(images[i].get_image().bits(),
-                     images[i].get_image().width(),
-                     images[i].get_image().height(),
-                     matrix);
+        vc->add_image(images[i].get_image().bits(),
+                      images[i].get_image().width(),
+                      images[i].get_image().height(),
+                      matrix);
     }
 
-    vc.set_resulting_voxel_cube_dimensions(32, 32, 32);
+    vc->set_resulting_voxel_cube_dimensions(32, 32, 32);
 
-    vc.build_voxel_model();
+    vc->build_voxel_model();
     //    }
 //    catch (...)
 //    {
@@ -238,7 +265,69 @@ void MainWindow::run()
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::save_metafile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Select meta file."));
+    QString filename = QFileDialog::getSaveFileName(this, tr("Select meta file."));
+
+    if (filename.isEmpty())
+        return;
+
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    if (!file.isOpen())
+        return;
+
+    QTextStream out(&file);
+
+    out << images.size();
+
+    out << "\n";
+
+    // save matrix of camera calibration
+    // TODO: CAUTION: type-specific code
+    for (size_t r=0; r < matrix_of_camera_calibration.RowNo(); ++r)
+    {
+        for (size_t c=0; c < matrix_of_camera_calibration.ColNo(); ++c)
+        {
+            out << matrix_of_camera_calibration(r,c) << " ";
+        }
+        out << "\n";
+    }
+
+    // saving images names with bounding sqares from meta file
+    for (size_t i = 0; i < images.size(); ++i)
+    {
+        // save image file name
+        out << images[i].get_path_to_image();
+
+        out << "\n";
+
+        out << images[i].get_bounding_rectangle().left() << " ";
+        out << images[i].get_bounding_rectangle().top() << " ";
+        out << images[i].get_bounding_rectangle().right() << " ";
+        out << images[i].get_bounding_rectangle().bottom() << " ";
+
+        out << "\n";
+
+        // saving matrix of calibration
+        // TODO: CAUTION: type-specific code
+        for (size_t r=0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
+        {
+            for (size_t c=0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
+                out << images[i].get_matrix_of_calibration()(r,c) << " ";
+
+            out << "\n";
+        }
+    }
+
+    //close input file
+    file.close();
+}
+
+
+void MainWindow::save_voxel_model()
+{
+    std::vector<unsigned char> model = vc->get_voxel_model();
+
+    QString filename = QFileDialog::getSaveFileName(this, tr("Select meta file."));
 
     if (filename.isEmpty())
         return;
@@ -250,43 +339,11 @@ void MainWindow::save_metafile()
 
     QDataStream out(&file);
 
-    out << images.size();
+    for (size_t i = 0; i < model.size(); ++i)
+        out << model[i];
 
-    out << "\n";
-
-    // save matrix of camera calibration
-    // TODO: CAUTION: type-specific code
-    for (size_t r=0; r < matrix_of_camera_calibration.RowNo(); ++r)
-        for (size_t c=0; c < matrix_of_camera_calibration.ColNo(); ++c)
-            out << matrix_of_camera_calibration(r,c);
-
-    // saving images names with bounding sqares from meta file
-    for (size_t i = 0; i < images.size(); ++i)
-    {
-        // save image file name
-        out << images[i].get_path_to_image();
-
-        out << "\n";
-
-        out << images[i].get_bounding_rectangle();
-
-        out << "\n";
-
-        // saving matrix of calibration
-        // TODO: CAUTION: type-specific code
-        for (size_t r=0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
-        {
-            for (size_t c=0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
-                out << images[i].get_matrix_of_calibration()(r,c);
-
-            out << "\n";
-        }
-    }
-
-    //close input file
     file.close();
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Setup qt connections
@@ -299,6 +356,7 @@ void MainWindow::setup_connections()
     connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
 
     connect(ui->actionRun, SIGNAL(triggered()), this, SLOT(run()));
+    connect(ui->actionSave_voxel_model, SIGNAL(triggered()), this, SLOT(save_voxel_model()));
 
     connect(image_preview_list, SIGNAL(clicked(QModelIndex)), this, SLOT(image_selected(QModelIndex)));
     connect(image_scene, SIGNAL(rectangle_changed(QRectF)) , this, SLOT(rectangle_changed(QRectF)));
@@ -328,17 +386,18 @@ void MainWindow::setup_ui()
     //create table widget for calibration matrix
     table_widget = new QTableWidget(this);
     table_widget->setMaximumHeight(100);
-    table_widget->setColumnCount(3);
+    table_widget->setColumnCount(4);
     table_widget->setColumnWidth(0, 45);
     table_widget->setColumnWidth(1, 45);
     table_widget->setColumnWidth(2, 45);
-    table_widget->setRowCount(3);
+    table_widget->setColumnWidth(3, 45);
+    table_widget->setRowCount(4);
     table_widget->horizontalHeader()->hide();
     table_widget->verticalHeader()->hide();
 
     //create images view (main widget)
     image_view = new QGraphicsView(this);
-    image_view->setMinimumSize(650, 599);
+    image_view->setMinimumSize(600, 599);
     image_view->setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
 
     image_scene = new ImageScene(this);

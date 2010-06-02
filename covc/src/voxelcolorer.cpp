@@ -59,7 +59,7 @@ void VoxelColorer::add_image(const unsigned char * image, size_t width, size_t h
     }
 
     for (size_t i = 0; i < 16; ++i)
-        image_calibration_matrices.at(number_of_last_added_image)[i];
+        image_calibration_matrices.at(number_of_last_added_image)[i] = image_calibration_matrix[i];
 
     calculate_projection_matrix();
 
@@ -711,7 +711,8 @@ void VoxelColorer::set_number_of_images(size_t _number_of_images)
 
     // resize buffers
     pixels.resize(number_of_images);
-    image_calibration_matrices.reserve(number_of_images);
+    //image_calibration_matrices.reserve(number_of_images);
+    image_calibration_matrices.resize(number_of_images);
     projection_matrices.reserve(number_of_images);
 }
 
