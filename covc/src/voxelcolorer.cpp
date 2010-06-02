@@ -28,6 +28,8 @@
 
 #include <limits.h>
 
+#include <math.h>
+
 VoxelColorer::VoxelColorer()
     :width(0), height(0),
     number_of_images(0),
@@ -120,9 +122,9 @@ bool VoxelColorer::build_voxel_model()
 
     // create opencl buffer for z buffer
     // z buffer element contain only one value: free or occupied
-    cl::Buffer z_buffer (ocl_context,
-                         CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                         width*height*number_of_images*sizeof(unsigned char));
+    cl::Buffer * z_buffer = new cl::Buffer(ocl_context,
+                                           CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+                                           width*height*number_of_images*sizeof(unsigned char));
 
     // create opencl buffer for resulting voxel model
     cl::Buffer voxel_model_buffer (ocl_context,
@@ -292,7 +294,7 @@ bool VoxelColorer::build_voxel_model()
                     ocl_kernel_step_3.setArg(3, z);
                     ocl_kernel_step_3.setArg(4, bounding_box_buffer);
                     ocl_kernel_step_3.setArg(5, dimensions_buffer);
-                    ocl_kernel_step_3.setArg(6, z_buffer);
+                    ocl_kernel_step_3.setArg(6, *z_buffer);
                     ocl_kernel_step_3.setArg(7, projection_matrices_buffer);
                     ocl_kernel_step_3.setArg(8, threshold);
 
@@ -320,7 +322,15 @@ bool VoxelColorer::build_voxel_model()
                                             &number_of_consistent_hypotheses);
         ocl_command_queue.finish();
 
+        // remove and create new z buffer
+        delete z_buffer;
+        z_buffer = new cl::Buffer(ocl_context,
+                                  CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+                                  width*height*number_of_images*sizeof(unsigned char));
     }
+
+    delete z_buffer;
+    z_buffer = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
     //! step 4: build voxel model from variety of hypotheses
@@ -393,16 +403,144 @@ bool VoxelColorer::build_program(cl::Program & program, const std::string & path
 ///////////////////////////////////////////////////////////////////////////////
 void VoxelColorer::calculate_bounding_box()
 {
+    float center3d[4];
+    float image_center[4] = {256.0f, 256.0f, 1.0f, 1.0f};
+
+    float inverted_camera_calibration_matrix[16];
+    inverse(camera_calibration_matrix, inverted_camera_calibration_matrix);
+
+    for (size_t i = 0; i < number_of_images; ++i)
+    {
+        float temp_vector[4];
+        multiply_matrix_vector(inverted_camera_calibration_matrix, image_center, temp_vector);
+
+        float inverted_image_calibration_matrix[16];
+        inverse(image_calibration_matrices.at(i), inverted_image_calibration_matrix);
+
+        float result_pos[4];
+        multiply_matrix_vector(inverted_image_calibration_matrix, temp_vector, result_pos);
+
+        center3d[0] += result_pos[0] / static_cast<float>(number_of_images);
+        center3d[1] += result_pos[1] / static_cast<float>(number_of_images);
+        center3d[2] += result_pos[2] / static_cast<float>(number_of_images);
+        center3d[3] = 1.0f;
+    }
+
+    float max_x = 0.0f;
+    float max_y = 0.0f;
+    float max_z = 0.0f;
+
+    for (size_t i = 0; i < number_of_images; ++i)
+    {
+        float inverted_image_calibration_matrix[16];
+        inverse(image_calibration_matrices.at(i), inverted_image_calibration_matrix);
+
+        float camera_pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+        multiply_matrix_vector(inverted_image_calibration_matrix, camera_pos, camera_pos);
+
+        //left top
+        float left_top_pos[4] = {0.0f, 0.0f, 1.0f, 1.0f};
+
+        multiply_matrix_vector(inverted_camera_calibration_matrix, left_top_pos, left_top_pos);
+        left_top_pos[3] = 1.0f;
+        multiply_matrix_vector(inverted_image_calibration_matrix, left_top_pos, left_top_pos);
+
+        //right top
+        float right_top_pos[4] = {512.0f, 0.0f, 1.0f, 1.0f};
+
+        multiply_matrix_vector(inverted_camera_calibration_matrix, right_top_pos, right_top_pos);
+        right_top_pos[3] = 1.0f;
+        multiply_matrix_vector(inverted_image_calibration_matrix, right_top_pos, right_top_pos);
+
+        // left bottom
+        float left_bottom_pos[4] = {0.0f, 0.0f, 1.0f, 1.0f};
+
+        multiply_matrix_vector(inverted_camera_calibration_matrix, left_bottom_pos, left_bottom_pos);
+        left_bottom_pos[3] = 1.0f;
+        multiply_matrix_vector(inverted_image_calibration_matrix, left_bottom_pos, left_bottom_pos);
+
+        // right bottom
+        float right_bottom_pos[4] = {0.0f, 0.0f, 1.0f, 1.0f};
+
+        multiply_matrix_vector(inverted_camera_calibration_matrix, right_bottom_pos, right_bottom_pos);
+        right_bottom_pos[3] = 1.0f;
+        multiply_matrix_vector(inverted_image_calibration_matrix, right_bottom_pos, right_bottom_pos);
+
+        float distance[4];
+        vector_minus_vector(camera_pos, center3d, distance);
+
+        float koef[4];
+        normalize_vector(distance, koef);
+
+        float projlt[4];
+        vector_minus_vector(left_top_pos, camera_pos, projlt);
+        multiply_vector_vector(projlt, koef, projlt);
+        vector_plus_vector(projlt, camera_pos, projlt);
+
+        float projlb[4];
+        vector_minus_vector(left_bottom_pos, camera_pos, projlb);
+        multiply_vector_vector(projlb, koef, projlb);
+        vector_plus_vector(projlb, camera_pos, projlb);
+
+        float projrt[4];
+        vector_minus_vector(right_top_pos, camera_pos, projrt);
+        multiply_vector_vector(projrt, koef, projrt);
+        vector_plus_vector(projrt, camera_pos, projrt);
+
+        float projrb[4];
+        vector_minus_vector(right_bottom_pos, camera_pos, projrb);
+        multiply_vector_vector(projrb, koef, projrb);
+        vector_plus_vector(projrb, camera_pos, projrb);
+
+        if (projlt[0] > max_x)
+            max_x = projlt[0];
+        if (projlt[1] > max_y)
+            max_y = projlt[1];
+        if (projlt[2] > max_z)
+            max_z = projlt[2];
+
+        if (projlb[0] > max_x)
+            max_x = projlb[0];
+        if (projlb[1] > max_y)
+            max_y = projlb[1];
+        if (projlb[2] > max_z)
+            max_z = projlb[2];
+
+        if (projrt[0] > max_x)
+            max_x = projrt[0];
+        if (projrt[1] > max_y)
+            max_y = projrt[1];
+        if (projrt[2] > max_z)
+            max_z = projrt[2];
+
+        if (projrb[0] > max_x)
+            max_x = projrb[0];
+        if (projrb[1] > max_y)
+            max_y = projrb[1];
+        if (projrb[2] > max_z)
+            max_z = projrb[2];
+    }
+
+    float half_width = max_x - center3d[0];
+    float half_height = max_y - center3d[1];
+    float half_depth = max_z - center3d[2];
+
+    bounding_box[0] = center3d[0] - half_width;
+    bounding_box[1] = center3d[1] - half_height;
+    bounding_box[2] = center3d[2] - half_depth;
+    bounding_box[3] = half_width*2.0f;
+    bounding_box[4] = half_height*2.0f;
+    bounding_box[5] = half_depth*2.0f;
 }
 
 
 void VoxelColorer::calculate_projection_matrix()
 {
     float * image_calibration_matrix = image_calibration_matrices.at(number_of_last_added_image);
-    float unit_matrix[16];
-    for (size_t i=0; i < 4; i++)
-        for (size_t j=0; j < 4; j++)
-            unit_matrix[i*4 + j] = i == j ? 1.0f : 0.0f;
+    float unit_matrix[16] = {1.0f, 0.0f, 0.0f, 0.0f,
+                             0.0f, 1.0f, 0.0f, 0.0f,
+                             0.0f, 0.0f, 1.0f, 0.0f,
+                             0.0f, 0.0f, 0.0f, 1.0f };
 
     // multiply camera calibration matrix to unit matrix
     float temp_matrix[16];
@@ -422,6 +560,95 @@ void VoxelColorer::calculate_projection_matrix()
           for (size_t k=0; k < 4; ++k)
              projection_matrices.at(number_of_last_added_image)[i*4 + j] += temp_matrix[i*4 + k] * image_calibration_matrix[k*4 + j];
        }
+}
+
+void VoxelColorer::inverse(const float *matrix, float *inverted_matrix)
+{
+    for (size_t i = 0; i < 16; ++i)
+        inverted_matrix[i] = matrix[i];
+
+    for (int i=1; i < 4; i++) inverted_matrix[i] /= inverted_matrix[0]; // normalize row 0
+    for (int i=1; i < 4; i++)
+    {
+        for (int j=i; j < 4; j++)
+        { // do a column of L
+            float sum = 0.0;
+            for (int k = 0; k < i; k++)
+                sum += inverted_matrix[j*4+k] * inverted_matrix[k*4+i];
+            inverted_matrix[j*4+i] -= sum;
+        }
+        if (i == 4-1) continue;
+        for (int j=i+1; j < 4; j++)
+        {  // do a row of U
+            float sum = 0.0;
+            for (int k = 0; k < i; k++)
+                sum += inverted_matrix[i*4+k]*inverted_matrix[k*4+j];
+            inverted_matrix[i*4+j] =
+                    (inverted_matrix[i*4+j]-sum) / inverted_matrix[i*4+i];
+        }
+    }
+    for ( int i = 0; i < 4; i++ )  // invert L
+        for ( int j = i; j < 4; j++ )
+        {
+        float x = 1.0;
+        if ( i != j ) {
+            x = 0.0;
+            for ( int k = i; k < j; k++ )
+                x -= inverted_matrix[j*4+k]*inverted_matrix[k*4+i];
+        }
+        inverted_matrix[j*4+i] = x / inverted_matrix[j*4+j];
+    }
+    for ( int i = 0; i < 4; i++ )   // invert U
+        for ( int j = i; j < 4; j++ )
+        {
+        if ( i == j ) continue;
+        float sum = 0.0;
+        for ( int k = i; k < j; k++ )
+            sum += inverted_matrix[k*4+j]*( (i==k) ? 1.0 : inverted_matrix[i*4+k] );
+        inverted_matrix[i*4+j] = -sum;
+    }
+    for ( int i = 0; i < 4; i++ )   // final inversion
+        for ( int j = 0; j < 4; j++ )
+        {
+        float sum = 0.0;
+        for ( int k = ((i>j)?i:j); k < 4; k++ )
+            sum += ((j==k)?1.0:inverted_matrix[j*4+k])*inverted_matrix[k*4+i];
+        inverted_matrix[j*4+i] = sum;
+    }
+}
+
+void VoxelColorer::multiply_matrix_vector(const float *matrix, const float *vector, float *result)
+{
+    float temp[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+    for (size_t i = 0; i < 4; ++i)
+        for (size_t j = 0; j < 4; ++j)
+            temp[i] += matrix[i*4 + j]*vector[j];
+
+    for (size_t i = 0; i < 4; ++i)
+        result[i] = temp[i];
+}
+
+void VoxelColorer::multiply_vector_vector(const float *vec1, const float *vec2, float *result)
+{
+    float temp[4];
+    temp[0] = vec1[1]*vec2[2] - vec1[2]*vec2[1];
+    temp[0] = vec1[2]*vec2[0] - vec1[0]*vec2[2];
+    temp[0] = vec1[0]*vec2[1] - vec1[1]*vec2[0];
+
+    for (size_t i = 0; i < 4; ++i)
+        result[i] = temp[i];
+}
+
+void VoxelColorer::normalize_vector(const float *vector, float *result)
+{
+    float sum = 0.0f;
+    for (size_t i = 0; i < 4; ++i)
+        sum += vector[i]*vector[i];
+
+    float radix = sqrt(sum);
+    for (size_t i = 0; i < 4; ++i)
+        result[i] = vector[i] / radix;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -493,4 +720,24 @@ void VoxelColorer::set_resulting_voxel_cube_dimensions (size_t dimension_x, size
     dimensions[0] = dimension_x;
     dimensions[1] = dimension_y;
     dimensions[2] = dimension_z;
+}
+
+void VoxelColorer::vector_minus_vector(const float *vec1, const float *vec2, float *result)
+{
+    float temp[4];
+    for (size_t i = 0; i < 4; ++i)
+        temp[i] = vec1[i] - vec2[i];
+
+    for (size_t i = 0; i < 4; ++i)
+        result[i] = temp[i];
+}
+
+void VoxelColorer::vector_plus_vector(const float *vec1, const float *vec2, float *result)
+{
+    float temp[4];
+    for (size_t i = 0; i < 4; ++i)
+        temp[i] = vec1[i] + vec2[i];
+
+    for (size_t i = 0; i < 4; ++i)
+        result[i] = temp[i];
 }

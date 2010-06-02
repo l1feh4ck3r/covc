@@ -51,7 +51,13 @@ private:
     bool build_program(cl::Program & program, const std::string & path_to_file_with_program);
     void calculate_bounding_box();
     void calculate_projection_matrix();
+    void inverse(const float * matrix, float * inverted_matrix);
+    void multiply_matrix_vector(const float * matrix, const float * vector, float * result);
+    void multiply_vector_vector(const float * vec1, const float *vec2, float * result);
+    void normalize_vector(const float * vector, float * result);
     bool prepare_opencl();
+    void vector_minus_vector(const float * vec1, const float * vec2, float * result);
+    void vector_plus_vector(const float * vec1, const float * vec2, float * result);
 
 
 private:
