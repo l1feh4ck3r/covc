@@ -53,9 +53,9 @@ void VoxelColorer::add_image(const unsigned char * image, size_t _width, size_t 
     width = _width;
     height = _height;
 
-    for (size_t w = 0; w < width; ++w)
+    for (size_t h = 0; h < height; ++h)
     {
-        for (size_t h = 0; h < height; ++h)
+        for (size_t w = 0; w < width; ++w)
         {
             pixels.data()[number_of_last_added_image*width*height + h*width + w*4] = image[h*width + w*4];
             pixels.data()[number_of_last_added_image*width*height + h*width + w*4 + 1] = image[h*width + w*4 + 1];
@@ -153,10 +153,6 @@ bool VoxelColorer::build_voxel_model()
                                          sizeof(bounding_box),
                                          bounding_box);
 
-    cl::size_t<3> offsets; //size_t offsets[3] = {0, 0, 0};
-    cl::size_t<3> sizes;
-    sizes[0] = width; sizes[1] = height; sizes[2] = number_of_images;
-
     ocl_command_queue.enqueueWriteBuffer(projection_matrices_buffer,
                                          CL_TRUE,
                                          0,
@@ -171,7 +167,7 @@ bool VoxelColorer::build_voxel_model()
 
     cl::KernelFunctor func_step_1 = ocl_kernel_step_1.bind(ocl_command_queue,
                                                            cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
-                                                           cl::NDRange(0, 0, 0));
+                                                           cl::NDRange(1, 1, 1));
 
     func_step_1().wait();
 
@@ -202,7 +198,7 @@ bool VoxelColorer::build_voxel_model()
 
                 cl::KernelFunctor func_step_2 = ocl_kernel_step_2.bind(ocl_command_queue,
                                                                        cl::NDRange(number_of_images),
-                                                                       cl::NDRange(0));
+                                                                       cl::NDRange(1));
 
                 func_step_2().wait();
             }
@@ -223,7 +219,7 @@ bool VoxelColorer::build_voxel_model()
 
     cl::KernelFunctor func_step_2_3_first = ocl_kernel_step_2_3_first.bind(ocl_command_queue,
                                                                            cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
-                                                                           cl::NDRange(0, 0, 0));
+                                                                           cl::NDRange(1, 1, 1));
 
     func_step_2_3_first().wait();
     ocl_command_queue.finish();
@@ -234,11 +230,11 @@ bool VoxelColorer::build_voxel_model()
     ocl_kernel_step_2_3_second.setArg(0, hypotheses_buffer);
     ocl_kernel_step_2_3_second.setArg(1, dimensions_buffer);
     ocl_kernel_step_2_3_second.setArg(2, number_of_images);
-    ocl_kernel_step_2_3_second.setArg(3, number_of_consistent_hypotheses);
+    ocl_kernel_step_2_3_second.setArg(3, number_of_consistent_hypotheses_buffer);
 
     cl::KernelFunctor func_step_2_3_second = ocl_kernel_step_2_3_second.bind(ocl_command_queue,
                                                                              cl::NDRange(1),
-                                                                             cl::NDRange(0));
+                                                                             cl::NDRange(1));
     func_step_2_3_second().wait();
     ocl_command_queue.finish();
 
@@ -291,7 +287,7 @@ bool VoxelColorer::build_voxel_model()
 
                     cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
                                                                            cl::NDRange(number_of_images),
-                                                                           cl::NDRange(0));
+                                                                           cl::NDRange(1));
 
                     func_step_3().wait();
                 }
@@ -338,7 +334,7 @@ bool VoxelColorer::build_voxel_model()
 
     cl::KernelFunctor func_step_4 = ocl_kernel_step_4.bind(ocl_command_queue,
                                                            cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
-                                                           cl::NDRange(0, 0, 0));
+                                                           cl::NDRange(1, 1, 1));
 
     func_step_4().wait();
     ocl_command_queue.finish();
@@ -401,7 +397,7 @@ bool VoxelColorer::build_program(cl::Program & program, const std::string & path
 void VoxelColorer::calculate_bounding_box()
 {
     float center3d[4];
-    float image_center[4] = {256.0f, 256.0f, 1.0f, 1.0f};
+    float image_center[4] = {255.0f, 255.0f, 1.0f, 1.0f};
 
     float inverted_camera_calibration_matrix[16];
     inverse(camera_calibration_matrix, inverted_camera_calibration_matrix);
@@ -423,9 +419,9 @@ void VoxelColorer::calculate_bounding_box()
         center3d[3] = 1.0f;
     }
 
-    float max_x = 0.0f;
-    float max_y = 0.0f;
-    float max_z = 0.0f;
+    float max_x = -10000.0f;
+    float max_y = -10000.0f;
+    float max_z = -10000.0f;
 
     for (size_t i = 0; i < number_of_images; ++i)
     {
@@ -443,21 +439,21 @@ void VoxelColorer::calculate_bounding_box()
         multiply_matrix_vector(inverted_image_calibration_matrix, left_top_pos, left_top_pos);
 
         //right top
-        float right_top_pos[4] = {512.0f, 0.0f, 1.0f, 1.0f};
+        float right_top_pos[4] = {511.0f, 0.0f, 1.0f, 1.0f};
 
         multiply_matrix_vector(inverted_camera_calibration_matrix, right_top_pos, right_top_pos);
         right_top_pos[3] = 1.0f;
         multiply_matrix_vector(inverted_image_calibration_matrix, right_top_pos, right_top_pos);
 
         // left bottom
-        float left_bottom_pos[4] = {0.0f, 512.0f, 1.0f, 1.0f};
+        float left_bottom_pos[4] = {0.0f, 511.0f, 1.0f, 1.0f};
 
         multiply_matrix_vector(inverted_camera_calibration_matrix, left_bottom_pos, left_bottom_pos);
         left_bottom_pos[3] = 1.0f;
         multiply_matrix_vector(inverted_image_calibration_matrix, left_bottom_pos, left_bottom_pos);
 
         // right bottom
-        float right_bottom_pos[4] = {512.0f, 512.0f, 1.0f, 1.0f};
+        float right_bottom_pos[4] = {511.0f, 511.0f, 1.0f, 1.0f};
 
         multiply_matrix_vector(inverted_camera_calibration_matrix, right_bottom_pos, right_bottom_pos);
         right_bottom_pos[3] = 1.0f;
@@ -561,58 +557,6 @@ void VoxelColorer::calculate_projection_matrix()
 
 void VoxelColorer::inverse(const float *matrix, float *inverted_matrix)
 {
-    //    for (size_t i = 0; i < 16; ++i)
-    //        inverted_matrix[i] = matrix[i];
-    //
-    //    for (int i=1; i < 4; i++) inverted_matrix[i] /= inverted_matrix[0]; // normalize row 0
-    //    for (int i=1; i < 4; i++)
-    //    {
-    //        for (int j=i; j < 4; j++)
-    //        { // do a column of L
-    //            float sum = 0.0;
-    //            for (int k = 0; k < i; k++)
-    //                sum += inverted_matrix[j*4+k] * inverted_matrix[k*4+i];
-    //            inverted_matrix[j*4+i] -= sum;
-    //        }
-    //        if (i == 4-1) continue;
-    //        for (int j=i+1; j < 4; j++)
-    //        {  // do a row of U
-    //            float sum = 0.0;
-    //            for (int k = 0; k < i; k++)
-    //                sum += inverted_matrix[i*4+k]*inverted_matrix[k*4+j];
-    //            inverted_matrix[i*4+j] =
-    //                    (inverted_matrix[i*4+j]-sum) / inverted_matrix[i*4+i];
-    //        }
-    //    }
-    //    for ( int i = 0; i < 4; i++ )  // invert L
-    //        for ( int j = i; j < 4; j++ )
-    //        {
-    //        float x = 1.0;
-    //        if ( i != j ) {
-    //            x = 0.0;
-    //            for ( int k = i; k < j; k++ )
-    //                x -= inverted_matrix[j*4+k]*inverted_matrix[k*4+i];
-    //        }
-    //        inverted_matrix[j*4+i] = x / inverted_matrix[j*4+j];
-    //    }
-    //    for ( int i = 0; i < 4; i++ )   // invert U
-    //        for ( int j = i; j < 4; j++ )
-    //        {
-    //        if ( i == j ) continue;
-    //        float sum = 0.0;
-    //        for ( int k = i; k < j; k++ )
-    //            sum += inverted_matrix[k*4+j]*( (i==k) ? 1.0 : inverted_matrix[i*4+k] );
-    //        inverted_matrix[i*4+j] = -sum;
-    //    }
-    //    for ( int i = 0; i < 4; i++ )   // final inversion
-    //        for ( int j = 0; j < 4; j++ )
-    //        {
-    //        float sum = 0.0;
-    //        for ( int k = ((i>j)?i:j); k < 4; k++ )
-    //            sum += ((j==k)?1.0:inverted_matrix[j*4+k])*inverted_matrix[k*4+i];
-    //        inverted_matrix[j*4+i] = sum;
-    //    }
-
     float a0 = matrix[ 0]*matrix[ 5] - matrix[ 1]*matrix[ 4];
     float a1 = matrix[ 0]*matrix[ 6] - matrix[ 2]*matrix[ 4];
     float a2 = matrix[ 0]*matrix[ 7] - matrix[ 3]*matrix[ 4];
@@ -767,6 +711,8 @@ void VoxelColorer::set_number_of_images(size_t _number_of_images)
     pixels.resize(number_of_images*512*512*4);
     image_calibration_matrices.resize(number_of_images, std::vector<float>(16));
     projection_matrices.resize(number_of_images, std::vector<float>(16));
+
+    number_of_last_added_image = 0;
 }
 
 void VoxelColorer::set_resulting_voxel_cube_dimensions (size_t dimension_x, size_t dimension_y, size_t dimension_z)
@@ -774,6 +720,8 @@ void VoxelColorer::set_resulting_voxel_cube_dimensions (size_t dimension_x, size
     dimensions[0] = dimension_x;
     dimensions[1] = dimension_y;
     dimensions[2] = dimension_z;
+
+    voxel_model.resize(dimensions[0]*dimensions[1]*dimensions[2]*3*sizeof(unsigned char));
 }
 
 void VoxelColorer::vector_minus_vector(const float *vec1, const float *vec2, float *result)

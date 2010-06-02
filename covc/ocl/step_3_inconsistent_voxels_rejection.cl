@@ -48,7 +48,7 @@ uint isequalui(uint4 vec1, uint4 vec2)
 #define height  512
 
 __kernel void
-inconsistent_voxels_rejection ( __global uchar * hypotheses,
+inconsistent_voxel_rejection ( __global uchar * hypotheses,
                                 uint x, uint y, uint z,
                                 __global __const float * bounding_box,
                                 __global __const uint * dimensions,

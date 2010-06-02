@@ -254,6 +254,8 @@ void MainWindow::run()
         vc->set_resulting_voxel_cube_dimensions(32, 32, 32);
 
         vc->build_voxel_model();
+
+        QMessageBox::information(this, tr("Building voxel model..."), tr("...done!"));
     }
     catch(cl::Error ex)
     {
@@ -269,6 +271,7 @@ void MainWindow::run()
         QMessageBox::warning(this, tr("Build voxel model error"), error_string);
         return;
     }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -351,7 +354,11 @@ void MainWindow::save_voxel_model()
     QDataStream out(&file);
 
     for (size_t i = 0; i < model.size(); ++i)
+    {
+        if (i % 4 == 0)
+            out << (unsigned char)0;
         out << model[i];
+    }
 
     file.close();
 }
