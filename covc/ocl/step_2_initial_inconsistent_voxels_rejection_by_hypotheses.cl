@@ -36,7 +36,7 @@ uint isequalui(uint4 vec1, uint4 vec2)
 __kernel void
 initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
                                         uint x, uint y, uint z,
-                                        __local __read_only uint * dimensions,
+                                        __global __const uint * dimensions,
                                         float threshold)
 {
     // current hypothesis number

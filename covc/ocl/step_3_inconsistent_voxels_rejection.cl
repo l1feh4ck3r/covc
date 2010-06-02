@@ -50,8 +50,8 @@ uint isequalui(uint4 vec1, uint4 vec2)
 __kernel void
 inconsistent_voxels_rejection ( __global uchar * hypotheses,
                                 uint x, uint y, uint z,
-                                __local __read_only float * bounding_box,
-                                __local __read_only uint * dimensions,
+                                __global __const float * bounding_box,
+                                __global __const uint * dimensions,
                                 __global uchar * z_buffer,
                                 __global float16 * projection_matrices,
                                 float threshold)

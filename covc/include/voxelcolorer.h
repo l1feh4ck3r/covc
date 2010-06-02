@@ -111,7 +111,7 @@ private:
     // |_| /
     // |_|-
     //
-    std::vector<unsigned char> hypotheses;
+    //std::vector<unsigned char> hypotheses;
 
     //! threshold.
     float threshold;

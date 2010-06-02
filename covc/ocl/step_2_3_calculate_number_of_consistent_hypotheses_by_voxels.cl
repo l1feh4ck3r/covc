@@ -35,7 +35,7 @@ uint isequalui(uint4 vec1, uint4 vec2)
 
 __kernel void
 calculate_number_of_consistent_hypotheses_by_voxels (__global uchar * hypotheses,
-                                                     __local __read_only uint * dimensions,
+                                                     __global __const uint * dimensions,
                                                      uint number_of_images)
 {
     uint4 voxel_pos = (uint4)(get_global_id(0), get_global_id(1), get_global_id(2), 0);

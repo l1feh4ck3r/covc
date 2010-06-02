@@ -158,10 +158,10 @@ void MainWindow::load_metafile()
     for (size_t r=0; r < matrix_of_camera_calibration.RowNo(); ++r)
         for (size_t c=0; c < matrix_of_camera_calibration.ColNo(); ++c)
         {
-            float x;
-            in >> x;
-            matrix_of_camera_calibration(r,c) = x;
-        }
+        float x;
+        in >> x;
+        matrix_of_camera_calibration(r,c) = x;
+    }
 
     image_preview_model->clear();
 
@@ -192,10 +192,10 @@ void MainWindow::load_metafile()
         for (size_t r=0; r < matrix_of_calibration.RowNo(); ++r)
             for (size_t c=0; c < matrix_of_calibration.ColNo(); ++c)
             {
-                float x;
-                in >> x;
-                matrix_of_calibration(r,c) = x;
-            }
+            float x;
+            in >> x;
+            matrix_of_calibration(r,c) = x;
+        }
 
         // create image
         ImageInfo image(image_file_name, matrix_of_calibration, bounding_rectangle);
@@ -224,40 +224,51 @@ void MainWindow::rectangle_changed(QRectF rectangle)
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::run()
 {
-//    try
-//    {
-    if (!vc->prepare())
-        return;
-
-    vc->set_number_of_images(images.size());
-
-    float camera_calibration_matrix[16];
-    for (size_t r = 0; r < matrix_of_camera_calibration.RowNo(); ++r)
-        for (size_t c = 0; c < matrix_of_camera_calibration.ColNo(); ++c)
-            camera_calibration_matrix[r*4 + c] = matrix_of_camera_calibration(r, c);
-
-    vc->set_camera_calibration_matrix(camera_calibration_matrix);
-
-    for (size_t i = 0; i <  images.size(); ++i)
+    try
     {
-        float matrix[16];
-        for (size_t r = 0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
-            for (size_t c = 0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
-                matrix[r*4 + c] = images[i].get_matrix_of_calibration()(r, c);
+        if (!vc->prepare())
+            return;
 
-        vc->add_image(images[i].get_image().bits(),
-                      images[i].get_image().width(),
-                      images[i].get_image().height(),
-                      matrix);
+        vc->set_number_of_images(images.size());
+
+        float camera_calibration_matrix[16];
+        for (size_t r = 0; r < matrix_of_camera_calibration.RowNo(); ++r)
+            for (size_t c = 0; c < matrix_of_camera_calibration.ColNo(); ++c)
+                camera_calibration_matrix[r*4 + c] = matrix_of_camera_calibration(r, c);
+
+        vc->set_camera_calibration_matrix(camera_calibration_matrix);
+
+        for (size_t i = 0; i <  images.size(); ++i)
+        {
+            float matrix[16];
+            for (size_t r = 0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
+                for (size_t c = 0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
+                    matrix[r*4 + c] = images[i].get_matrix_of_calibration()(r, c);
+
+            vc->add_image(images[i].get_image().bits(),
+                          images[i].get_image().width(),
+                          images[i].get_image().height(),
+                          matrix);
+        }
+
+        vc->set_resulting_voxel_cube_dimensions(32, 32, 32);
+
+        vc->build_voxel_model();
     }
+    catch(cl::Error ex)
+    {
+        QString error_string;
+        error_string += "ERROR: ";
+        error_string += ex.what();
+        error_string += "(";
+        error_string += QString("%1").arg(ex.error_code());
+        error_string += ": ";
+        error_string += ex.error();
+        error_string += ")";
 
-    vc->set_resulting_voxel_cube_dimensions(32, 32, 32);
-
-    vc->build_voxel_model();
-    //    }
-//    catch (...)
-//    {
-//    }
+        QMessageBox::warning(this, tr("Build voxel model error"), error_string);
+        return;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

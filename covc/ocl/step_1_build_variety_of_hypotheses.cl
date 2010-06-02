@@ -35,11 +35,11 @@ float4 mul_mat_vec (float16 mat, float4 vec)
 }
 
 __kernel void
-build_variety_of_hypotheses (__local __read_only float * bounding_box,
+build_variety_of_hypotheses (__global __const float * bounding_box,
                             __read_only image3d_t images,
                             __global float16 * projection_matrices,
                             __global uchar * hypotheses,
-                            __local __read_only uint * dimensions,
+                            __global __const uint * dimensions,
                             uint number_of_images)
 {
     float4 pos3d = (float4) (bounding_box[0] + get_global_id(0)*(bounding_box[4]/dimensions[0]),

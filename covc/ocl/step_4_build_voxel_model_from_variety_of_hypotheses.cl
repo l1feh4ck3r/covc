@@ -35,8 +35,8 @@ uint isequalui(uint4 vec1, uint4 vec2)
 
 __kernel void
 build_voxel_model ( __global uchar * hypotheses,
-                    __global __write_only uchar * voxel_model,
-                    __local __read_only uint * dimensions,
+                    __global uchar * voxel_model,
+                    __global __const uint * dimensions,
                     uint number_of_images)
 {
     uint4 pos = (uint4) (get_global_id(0), get_global_id(1), get_global_id(2), 0);

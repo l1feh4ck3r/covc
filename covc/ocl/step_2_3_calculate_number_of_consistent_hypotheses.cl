@@ -25,7 +25,7 @@
 
 __kernel void
 calculate_number_of_consistent_hypotheses ( __global uchar * hypotheses,
-                                            __local __read_only uint * dimensions,
+                                            __global __const uint * dimensions,
                                             uint number_of_images,
                                             __global __write_only uint * number_of_consistent_hypotheses)
 {
