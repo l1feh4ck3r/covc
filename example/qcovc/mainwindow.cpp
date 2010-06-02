@@ -196,39 +196,41 @@ void MainWindow::rectangle_changed(QRectF rectangle)
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::run()
 {
-    try
+//    try
+//    {
+    VoxelColorer vc;
+    if (!vc.prepare())
+        return;
+
+    vc.set_number_of_images(images.size());
+
+    float camera_calibration_matrix[16];
+    for (size_t c = 0; c < matrix_of_camera_calibration.ColNo(); ++c)
+        for (size_t r = 0; r < matrix_of_camera_calibration.RowNo(); ++r)
+            camera_calibration_matrix[r + c*4] = matrix_of_camera_calibration(r, c);
+
+    vc.set_camera_calibration_matrix(camera_calibration_matrix);
+
+    for (size_t i = 0; i <  images.size(); ++i)
     {
-        VoxelColorer vc;
-        if (!vc.prepare())
-            return;
+        float matrix[16];
+        for (size_t c = 0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
+            for (size_t r = 0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
+                matrix[r + c*4] = images[i].get_matrix_of_calibration()(r, c);
 
-        float camera_calibration_matrix[16];
-        for (size_t c = 0; c < matrix_of_camera_calibration.ColNo(); ++c)
-            for (size_t r = 0; r < matrix_of_camera_calibration.RowNo(); ++r)
-                camera_calibration_matrix[r + c*4] = matrix_of_camera_calibration(r, c);
-
-        vc.set_camera_calibration_matrix(camera_calibration_matrix);
-
-        for (size_t i = 0; i <  images.size(); ++i)
-        {
-            float matrix[16];
-            for (size_t c = 0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
-                for (size_t r = 0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
-                    matrix[r + c*4] = images[i].get_matrix_of_calibration()(r, c);
-
-            vc.add_image(images[i].get_image().bits(),
-                         images[i].get_image().width(),
-                         images[i].get_image().height(),
-                         matrix);
-        }
-
-        vc.set_resulting_voxel_cube_dimensions(32, 32, 32);
-
-        vc.build_voxel_model();
+        vc.add_image(images[i].get_image().bits(),
+                     images[i].get_image().width(),
+                     images[i].get_image().height(),
+                     matrix);
     }
-    catch (...)
-    {
-    }
+
+    vc.set_resulting_voxel_cube_dimensions(32, 32, 32);
+
+    vc.build_voxel_model();
+    //    }
+//    catch (...)
+//    {
+//    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

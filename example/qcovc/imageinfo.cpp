@@ -39,9 +39,9 @@ ImageInfo::ImageInfo(QString &filename)
     path_to_image = filename;
 
     //TODO: magic numbers
-    image = temp_image.scaled(645, 595,
+    image = temp_image.scaled(512, 512,
                               Qt::IgnoreAspectRatio,
-                              Qt::SmoothTransformation);
+                              Qt::SmoothTransformation).convertToFormat(QImage::Format_RGB888);
     valid = true;
 }
 
@@ -57,7 +57,7 @@ ImageInfo::ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, Q
     path_to_image = filename;
 
     //TODO: magic numbers
-    image = temp_image.scaled(645, 595,
+    image = temp_image.scaled(512, 512,
                               Qt::IgnoreAspectRatio,
                               Qt::SmoothTransformation);
 
