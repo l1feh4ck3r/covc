@@ -31,6 +31,7 @@
 VoxelColorer::VoxelColorer()
     :width(0), height(0),
     number_of_images(0),
+    number_of_last_added_image(0),
     threshold(0.0)
 
 {
@@ -43,6 +44,24 @@ VoxelColorer::VoxelColorer()
 VoxelColorer::~VoxelColorer()
 {
 
+}
+
+void VoxelColorer::add_image(const unsigned char * image, size_t width, size_t height, const float * image_calibration_matrix)
+{
+    for (size_t w = 0; w < width; ++w)
+    {
+        for (size_t h = 0; h < height; ++h)
+        {
+            pixels.data()[number_of_last_added_image*width*height + h*width + w] = image[h*width + w];
+        }
+    }
+
+    for (size_t i = 0; i < 16; ++i)
+        image_calibration_matrices.at(number_of_last_added_image)[i];
+
+    calculate_projection_matrix();
+
+    number_of_last_added_image++;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -376,6 +395,35 @@ void VoxelColorer::calculate_bounding_box()
 {
 }
 
+
+void VoxelColorer::calculate_projection_matrix()
+{
+    float * image_calibration_matrix = image_calibration_matrices.at(number_of_last_added_image);
+    float unit_matrix[16];
+    for (size_t i=0; i < 4; i++)
+        for (size_t j=0; j < 4; j++)
+            unit_matrix[i*4 + j] = i == j ? 1.0f : 0.0f;
+
+    // multiply camera calibration matrix to unit matrix
+    float temp_matrix[16];
+    for (size_t i=0; i < 4; i++)
+       for (size_t j=0; j < 4; j++)
+       {
+          temp_matrix[i*4 + j] = 0.0f;
+          for (size_t k=0; k < 4; ++k)
+             temp_matrix[i*4 + j] += camera_calibration_matrix[i*4 + k] * unit_matrix[k*4 + j];
+       }
+
+    // multiply temp matrix to image calibration matrix
+    for (size_t i=0; i < 4; i++)
+       for (size_t j=0; j < 4; j++)
+       {
+        projection_matrices.at(number_of_last_added_image)[i*4 + j] = 0.0f;
+          for (size_t k=0; k < 4; ++k)
+             projection_matrices.at(number_of_last_added_image)[i*4 + j] += temp_matrix[i*4 + k] * image_calibration_matrix[k*4 + j];
+       }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 //! Prepare voxel colorer
 ///////////////////////////////////////////////////////////////////////////////
@@ -428,6 +476,16 @@ void VoxelColorer::set_camera_calibration_matrix(const float *_camera_calibratio
 {
     for (size_t i = 0; i < 16; ++i)
         camera_calibration_matrix[i] = _camera_calibration_matrix[i];
+}
+
+void VoxelColorer::set_number_of_images(size_t _number_of_images)
+{
+    number_of_images = _number_of_images;
+
+    // resize buffers
+    pixels.resize(number_of_images);
+    image_calibration_matrices.reserve(number_of_images);
+    projection_matrices.reserve(number_of_images);
 }
 
 void VoxelColorer::set_resulting_voxel_cube_dimensions (size_t dimension_x, size_t dimension_y, size_t dimension_z)

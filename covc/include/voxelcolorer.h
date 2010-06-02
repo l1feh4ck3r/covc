@@ -27,8 +27,6 @@
 
 #include "cl.hpp"
 
-//#include <vector>
-
 class VoxelColorer
 {
 public:
@@ -37,12 +35,13 @@ public:
 
 
 public:
-    void add_image(const unsigned char * image, int width, int height, const float * image_calibration_matrix);
+    void add_image(const unsigned char * image, size_t width, size_t height, const float * image_calibration_matrix);
     bool build_voxel_model();
     bool prepare();
 
     // setters
     void set_camera_calibration_matrix(const float * _camera_calibration_matrix);
+    void set_number_of_images(const size_t _number_of_images);
     void set_resulting_voxel_cube_dimensions(size_t dimension_x, size_t dimension_y, size_t dimension_z);
 
     // getters
@@ -51,6 +50,7 @@ public:
 private:
     bool build_program(cl::Program & program, const std::string & path_to_file_with_program);
     void calculate_bounding_box();
+    void calculate_projection_matrix();
     bool prepare_opencl();
 
 
@@ -76,9 +76,14 @@ private:
     //! number of images
     size_t number_of_images;
 
+    // number of last added image
+    size_t number_of_last_added_image;
+
     //! projection matrices for images
     //! size = number_of_images*16*size_of(float)
     std::vector<float[16]> projection_matrices;
+
+    std::vector<float[16]> image_calibration_matrices;
     ///////////////////////////////////////////////////////////////////////////
     //! End of info about images
     ///////////////////////////////////////////////////////////////////////////
@@ -88,7 +93,7 @@ private:
     //! bounding box. elements: pos_x, pos_y, pos_z, size_x, size_y, size_z;
     float bounding_box[6];
 
-    //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*number_of_images*(2*sizeof(char)+3*size_of(color))
+    //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*(2*sizeof(char) + number_of_images*3*size_of(color))
     // hypotheses:
     //  _
     // |_| - voxel visibility

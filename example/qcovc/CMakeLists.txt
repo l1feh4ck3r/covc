@@ -7,7 +7,9 @@ find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 
 include_directories("${deps_SOURCE_DIR}/matrix"
-                    "${deps_SOURCE_DIR}/ocl")
+                    "${deps_SOURCE_DIR}/ocl"
+                    "${covclib_SOURCE_DIR}/include"
+                    )
 
 set (QCOVC_SRCS_CXX
   imageinfo.cpp
@@ -42,4 +44,4 @@ elseif(WIN32)
   add_executable(qcovc WIN32 ${QCOVC_SRCS_CXX})
 endif()
 
-target_link_libraries(qcovc ${QT_LIBRARIES})
+target_link_libraries(qcovc covclib OpenCL ${QT_LIBRARIES})

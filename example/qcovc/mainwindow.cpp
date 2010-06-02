@@ -30,6 +30,8 @@
 #include "imagepreview.h"
 #include "imagescene.h"
 
+#include "voxelcolorer.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
     matrix_of_camera_calibration(3,3)
@@ -196,6 +198,33 @@ void MainWindow::run()
 {
     try
     {
+        VoxelColorer vc;
+        if (!vc.prepare())
+            return;
+
+        float camera_calibration_matrix[16];
+        for (size_t c = 0; c < matrix_of_camera_calibration.ColNo(); ++c)
+            for (size_t r = 0; r < matrix_of_camera_calibration.RowNo(); ++r)
+                camera_calibration_matrix[r + c*4] = matrix_of_camera_calibration(r, c);
+
+        vc.set_camera_calibration_matrix(camera_calibration_matrix);
+
+        for (size_t i = 0; i <  images.size(); ++i)
+        {
+            float matrix[16];
+            for (size_t c = 0; c < images[i].get_matrix_of_calibration().ColNo(); ++c)
+                for (size_t r = 0; r < images[i].get_matrix_of_calibration().RowNo(); ++r)
+                    matrix[r + c*4] = images[i].get_matrix_of_calibration()(r, c);
+
+            vc.add_image(images[i].get_image().bits(),
+                         images[i].get_image().width(),
+                         images[i].get_image().height(),
+                         matrix);
+        }
+
+        vc.set_resulting_voxel_cube_dimensions(32, 32, 32);
+
+        vc.build_voxel_model();
     }
     catch (...)
     {
