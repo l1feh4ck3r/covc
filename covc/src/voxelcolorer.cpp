@@ -34,7 +34,7 @@ VoxelColorer::VoxelColorer()
     :width(0), height(0),
     number_of_images(0),
     number_of_last_added_image(0),
-    threshold(0.0)
+    threshold(0.1)
 
 {
     memset(dimensions, 0, sizeof(dimensions));
@@ -571,7 +571,7 @@ void VoxelColorer::inverse(const float *matrix, float *inverted_matrix)
     float b5 = matrix[10]*matrix[15] - matrix[11]*matrix[14];
 
     float det = a0*b5 - a1*b4 + a2*b3 + a3*b2 - a4*b1 + a5*b0;
-    float epsilon = 0.01;
+    float epsilon = 0.1;
     if (fabs(det) > epsilon)
     {
         float inverse[16];

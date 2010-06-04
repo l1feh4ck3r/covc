@@ -340,25 +340,8 @@ void DisplayGL()
         // set GLUT Window Title
         char cFPS[256];
         iFramesPerSec = (int)((double)iFrameCount/shrDeltaT(1));
-#ifdef GPU_PROFILING
-#ifdef _WIN32
-        sprintf_s(cFPS, 256, "Volume Render %ux%u | %i fps | Proc.t = %.3f s | %.3f MP/s",
-                  width, height, iFramesPerSec, dProcessingTime, (1.0e-6 * width * height)/dProcessingTime);
-#else
-        sprintf(cFPS, "Volume Render %ux%u |  %i fps | Proc. t = %.3f s | %.3f MP/s",
-                width, height, iFramesPerSec, dProcessingTime, (1.0e-6 * width * height)/dProcessingTime);
-#endif
-#else
-#ifdef _WIN32
-        sprintf_s(cFPS, 256, "Volume Render | W: %u  H: %u", width, height);
-#else
         sprintf(cFPS, "Volume Render | W: %u  H: %u", width, height);
-#endif
-#endif
         glutSetWindowTitle(cFPS);
-
-        // Log fps and processing info to console and file 
-        shrLog(" %s\n", cFPS); 
 
         // if doing quick test, exit
         if ((bNoPrompt) && (!--iTestSets))

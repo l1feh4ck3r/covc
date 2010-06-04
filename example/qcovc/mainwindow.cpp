@@ -32,6 +32,8 @@
 
 #include "voxelcolorer.h"
 
+#include <time.h>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow),
     matrix_of_camera_calibration(4, 4)
@@ -46,12 +48,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     vc = new VoxelColorer();
 
-    matrix_of_camera_calibration(0, 0) = 50;
+    matrix_of_camera_calibration(0, 0) = 35;
     matrix_of_camera_calibration(0, 1) = 0;
     matrix_of_camera_calibration(0, 2) = 256;
     matrix_of_camera_calibration(0, 3) = 0;
     matrix_of_camera_calibration(1, 0) = 0;
-    matrix_of_camera_calibration(1, 1) = 50;
+    matrix_of_camera_calibration(1, 1) = 35;
     matrix_of_camera_calibration(1, 2) = 256;
     matrix_of_camera_calibration(1, 3) = 0;
     matrix_of_camera_calibration(2, 0) = 0;
@@ -137,7 +139,7 @@ void MainWindow::image_selected(QModelIndex index)
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::load_metafile()
 {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Select meta file."));
+    QString filename = QFileDialog::getOpenFileName(this, tr("Select meta file"));
 
     if (filename.isEmpty())
         return;
@@ -253,9 +255,11 @@ void MainWindow::run()
 
         vc->set_resulting_voxel_cube_dimensions(32, 32, 32);
 
+        time_t temp_time = time(NULL);
         vc->build_voxel_model();
+        double real_time = difftime(time(NULL), temp_time);
 
-        QMessageBox::information(this, tr("Building voxel model..."), tr("...done!"));
+        QMessageBox::information(this, tr("Building voxel model..."), QString("... done at %1 s").arg(real_time));
     }
     catch(cl::Error ex)
     {
@@ -279,7 +283,7 @@ void MainWindow::run()
 ///////////////////////////////////////////////////////////////////////////////
 void MainWindow::save_metafile()
 {
-    QString filename = QFileDialog::getSaveFileName(this, tr("Select meta file."));
+    QString filename = QFileDialog::getSaveFileName(this, tr("Select meta file"));
 
     if (filename.isEmpty())
         return;
@@ -341,7 +345,7 @@ void MainWindow::save_voxel_model()
 {
     std::vector<unsigned char> model = vc->get_voxel_model();
 
-    QString filename = QFileDialog::getSaveFileName(this, tr("Select meta file."));
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save voxel model to"));
 
     if (filename.isEmpty())
         return;
