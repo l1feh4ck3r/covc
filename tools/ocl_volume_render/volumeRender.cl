@@ -114,14 +114,14 @@ d_render(__global uint *d_output,
 
         float4 nomralized_color = normalize(convert_float4(col));
 
-        uint is_black = col.x*col.y*col.z*col.w;
+        uint is_not_black = col.x+col.y+col.z+col.w;
 
         t -= tstep;
         if (t < tnear)
             break;
         else
-            if (!is_black)
-                temp = nomralized_color;
+            if (is_not_black)
+                temp = mix(temp, nomralized_color, (float4)(density));
     }
     temp *= brightness;
 
