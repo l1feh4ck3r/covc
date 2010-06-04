@@ -112,7 +112,7 @@ d_render(__global uint *d_output,
         // read from 3D texture
         uint4 col = read_imageui(volume, volumeSampler, pos);
 
-        float4 nomralized_color = normalize(convert_float4(col));
+        float4 nomralized_color = convert_float4(col); //normalize(convert_float4(col));
 
         uint is_not_black = col.x+col.y+col.z+col.w;
 
@@ -128,7 +128,7 @@ d_render(__global uint *d_output,
     if ((x < imageW) && (y < imageH)) {
         // write output color
         uint i =(y * imageW) + x;
-        d_output[i] = rgbaFloatToInt(temp.wyzx);
+        d_output[i] = rgbaFloatToInt(temp);
     }
 }
 

@@ -64,8 +64,8 @@ float viewRotation[3];
 float viewTranslation[3] = {0.0, 0.0, -4.0f};
 float invViewMatrix[12];
 
-float density = 0.05f;
-float brightness = 1.0f;
+float density = 0.01f;
+float brightness = 0.1f;
 float transferOffset = 0.0f;
 float transferScale = 1.0f;
 bool linearFiltering = true;

@@ -34,7 +34,7 @@ VoxelColorer::VoxelColorer()
     :width(0), height(0),
     number_of_images(0),
     number_of_last_added_image(0),
-    threshold(0.1)
+    threshold(0.01f)
 
 {
     memset(dimensions, 0, sizeof(dimensions));
@@ -154,29 +154,29 @@ bool VoxelColorer::build_voxel_model()
                hypotheses_buffer,
                dimensions_buffer);
 
-    cl::KernelFunctor step_2_3_1;
-    cl::KernelFunctor step_2_3_2;
-    build_step_2_3(hypotheses_buffer,
-                   dimensions_buffer,
-                   number_of_consistent_hypotheses_buffer,
-                   step_2_3_1,
-                   step_2_3_2);
-
-    run_step_2(hypotheses_buffer,
-               dimensions_buffer,
-               step_2_3_1,
-               step_2_3_2,
-               number_of_consistent_hypotheses_buffer,
-               &number_of_consistent_hypotheses);
-
-    run_step_3(hypotheses_buffer,
-               bounding_box_buffer,
-               dimensions_buffer,
-               projection_matrices_buffer,
-               step_2_3_1,
-               step_2_3_2,
-               number_of_consistent_hypotheses_buffer,
-               &number_of_consistent_hypotheses);
+//    cl::KernelFunctor step_2_3_1;
+//    cl::KernelFunctor step_2_3_2;
+//    build_step_2_3(hypotheses_buffer,
+//                   dimensions_buffer,
+//                   number_of_consistent_hypotheses_buffer,
+//                   step_2_3_1,
+//                   step_2_3_2);
+//
+//    run_step_2(hypotheses_buffer,
+//               dimensions_buffer,
+//               step_2_3_1,
+//               step_2_3_2,
+//               number_of_consistent_hypotheses_buffer,
+//               &number_of_consistent_hypotheses);
+//
+//    run_step_3(hypotheses_buffer,
+//               bounding_box_buffer,
+//               dimensions_buffer,
+//               projection_matrices_buffer,
+//               step_2_3_1,
+//               step_2_3_2,
+//               number_of_consistent_hypotheses_buffer,
+//               &number_of_consistent_hypotheses);
 
     run_step_4(hypotheses_buffer,
                voxel_model_buffer,
@@ -213,7 +213,7 @@ void VoxelColorer::build_program(cl::Program & program, const std::string & path
     cl::Program::Sources source(1, std::make_pair(src.c_str(), src.length()));
 
     program = cl::Program(ocl_context, source);
-    program.build(devices, "-cl-mad-enable");
+    program.build(devices, "-cl-opt-disable");
 
     return;
 }
@@ -608,7 +608,7 @@ void VoxelColorer::run_step_2(cl::Buffer & hypotheses_buffer,
                                         sizeof(unsigned int),
                                         number_of_consistent_hypotheses);
 
-    //threshold = const_cast<float>(number_of_consistent_hypotheses)/const_cast<float>(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images);
+    //threshold = const_cast<float>(*number_of_consistent_hypotheses)/const_cast<float>(dimensions[0])*dimensions[1]*dimensions[2]*number_of_images;
 
 }
 
@@ -673,6 +673,7 @@ void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
     while (*number_of_consistent_hypotheses != old_number_of_consistent_hypotheses)
     {
         old_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
+        std::cout << "number of consistent hypotheses = " << *number_of_consistent_hypotheses << std::endl;
 
         for (size_t x = 0; x < dimensions[0]; ++x)
         {
@@ -784,7 +785,7 @@ void VoxelColorer::set_resulting_voxel_cube_dimensions (size_t dimension_x, size
     dimensions[1] = dimension_y;
     dimensions[2] = dimension_z;
 
-    voxel_model.resize(dimensions[0]*dimensions[1]*dimensions[2]*3*sizeof(unsigned char));
+    voxel_model.resize(dimensions[0]*dimensions[1]*dimensions[2]*3*sizeof(unsigned char), 0);
 }
 
 void VoxelColorer::vector_minus_vector(const float *vec1, const float *vec2, float *result)
