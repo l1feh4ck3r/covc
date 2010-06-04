@@ -358,11 +358,11 @@ void MainWindow::save_voxel_model()
 
     QDataStream out(&file);
 
-    for (size_t i = 0; i < model.size(); ++i)
+    for (size_t i = 0; i < model.size()/3; ++i)
     {
-        if (i % 4 == 0)
-            out << (unsigned char)0;
-        out << model[i];
+        out << (unsigned char)0;
+        for (size_t j = 0; j < 3; ++j)
+            out << model[i];
     }
 
     file.close();
