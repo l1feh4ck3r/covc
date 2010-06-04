@@ -77,9 +77,6 @@ void VoxelColorer::add_image(const unsigned char * image, size_t _width, size_t 
 ///////////////////////////////////////////////////////////////////////////////
 bool VoxelColorer::build_voxel_model()
 {
-    cl::Program ocl_program;
-    cl::Kernel  ocl_kernel;
-
     unsigned int number_of_consistent_hypotheses;
 
     calculate_bounding_box();
@@ -130,22 +127,8 @@ bool VoxelColorer::build_voxel_model()
     ///////////////////////////////////////////////////////////////////////////////
 
     std::vector<cl::Device> devices = ocl_context.getInfo<CL_CONTEXT_DEVICES>();
-    cl::CommandQueue ocl_command_queue(ocl_context, devices[0]);
+    ocl_command_queue = cl::CommandQueue(ocl_context, devices[0]);
 
-    ///////////////////////////////////////////////////////////////////////////////
-    //! step 1: for each voxel build variety of hypotheses
-    //! HYPOTHESIS EXTRACTION
-    ///////////////////////////////////////////////////////////////////////////////
-    if (!build_program(ocl_program, "ocl/step_1_build_variety_of_hypotheses.cl"))
-        return false;
-
-    cl::Kernel ocl_kernel_step_1 = cl::Kernel(ocl_program, "build_variety_of_hypotheses");
-    ocl_kernel_step_1.setArg(0, bounding_box_buffer);
-    ocl_kernel_step_1.setArg(1, images_buffer);
-    ocl_kernel_step_1.setArg(2, projection_matrices_buffer);
-    ocl_kernel_step_1.setArg(3, hypotheses_buffer);
-    ocl_kernel_step_1.setArg(4, dimensions_buffer);
-    ocl_kernel_step_1.setArg(5, number_of_images);
 
     ocl_command_queue.enqueueWriteBuffer(bounding_box_buffer,
                                          CL_TRUE,
@@ -165,185 +148,39 @@ bool VoxelColorer::build_voxel_model()
                                          3*sizeof(size_t),
                                          dimensions);
 
-    cl::KernelFunctor func_step_1 = ocl_kernel_step_1.bind(ocl_command_queue,
-                                                           cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
-                                                           cl::NDRange(1, 1, 1));
+    run_step_1(bounding_box_buffer,
+               images_buffer,
+               projection_matrices_buffer,
+               hypotheses_buffer,
+               dimensions_buffer);
 
-    func_step_1().wait();
+    cl::KernelFunctor step_2_3_1;
+    cl::KernelFunctor step_2_3_2;
+    build_step_2_3(hypotheses_buffer,
+                   dimensions_buffer,
+                   number_of_consistent_hypotheses_buffer,
+                   step_2_3_1,
+                   step_2_3_2);
 
-    ocl_command_queue.finish();
+    run_step_2(hypotheses_buffer,
+               dimensions_buffer,
+               step_2_3_1,
+               step_2_3_2,
+               number_of_consistent_hypotheses_buffer,
+               &number_of_consistent_hypotheses);
 
-    ///////////////////////////////////////////////////////////////////////////////
-    //! step 2: initial inconsistent voxels rejection
-    //! CONSISTENCY CHECK AND HYPOTHESIS REMOVAL
-    ///////////////////////////////////////////////////////////////////////////////
-    if (!build_program(ocl_program, "ocl/step_2_initial_inconsistent_voxels_rejection_by_hypotheses.cl"))
-        return false;
+    run_step_3(hypotheses_buffer,
+               bounding_box_buffer,
+               dimensions_buffer,
+               projection_matrices_buffer,
+               step_2_3_1,
+               step_2_3_2,
+               number_of_consistent_hypotheses_buffer,
+               &number_of_consistent_hypotheses);
 
-    cl::Kernel ocl_kernel_step_2 = cl::Kernel(ocl_program, "initial_inconsistent_voxels_rejection");
-
-    for (size_t x = 0; x < dimensions[0]; ++x)
-    {
-        for (size_t y = 0; y < dimensions[1]; ++y)
-        {
-            for (size_t z = 0; z < dimensions[2]; ++z)
-            {
-                // offset to hypothesis for voxel with coordinates [x][y][z]
-                ocl_kernel_step_2.setArg(0, hypotheses_buffer);
-                ocl_kernel_step_2.setArg(1, x);
-                ocl_kernel_step_2.setArg(2, y);
-                ocl_kernel_step_2.setArg(3, z);
-                ocl_kernel_step_2.setArg(4, dimensions_buffer);
-                ocl_kernel_step_2.setArg(5, threshold);
-
-                cl::KernelFunctor func_step_2 = ocl_kernel_step_2.bind(ocl_command_queue,
-                                                                       cl::NDRange(number_of_images),
-                                                                       cl::NDRange(1));
-
-                func_step_2().wait();
-            }
-        }
-    }
-
-    ocl_command_queue.finish();
-
-    // calculate number of consistent hypotheses for each voxel
-    // if number of consistent hypotheses for one voxel is zero,
-    // make this voxel transparent
-    if (!build_program(ocl_program, "ocl/step_2_3_calculate_number_of_consistent_hypotheses_by_voxels.cl"))
-        return false;
-    cl::Kernel ocl_kernel_step_2_3_first = cl::Kernel(ocl_program, "calculate_number_of_consistent_hypotheses_by_voxels");
-    ocl_kernel_step_2_3_first.setArg(0, hypotheses_buffer);
-    ocl_kernel_step_2_3_first.setArg(1, dimensions_buffer);
-    ocl_kernel_step_2_3_first.setArg(2, number_of_images);
-
-    cl::KernelFunctor func_step_2_3_first = ocl_kernel_step_2_3_first.bind(ocl_command_queue,
-                                                                           cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
-                                                                           cl::NDRange(1, 1, 1));
-
-    func_step_2_3_first().wait();
-    ocl_command_queue.finish();
-
-    if (!build_program(ocl_program, "ocl/step_2_3_calculate_number_of_consistent_hypotheses.cl"))
-        return false;
-    cl::Kernel ocl_kernel_step_2_3_second = cl::Kernel(ocl_program, "calculate_number_of_consistent_hypotheses");
-    ocl_kernel_step_2_3_second.setArg(0, hypotheses_buffer);
-    ocl_kernel_step_2_3_second.setArg(1, dimensions_buffer);
-    ocl_kernel_step_2_3_second.setArg(2, number_of_images);
-    ocl_kernel_step_2_3_second.setArg(3, number_of_consistent_hypotheses_buffer);
-
-    cl::KernelFunctor func_step_2_3_second = ocl_kernel_step_2_3_second.bind(ocl_command_queue,
-                                                                             cl::NDRange(1),
-                                                                             cl::NDRange(1));
-    func_step_2_3_second().wait();
-    ocl_command_queue.finish();
-
-    ocl_command_queue.enqueueReadBuffer(number_of_consistent_hypotheses_buffer,
-                                        CL_TRUE,
-                                        0,
-                                        sizeof(unsigned int),
-                                        &number_of_consistent_hypotheses);
-
-    ocl_command_queue.finish();
-
-    //threshold = const_cast<float>(number_of_consistent_hypotheses)/const_cast<float>(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images);
-
-    ///////////////////////////////////////////////////////////////////////////////
-    //! step 3: inconsistent hypotheses rejection. visibility buffer in use
-    ///////////////////////////////////////////////////////////////////////////////
-
-    if (!build_program(ocl_program, "ocl/step_3_inconsistent_voxels_rejection.cl"))
-        return false;
-
-    cl::Kernel ocl_kernel_step_3 = cl::Kernel(ocl_program, "inconsistent_voxel_rejection");
-
-    // create opencl buffer for z buffer
-    // z buffer element contain only one value: free or occupied
-    cl::Buffer * z_buffer = new cl::Buffer(ocl_context,
-                                           CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                                           width*height*number_of_images*sizeof(unsigned char));
-
-    unsigned int old_number_of_consistent_hypotheses = UINT_MAX;
-
-    while (number_of_consistent_hypotheses != old_number_of_consistent_hypotheses)
-    {
-        old_number_of_consistent_hypotheses = number_of_consistent_hypotheses;
-
-        for (size_t x = 0; x < dimensions[0]; ++x)
-        {
-            for (size_t y = 0; y < dimensions[1]; ++y)
-            {
-                for (size_t z = 0; z < dimensions[2]; ++z)
-                {
-                    ocl_kernel_step_3.setArg(0, hypotheses_buffer);
-                    ocl_kernel_step_3.setArg(1, x);
-                    ocl_kernel_step_3.setArg(2, y);
-                    ocl_kernel_step_3.setArg(3, z);
-                    ocl_kernel_step_3.setArg(4, bounding_box_buffer);
-                    ocl_kernel_step_3.setArg(5, dimensions_buffer);
-                    ocl_kernel_step_3.setArg(6, *z_buffer);
-                    ocl_kernel_step_3.setArg(7, projection_matrices_buffer);
-                    ocl_kernel_step_3.setArg(8, threshold);
-
-                    cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
-                                                                           cl::NDRange(number_of_images),
-                                                                           cl::NDRange(1));
-
-                    func_step_3().wait();
-                }
-            }
-        }
-
-        ocl_command_queue.finish();
-
-        func_step_2_3_first().wait();
-        ocl_command_queue.finish();
-
-        func_step_2_3_second().wait();
-        ocl_command_queue.finish();
-
-        ocl_command_queue.enqueueReadBuffer(number_of_consistent_hypotheses_buffer,
-                                            CL_TRUE,
-                                            0,
-                                            sizeof(unsigned int),
-                                            &number_of_consistent_hypotheses);
-        ocl_command_queue.finish();
-
-        // remove and create new z buffer
-        delete z_buffer;
-        z_buffer = new cl::Buffer(ocl_context,
-                                  CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                                  width*height*number_of_images*sizeof(unsigned char));
-    }
-
-    delete z_buffer;
-    z_buffer = NULL;
-
-    ///////////////////////////////////////////////////////////////////////////////
-    //! step 4: build voxel model from variety of hypotheses
-    ///////////////////////////////////////////////////////////////////////////////
-
-    if (!build_program(ocl_program, "ocl/step_4_build_voxel_model_from_variety_of_hypotheses.cl"))
-        return false;
-
-    cl::Kernel ocl_kernel_step_4 = cl::Kernel(ocl_program, "build_voxel_model");
-    ocl_kernel_step_4.setArg(0, hypotheses_buffer);
-    ocl_kernel_step_4.setArg(1, voxel_model_buffer);
-    ocl_kernel_step_4.setArg(2, dimensions_buffer);
-    ocl_kernel_step_4.setArg(3, number_of_images);
-
-    cl::KernelFunctor func_step_4 = ocl_kernel_step_4.bind(ocl_command_queue,
-                                                           cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
-                                                           cl::NDRange(1, 1, 1));
-
-    func_step_4().wait();
-    ocl_command_queue.finish();
-
-    ocl_command_queue.enqueueReadBuffer(voxel_model_buffer,
-                                        CL_TRUE,
-                                        0,
-                                        dimensions[0]*dimensions[1]*dimensions[2]*3*sizeof(unsigned char),
-                                        voxel_model.data());
+    run_step_4(hypotheses_buffer,
+               voxel_model_buffer,
+               dimensions_buffer);
 
     return true;
 }
@@ -353,14 +190,14 @@ bool VoxelColorer::build_voxel_model()
 //!
 //! @param path to file with opencl program
 ///////////////////////////////////////////////////////////////////////////////
-bool VoxelColorer::build_program(cl::Program & program, const std::string & path_to_file_with_program)
+void VoxelColorer::build_program(cl::Program & program, const std::string & path_to_file_with_program)
 {
     std::ifstream file(path_to_file_with_program.data());
 
     if ( !file )
     {
         std::cerr << "COVC: Error while opening " << path_to_file_with_program << std::endl;
-        return false;
+        throw std::exception();
     }
 
     std::stringstream ss;
@@ -369,26 +206,16 @@ bool VoxelColorer::build_program(cl::Program & program, const std::string & path
 
     bool result = false;
 
-    try
-    {
-        std::vector<cl::Device> devices = ocl_context.getInfo<CL_CONTEXT_DEVICES>();
+    std::vector<cl::Device> devices = ocl_context.getInfo<CL_CONTEXT_DEVICES>();
 
-        std::string src(ss.str());
+    std::string src(ss.str());
 
-        cl::Program::Sources source(1, std::make_pair(src.c_str(), src.length()));
+    cl::Program::Sources source(1, std::make_pair(src.c_str(), src.length()));
 
-        program = cl::Program(ocl_context, source);
-        program.build(devices, "-cl-mad-enable");
+    program = cl::Program(ocl_context, source);
+    program.build(devices, "-cl-mad-enable");
 
-        result = true;
-    }
-    catch(cl::Error ex)
-    {
-        std::cerr << "COVC: " << ex.what() << "(" << ex.error_code() << ": " << ex.error() << "):" << std::endl;
-        result = false;
-    }
-
-    return result;
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -396,27 +223,31 @@ bool VoxelColorer::build_program(cl::Program & program, const std::string & path
 ///////////////////////////////////////////////////////////////////////////////
 void VoxelColorer::calculate_bounding_box()
 {
-    float center3d[4];
+    float center3d[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     float image_center[4] = {255.0f, 255.0f, 1.0f, 1.0f};
 
-    float inverted_camera_calibration_matrix[16];
+    float inverted_camera_calibration_matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+                                                    0.0f, 0.0f, 0.0f, 0.0f,
+                                                    0.0f, 0.0f, 0.0f, 0.0f,
+                                                    0.0f, 0.0f, 0.0f, 0.0f};
     inverse(camera_calibration_matrix, inverted_camera_calibration_matrix);
 
     for (size_t i = 0; i < number_of_images; ++i)
     {
-        float temp_vector[4];
-        multiply_matrix_vector(inverted_camera_calibration_matrix, image_center, temp_vector);
-
-        float inverted_image_calibration_matrix[16];
+        float inverted_image_calibration_matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+                                                       0.0f, 0.0f, 0.0f, 0.0f,
+                                                       0.0f, 0.0f, 0.0f, 0.0f,
+                                                       0.0f, 0.0f, 0.0f, 0.0f};
         inverse(image_calibration_matrices[i].data(), inverted_image_calibration_matrix);
 
-        float result_pos[4];
-        multiply_matrix_vector(inverted_image_calibration_matrix, temp_vector, result_pos);
+        float image_center_in_global_space[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        multiply_matrix_vector(inverted_camera_calibration_matrix, image_center, image_center_in_global_space);
+        multiply_matrix_vector(inverted_image_calibration_matrix, image_center_in_global_space, image_center_in_global_space);
 
-        center3d[0] += result_pos[0] / static_cast<float>(number_of_images);
-        center3d[1] += result_pos[1] / static_cast<float>(number_of_images);
-        center3d[2] += result_pos[2] / static_cast<float>(number_of_images);
-        center3d[3] = 1.0f;
+        center3d[0] += image_center_in_global_space[0] / static_cast<float>(number_of_images);
+        center3d[1] += image_center_in_global_space[1] / static_cast<float>(number_of_images);
+        center3d[2] += image_center_in_global_space[2] / static_cast<float>(number_of_images);
+        center3d[3] += image_center_in_global_space[2] / static_cast<float>(number_of_images);
     }
 
     float max_x = -10000.0f;
@@ -425,7 +256,11 @@ void VoxelColorer::calculate_bounding_box()
 
     for (size_t i = 0; i < number_of_images; ++i)
     {
-        float inverted_image_calibration_matrix[16];
+        float inverted_image_calibration_matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+                                                       0.0f, 0.0f, 0.0f, 0.0f,
+                                                       0.0f, 0.0f, 0.0f, 0.0f,
+                                                       0.0f, 0.0f, 0.0f, 0.0f};
+
         inverse(image_calibration_matrices[i].data(), inverted_image_calibration_matrix);
 
         float camera_pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -433,30 +268,22 @@ void VoxelColorer::calculate_bounding_box()
 
         //left top
         float left_top_pos[4] = {0.0f, 0.0f, 1.0f, 1.0f};
-
         multiply_matrix_vector(inverted_camera_calibration_matrix, left_top_pos, left_top_pos);
-        left_top_pos[3] = 1.0f;
         multiply_matrix_vector(inverted_image_calibration_matrix, left_top_pos, left_top_pos);
 
         //right top
         float right_top_pos[4] = {511.0f, 0.0f, 1.0f, 1.0f};
-
         multiply_matrix_vector(inverted_camera_calibration_matrix, right_top_pos, right_top_pos);
-        right_top_pos[3] = 1.0f;
         multiply_matrix_vector(inverted_image_calibration_matrix, right_top_pos, right_top_pos);
 
         // left bottom
         float left_bottom_pos[4] = {0.0f, 511.0f, 1.0f, 1.0f};
-
         multiply_matrix_vector(inverted_camera_calibration_matrix, left_bottom_pos, left_bottom_pos);
-        left_bottom_pos[3] = 1.0f;
         multiply_matrix_vector(inverted_image_calibration_matrix, left_bottom_pos, left_bottom_pos);
 
         // right bottom
         float right_bottom_pos[4] = {511.0f, 511.0f, 1.0f, 1.0f};
-
         multiply_matrix_vector(inverted_camera_calibration_matrix, right_bottom_pos, right_bottom_pos);
-        right_bottom_pos[3] = 1.0f;
         multiply_matrix_vector(inverted_image_calibration_matrix, right_bottom_pos, right_bottom_pos);
 
         float distance[4];
@@ -536,11 +363,14 @@ void VoxelColorer::calculate_projection_matrix()
                              0.0f, 0.0f, 0.0f, 1.0f };
 
     // multiply camera calibration matrix to unit matrix
-    float temp_matrix[16];
+    float temp_matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f,
+                             0.0f, 0.0f, 0.0f, 0.0f,
+                             0.0f, 0.0f, 0.0f, 0.0f,
+                             0.0f, 0.0f, 0.0f, 0.0f };
+
     for (size_t i=0; i < 4; i++)
         for (size_t j=0; j < 4; j++)
         {
-        temp_matrix[i*4 + j] = 0.0f;
         for (size_t k=0; k < 4; ++k)
             temp_matrix[i*4 + j] += camera_calibration_matrix[i*4 + k] * unit_matrix[k*4 + j];
     }
@@ -632,8 +462,8 @@ void VoxelColorer::multiply_vector_vector(const float *vec1, const float *vec2, 
 {
     float temp[4];
     temp[0] = vec1[1]*vec2[2] - vec1[2]*vec2[1];
-    temp[0] = vec1[2]*vec2[0] - vec1[0]*vec2[2];
-    temp[0] = vec1[0]*vec2[1] - vec1[1]*vec2[0];
+    temp[1] = vec1[2]*vec2[0] - vec1[0]*vec2[2];
+    temp[2] = vec1[0]*vec2[1] - vec1[1]*vec2[0];
 
     for (size_t i = 0; i < 4; ++i)
         result[i] = temp[i];
@@ -690,6 +520,239 @@ bool VoxelColorer::prepare_opencl()
     }
 
     return result;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//! step 1: for each voxel build variety of hypotheses
+//! HYPOTHESIS EXTRACTION
+///////////////////////////////////////////////////////////////////////////////
+void VoxelColorer::run_step_1(cl::Buffer & bounding_box_buffer,
+                              cl::Image3D & images_buffer,
+                              cl::Buffer & projection_matrices_buffer,
+                              cl::Buffer & hypotheses_buffer,
+                              cl::Buffer & dimensions_buffer)
+{
+    cl::Program ocl_program;
+
+    build_program(ocl_program, "ocl/step_1_build_variety_of_hypotheses.cl");
+
+    cl::Kernel ocl_kernel_step_1 = cl::Kernel(ocl_program, "build_variety_of_hypotheses");
+    ocl_kernel_step_1.setArg(0, bounding_box_buffer);
+    ocl_kernel_step_1.setArg(1, images_buffer);
+    ocl_kernel_step_1.setArg(2, projection_matrices_buffer);
+    ocl_kernel_step_1.setArg(3, hypotheses_buffer);
+    ocl_kernel_step_1.setArg(4, dimensions_buffer);
+    ocl_kernel_step_1.setArg(5, number_of_images);
+
+    cl::KernelFunctor func_step_1 = ocl_kernel_step_1.bind(ocl_command_queue,
+                                                           cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
+                                                           cl::NDRange(1, 1, 1));
+
+    func_step_1().wait();
+
+    ocl_command_queue.finish();
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//! step 2: initial inconsistent voxels rejection
+//! CONSISTENCY CHECK AND HYPOTHESIS REMOVAL
+///////////////////////////////////////////////////////////////////////////////
+void VoxelColorer::run_step_2(cl::Buffer & hypotheses_buffer,
+                              cl::Buffer & dimensions_buffer,
+                              cl::KernelFunctor & func_step_2_3_first,
+                              cl::KernelFunctor & func_step_2_3_second,
+                              cl::Buffer & number_of_consistent_hypotheses_buffer,
+                              unsigned int * number_of_consistent_hypotheses)
+{
+    cl::Program ocl_program;
+
+    build_program(ocl_program, "ocl/step_2_initial_inconsistent_voxels_rejection_by_hypotheses.cl");
+
+    cl::Kernel ocl_kernel_step_2 = cl::Kernel(ocl_program, "initial_inconsistent_voxels_rejection");
+
+    for (size_t x = 0; x < dimensions[0]; ++x)
+    {
+        for (size_t y = 0; y < dimensions[1]; ++y)
+        {
+            for (size_t z = 0; z < dimensions[2]; ++z)
+            {
+                // offset to hypothesis for voxel with coordinates [x][y][z]
+                ocl_kernel_step_2.setArg(0, hypotheses_buffer);
+                ocl_kernel_step_2.setArg(1, x);
+                ocl_kernel_step_2.setArg(2, y);
+                ocl_kernel_step_2.setArg(3, z);
+                ocl_kernel_step_2.setArg(4, dimensions_buffer);
+                ocl_kernel_step_2.setArg(5, threshold);
+
+                cl::KernelFunctor func_step_2 = ocl_kernel_step_2.bind(ocl_command_queue,
+                                                                       cl::NDRange(number_of_images),
+                                                                       cl::NDRange(1));
+
+                func_step_2().wait();
+            }
+        }
+    }
+
+    ocl_command_queue.finish();
+
+    func_step_2_3_first().wait();
+    ocl_command_queue.finish();
+    func_step_2_3_second().wait();
+    ocl_command_queue.finish();
+
+    ocl_command_queue.enqueueReadBuffer(number_of_consistent_hypotheses_buffer,
+                                        CL_TRUE,
+                                        0,
+                                        sizeof(unsigned int),
+                                        number_of_consistent_hypotheses);
+
+    //threshold = const_cast<float>(number_of_consistent_hypotheses)/const_cast<float>(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images);
+
+}
+
+void VoxelColorer::build_step_2_3(cl::Buffer & hypotheses_buffer,
+                                  cl::Buffer & dimensions_buffer,
+                                  cl::Buffer & number_of_consistent_hypotheses_buffer,
+                                  cl::KernelFunctor & func_step_2_3_first,
+                                  cl::KernelFunctor & func_step_2_3_second)
+{
+    cl::Program ocl_program;
+
+    build_program(ocl_program, "ocl/step_2_3_calculate_number_of_consistent_hypotheses_by_voxels.cl");
+
+    cl::Kernel ocl_kernel_step_2_3_first = cl::Kernel(ocl_program, "calculate_number_of_consistent_hypotheses_by_voxels");
+    ocl_kernel_step_2_3_first.setArg(0, hypotheses_buffer);
+    ocl_kernel_step_2_3_first.setArg(1, dimensions_buffer);
+    ocl_kernel_step_2_3_first.setArg(2, number_of_images);
+
+    func_step_2_3_first = ocl_kernel_step_2_3_first.bind(ocl_command_queue,
+                                                         cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
+                                                         cl::NDRange(1, 1, 1));
+
+    build_program(ocl_program, "ocl/step_2_3_calculate_number_of_consistent_hypotheses.cl");
+
+    cl::Kernel ocl_kernel_step_2_3_second = cl::Kernel(ocl_program, "calculate_number_of_consistent_hypotheses");
+    ocl_kernel_step_2_3_second.setArg(0, hypotheses_buffer);
+    ocl_kernel_step_2_3_second.setArg(1, dimensions_buffer);
+    ocl_kernel_step_2_3_second.setArg(2, number_of_images);
+    ocl_kernel_step_2_3_second.setArg(3, number_of_consistent_hypotheses_buffer);
+
+    func_step_2_3_second = ocl_kernel_step_2_3_second.bind(ocl_command_queue,
+                                                           cl::NDRange(1),
+                                                           cl::NDRange(1));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//! step 3: inconsistent hypotheses rejection. visibility buffer in use
+///////////////////////////////////////////////////////////////////////////////
+void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
+                              cl::Buffer & bounding_box_buffer,
+                              cl::Buffer & dimensions_buffer,
+                              cl::Buffer & projection_matrices_buffer,
+                              cl::KernelFunctor & func_step_2_3_first,
+                              cl::KernelFunctor & func_step_2_3_second,
+                              cl::Buffer & number_of_consistent_hypotheses_buffer,
+                              unsigned int * number_of_consistent_hypotheses)
+{
+    cl::Program ocl_program;
+
+    build_program(ocl_program, "ocl/step_3_inconsistent_voxels_rejection.cl");
+
+    cl::Kernel ocl_kernel_step_3 = cl::Kernel(ocl_program, "inconsistent_voxel_rejection");
+
+    // create opencl buffer for z buffer
+    // z buffer element contain only one value: free or occupied
+    cl::Buffer * z_buffer = new cl::Buffer(ocl_context,
+                                           CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+                                           width*height*number_of_images*sizeof(unsigned char));
+
+    unsigned int old_number_of_consistent_hypotheses = UINT_MAX;
+
+    while (*number_of_consistent_hypotheses != old_number_of_consistent_hypotheses)
+    {
+        old_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
+
+        for (size_t x = 0; x < dimensions[0]; ++x)
+        {
+            for (size_t y = 0; y < dimensions[1]; ++y)
+            {
+                for (size_t z = 0; z < dimensions[2]; ++z)
+                {
+                    ocl_kernel_step_3.setArg(0, hypotheses_buffer);
+                    ocl_kernel_step_3.setArg(1, x);
+                    ocl_kernel_step_3.setArg(2, y);
+                    ocl_kernel_step_3.setArg(3, z);
+                    ocl_kernel_step_3.setArg(4, bounding_box_buffer);
+                    ocl_kernel_step_3.setArg(5, dimensions_buffer);
+                    ocl_kernel_step_3.setArg(6, *z_buffer);
+                    ocl_kernel_step_3.setArg(7, projection_matrices_buffer);
+                    ocl_kernel_step_3.setArg(8, threshold);
+
+                    cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
+                                                                           cl::NDRange(number_of_images),
+                                                                           cl::NDRange(1));
+
+                    func_step_3().wait();
+                }
+            }
+        }
+
+        ocl_command_queue.finish();
+
+        func_step_2_3_first().wait();
+        ocl_command_queue.finish();
+        func_step_2_3_second().wait();
+        ocl_command_queue.finish();
+
+        ocl_command_queue.enqueueReadBuffer(number_of_consistent_hypotheses_buffer,
+                                            CL_TRUE,
+                                            0,
+                                            sizeof(unsigned int),
+                                            number_of_consistent_hypotheses);
+
+        // remove and create new z buffer
+        delete z_buffer;
+        z_buffer = new cl::Buffer(ocl_context,
+                                  CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+                                  width*height*number_of_images*sizeof(unsigned char));
+    }
+
+    delete z_buffer;
+    z_buffer = NULL;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//! step 4: build voxel model from variety of hypotheses
+///////////////////////////////////////////////////////////////////////////////
+void VoxelColorer::run_step_4(cl::Buffer & hypotheses_buffer,
+                              cl::Buffer & voxel_model_buffer,
+                              cl::Buffer & dimensions_buffer)
+{
+    cl::Program ocl_program;
+
+    build_program(ocl_program, "ocl/step_4_build_voxel_model_from_variety_of_hypotheses.cl");
+
+    cl::Kernel ocl_kernel_step_4 = cl::Kernel(ocl_program, "build_voxel_model");
+    ocl_kernel_step_4.setArg(0, hypotheses_buffer);
+    ocl_kernel_step_4.setArg(1, voxel_model_buffer);
+    ocl_kernel_step_4.setArg(2, dimensions_buffer);
+    ocl_kernel_step_4.setArg(3, number_of_images);
+
+    cl::KernelFunctor func_step_4 = ocl_kernel_step_4.bind(ocl_command_queue,
+                                                           cl::NDRange(dimensions[0], dimensions[1], dimensions[2]),
+                                                           cl::NDRange(1, 1, 1));
+
+    func_step_4().wait();
+    ocl_command_queue.finish();
+
+    ocl_command_queue.enqueueReadBuffer(voxel_model_buffer,
+                                        CL_TRUE,
+                                        0,
+                                        dimensions[0]*dimensions[1]*dimensions[2]*3*sizeof(unsigned char),
+                                        voxel_model.data());
 }
 
 ///////////////////////////////////////////////////////////////////////////////

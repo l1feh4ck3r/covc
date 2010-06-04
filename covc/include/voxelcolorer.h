@@ -49,7 +49,7 @@ public:
     const cl::Context get_context () const  {return ocl_context;}
 
 private:
-    bool build_program(cl::Program & program, const std::string & path_to_file_with_program);
+    void build_program(cl::Program & program, const std::string & path_to_file_with_program);
     void calculate_bounding_box();
     void calculate_projection_matrix();
     void inverse(const float * matrix, float * inverted_matrix);
@@ -60,10 +60,41 @@ private:
     void vector_minus_vector(const float * vec1, const float * vec2, float * result);
     void vector_plus_vector(const float * vec1, const float * vec2, float * result);
 
+    void run_step_1(cl::Buffer & bounding_box_buffer,
+                    cl::Image3D & images_buffer,
+                    cl::Buffer & projection_matrices_buffer,
+                    cl::Buffer & hypotheses_buffer,
+                    cl::Buffer & dimensions_buffer);
+
+    void run_step_2(cl::Buffer & hypotheses_buffer,
+                    cl::Buffer & dimensions_buffer,
+                    cl::KernelFunctor & func_step_2_3_first,
+                    cl::KernelFunctor & func_step_2_3_second,
+                    cl::Buffer & number_of_consistent_hypotheses_buffer,
+                    unsigned int * number_of_consistent_hypotheses);
+
+
+    void build_step_2_3(cl::Buffer & hypotheses_buffer,
+                        cl::Buffer & dimensions_buffer,
+                        cl::Buffer & number_of_consistent_hypotheses_buffer,
+                        cl::KernelFunctor & func_step_2_3_first,
+                        cl::KernelFunctor & func_step_2_3_second);
+
+    void run_step_3(cl::Buffer & hypotheses_buffer,
+                    cl::Buffer & bounding_box_buffer,
+                    cl::Buffer & dimensions_buffer,
+                    cl::Buffer & projection_matrices_buffer,
+                    cl::KernelFunctor & func_step_2_3_first,
+                    cl::KernelFunctor & func_step_2_3_second,
+                    cl::Buffer & number_of_consistent_hypotheses_buffer,
+                    unsigned int * number_of_consistent_hypotheses);
+
+    void run_step_4(cl::Buffer & hypotheses_buffer, cl::Buffer & voxel_model_buffer, cl::Buffer & dimensions_buffer);
+
 
 private:
     cl::Context ocl_context;
-
+    cl::CommandQueue ocl_command_queue;
 
     //! dimensions of resulting voxel cube by x, y, z
     size_t dimensions[3];

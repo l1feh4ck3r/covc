@@ -48,18 +48,19 @@ MainWindow::MainWindow(QWidget *parent)
 
     vc = new VoxelColorer();
 
-    matrix_of_camera_calibration(0, 0) = 35;
-    matrix_of_camera_calibration(0, 1) = 0;
-    matrix_of_camera_calibration(0, 2) = 256;
-    matrix_of_camera_calibration(0, 3) = 0;
-    matrix_of_camera_calibration(1, 0) = 0;
-    matrix_of_camera_calibration(1, 1) = 35;
-    matrix_of_camera_calibration(1, 2) = 256;
-    matrix_of_camera_calibration(1, 3) = 0;
-    matrix_of_camera_calibration(2, 0) = 0;
-    matrix_of_camera_calibration(2, 1) = 0;
-    matrix_of_camera_calibration(2, 2) = 1;
-    matrix_of_camera_calibration(2, 3) = 0;
+    matrix_of_camera_calibration(0, 0) = 1.0f;
+    matrix_of_camera_calibration(0, 1) = 0.0f;
+    matrix_of_camera_calibration(0, 2) = 255.0f;
+    matrix_of_camera_calibration(0, 3) = 0.0f;
+    matrix_of_camera_calibration(1, 0) = 0.0f;
+    matrix_of_camera_calibration(1, 1) = 50.0f;
+    matrix_of_camera_calibration(1, 2) = 255.0f;
+    matrix_of_camera_calibration(1, 3) = 0.0f;
+    matrix_of_camera_calibration(2, 0) = 0.0f;
+    matrix_of_camera_calibration(2, 1) = 0.0f;
+    matrix_of_camera_calibration(2, 2) = 0.0f;
+    matrix_of_camera_calibration(2, 3) = 1.0f;
+    matrix_of_camera_calibration(3, 3) = 1.0f;
 }
 
 
