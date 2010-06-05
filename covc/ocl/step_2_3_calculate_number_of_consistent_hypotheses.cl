@@ -39,9 +39,9 @@ calculate_number_of_consistent_hypotheses ( __global uchar * hypotheses,
         {
             for (uint z = 0; z < dimensions[2]; ++z)
             {
-                uint hypothesis_offset = z*hypotheses_size +
-                                         y*dimensions[2]*hypotheses_size +
-                                         x*dimensions[2]*dimensions[1]*hypotheses_size;
+                uint hypothesis_offset = x*hypotheses_size +
+                                         y*dimensions[0]*hypotheses_size +
+                                         z*dimensions[0]*dimensions[1]*hypotheses_size;
 
                 // if voxel is visible
                 uchar4 voxel_info = vload4(hypothesis_offset, hypotheses);

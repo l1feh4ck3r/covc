@@ -34,7 +34,7 @@ VoxelColorer::VoxelColorer()
     :width(0), height(0),
     number_of_images(0),
     number_of_last_added_image(0),
-    threshold(0.000001f)
+    threshold(1.0f)
 {
     memset(dimensions, 0, sizeof(dimensions));
     memset(camera_calibration_matrix, 0, sizeof(camera_calibration_matrix));
@@ -52,16 +52,8 @@ void VoxelColorer::add_image(const unsigned char * image, size_t _width, size_t 
     width = _width;
     height = _height;
 
-    for (size_t h = 0; h < height; ++h)
-    {
-        for (size_t w = 0; w < width; ++w)
-        {
-            pixels.data()[number_of_last_added_image*width*height + h*width + w*4] = image[h*width + w*4];
-            pixels.data()[number_of_last_added_image*width*height + h*width + w*4 + 1] = image[h*width + w*4 + 1];
-            pixels.data()[number_of_last_added_image*width*height + h*width + w*4 + 2] = image[h*width + w*4 + 2];
-            pixels.data()[number_of_last_added_image*width*height + h*width + w*4 + 3] = image[h*width + w*4 + 3];
-        }
-    }
+    for (size_t i = 0; i < width*height*4; ++i)
+            pixels.data()[number_of_last_added_image*width*height + i] = image[i];
 
     for (size_t i = 0; i < 16; ++i)
         image_calibration_matrices[number_of_last_added_image][i] = image_calibration_matrix[i];
@@ -456,7 +448,7 @@ void VoxelColorer::multiply_matrix_vector(const float *matrix, const float *vect
 
 void VoxelColorer::multiply_vector_vector(const float *vec1, const float *vec2, float *result)
 {
-    float temp[4];
+    float temp[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     temp[0] = vec1[1]*vec2[2] - vec1[2]*vec2[1];
     temp[1] = vec1[2]*vec2[0] - vec1[0]*vec2[2];
     temp[2] = vec1[0]*vec2[1] - vec1[1]*vec2[0];
@@ -606,7 +598,7 @@ void VoxelColorer::run_step_2(cl::Buffer & hypotheses_buffer,
 
     std::cout << "Number of consistent hypotheses = " << *number_of_consistent_hypotheses << std::endl;
     float float_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
-    threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images);
+    threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*1000);
     std::cout << "threshold = " << threshold << std::endl;
 
 }
@@ -738,6 +730,9 @@ void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
                                             number_of_consistent_hypotheses);
 
         std::cout << "Number of consistent hypotheses = " << *number_of_consistent_hypotheses << std::endl;
+        float float_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
+        threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*1000);
+        std::cout << "threshold = " << threshold << std::endl;
 
         // remove sz buffer
         delete z_buffer;

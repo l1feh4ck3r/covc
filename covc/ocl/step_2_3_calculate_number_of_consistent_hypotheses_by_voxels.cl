@@ -31,10 +31,9 @@ calculate_number_of_consistent_hypotheses_by_voxels (__global uchar * hypotheses
     uint4 voxel_pos = (uint4)(get_global_id(0), get_global_id(1), get_global_id(2), 0);
 
     uint hypotheses_size = 1 + number_of_images;
-
-    uint hypothesis_offset = voxel_pos.z*hypotheses_size +
-                             voxel_pos.y*dimensions[2]*hypotheses_size +
-                             voxel_pos.x*dimensions[2]*dimensions[1]*hypotheses_size;
+    uint hypothesis_offset = voxel_pos.x*hypotheses_size +
+                             voxel_pos.y*dimensions[0]*hypotheses_size +
+                             voxel_pos.z*dimensions[0]*dimensions[1]*hypotheses_size;
 
     // if voxel is not visible
     uchar4 voxel_info = vload4(hypothesis_offset, hypotheses);
@@ -45,7 +44,7 @@ calculate_number_of_consistent_hypotheses_by_voxels (__global uchar * hypotheses
 
     for (uint i = 0; i < number_of_images; ++i)
     {
-        uchar4 color = vload4(hypothesis_offset + 1 + i*3, hypotheses);
+        uchar4 color = vload4(hypothesis_offset + 1 + i, hypotheses);
 
         // if hypothesis is consistent
         if ((color.x + color.y + color.z + color.w) != 0)
@@ -54,6 +53,7 @@ calculate_number_of_consistent_hypotheses_by_voxels (__global uchar * hypotheses
 
     if (consistent_hypotheses == 0)
     {
+        // make voxel invisible
         vstore4((uchar4)(0), hypothesis_offset, hypotheses);
     }
     else if (voxel_info.y != consistent_hypotheses)

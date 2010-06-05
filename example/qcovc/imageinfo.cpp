@@ -41,7 +41,7 @@ ImageInfo::ImageInfo(QString &filename)
     //TODO: magic numbers
     image = temp_image.scaled(512, 512,
                               Qt::IgnoreAspectRatio,
-                              Qt::SmoothTransformation).convertToFormat(QImage::Format_ARGB32);
+                              Qt::SmoothTransformation).convertToFormat(QImage::Format_RGB32);
     valid = true;
 }
 
@@ -59,7 +59,7 @@ ImageInfo::ImageInfo(QString &filename, matrix<float> &_matrix_of_calibration, Q
     //TODO: magic numbers
     image = temp_image.scaled(512, 512,
                               Qt::IgnoreAspectRatio,
-                              Qt::SmoothTransformation).convertToFormat(QImage::Format_ARGB32);
+                              Qt::SmoothTransformation).convertToFormat(QImage::Format_RGB32);
 
     matrix_of_calibration = _matrix_of_calibration;
     bounding_rectangle = _bounding_rectangle;

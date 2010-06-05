@@ -35,16 +35,16 @@ initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
     uint number_of_images = get_global_size(0);
 
     __const uint hypotheses_size = 1 + number_of_images;
-    __const uint hypotheses_offset = z*hypotheses_size +
-                                     y*dimensions[2]*hypotheses_size +
-                                     x*dimensions[2]*dimensions[1]*hypotheses_size;
+    __const uint hypotheses_offset = x*hypotheses_size +
+                                     y*dimensions[0]*hypotheses_size +
+                                     z*dimensions[0]*dimensions[1]*hypotheses_size;
 
     // if voxel not visible
     uchar4 voxel_info = vload4(hypotheses_offset, hypotheses);
     if (voxel_info.x == 0)
         return;
 
-    uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + pos*3, hypotheses);
+    uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + pos, hypotheses);
 
     // if hypothesis is not consist
     if ((hypothesis_color.x + hypothesis_color.y + hypothesis_color.z + hypothesis_color.w) == 0)
@@ -53,22 +53,31 @@ initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
     uint consistent = 0;
     for (uint i = 0; i < number_of_images && consistent == 0; ++i)
     {
-        uint current_offset = hypotheses_offset + 1 + i*3;
+        uint current_offset = hypotheses_offset + 1 + i;
 
-        // if it is the same hypothesis
-        if (current_offset == (hypotheses_offset + 1 + pos*3))
-            continue;
+        // if it is not the same hypothesis
+        if (current_offset != (hypotheses_offset + 1 + pos))
+        {
+            uchar4 color = vload4(current_offset, hypotheses);
 
-        uchar4 color = vload4(current_offset, hypotheses);
-
-        if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
-        //if (distance(convert_float4(color), convert_float4(hypothesis_color)) < threshold)
-            consistent = 1;
+            if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
+            //if (distance(convert_float4(color), convert_float4(hypothesis_color)) < threshold)
+//            float4 normal1 = convert_float4(color);
+//            float4 normal2 = convert_float4(hypothesis_color);
+//            float2 sum = (float2)((normal1.x + normal1.y + normal1.z + normal1.w),
+//                                  (normal2.x + normal2.y + normal2.z + normal2.w));
+//            if ((fabs(normal1.x/sum.x - normal2.x/sum.y) +
+//                 fabs(normal1.y/sum.x - normal2.y/sum.y) +
+//                 fabs(normal1.z/sum.x - normal2.z/sum.y) +
+//                 fabs(normal1.w/sum.x - normal2.w/sum.y))
+//                 < threshold)
+                consistent = 1;
+        }
     }
 
     // hypothesis is not consistent
     if (!consistent)
     {
-        vstore4((uchar4)(0), hypotheses_offset + 1 + pos*3, hypotheses);
+        vstore4((uchar4)(0), hypotheses_offset + 1 + pos, hypotheses);
     }
 }

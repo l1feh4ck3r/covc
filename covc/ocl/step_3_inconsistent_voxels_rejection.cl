@@ -53,16 +53,16 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
     uint number_of_images = get_global_size(0);
 
     uint hypotheses_size = 1 + number_of_images;
-    uint hypotheses_offset = z*hypotheses_size +
-                             y*dimensions[2]*hypotheses_size +
-                             x*dimensions[2]*dimensions[1]*hypotheses_size;
+    uint hypotheses_offset = x*hypotheses_size +
+                             y*dimensions[0]*hypotheses_size +
+                             z*dimensions[0]*dimensions[1]*hypotheses_size;
 
     // if voxel not visible
     uchar4 voxel_info = vload4(hypotheses_offset, hypotheses);
     if (voxel_info.x == 0)
         return;
 
-    uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + pos*3, hypotheses);
+    uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + pos, hypotheses);
 
     // if hypothesis is not consist
     if ((hypothesis_color.x + hypothesis_color.y + hypothesis_color.z + hypothesis_color.w) == 0)
@@ -70,9 +70,9 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
 
     // project voxel to z buffer
     // calculate voxel position in 3d
-    float4 pos3d = (float4) (convert_float(bounding_box[0]) + convert_float(x)*convert_float(bounding_box[4]/dimensions[0]),
-                             convert_float(bounding_box[1]) + convert_float(y)*convert_float(bounding_box[5]/dimensions[1]),
-                             convert_float(bounding_box[2]) + convert_float(z)*convert_float(bounding_box[6]/dimensions[2]),
+    float4 pos3d = (float4) (convert_float(bounding_box[0]) + convert_float(x)*(convert_float(bounding_box[4])/convert_float(dimensions[0])),
+                             convert_float(bounding_box[1]) + convert_float(y)*(convert_float(bounding_box[5])/convert_float(dimensions[1])),
+                             convert_float(bounding_box[2]) + convert_float(z)*(convert_float(bounding_box[6])/convert_float(dimensions[2])),
                              1);
 
     // calculate voxel pos in voxel model
@@ -95,12 +95,23 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
     uint consistent = 0;
     for (uint i = 0; i < number_of_images && consistent == 0; ++i)
     {
-        uint current_offset = hypotheses_offset + 1 + i*3;
+        uint current_offset = hypotheses_offset + 1 + i;
 
         // if it is the same hypothesis
-        if (current_offset != (hypotheses_offset + 1 + pos*3))
+        if (i != pos)
         {
             uchar4 color = vload4 (current_offset, hypotheses);
+
+//            float4 normal1 = convert_float4(color);
+//            float4 normal2 = convert_float4(hypothesis_color);
+//            float2 sum = (float2)((normal1.x + normal1.y + normal1.z + normal1.w),
+//                                  (normal2.x + normal2.y + normal2.z + normal2.w));
+//            if ((fabs(normal1.x/sum.x - normal2.x/sum.y) +
+//                 fabs(normal1.y/sum.x - normal2.y/sum.y) +
+//                 fabs(normal1.z/sum.x - normal2.z/sum.y) +
+//                 fabs(normal1.w/sum.x - normal2.w/sum.y))
+//                 < threshold)
+
 
             if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
                 consistent = 1;
@@ -109,7 +120,7 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
 
     // hypothesis is not consistent
     if (!consistent)
-        vstore4((uchar4)(0), hypotheses_offset + 1 + pos*3, hypotheses);
+        vstore4((uchar4)(0), hypotheses_offset + 1 + pos, hypotheses);
     else
         //set hypothesis occupied on z buffer
         z_buffer[z_buffer_offset]++;
