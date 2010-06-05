@@ -65,7 +65,7 @@ int build_source(const char *source, size_t source_length)
         return ocl_error_number;
     }
 
-    ocl_error_number = clBuildProgram(ocl_program, 1, &ocl_device_id, "-cl-mad-enable", NULL, NULL);
+    ocl_error_number = clBuildProgram(ocl_program, 1, &ocl_device_id, "-Werror", NULL, NULL);
     if (ocl_error_number != CL_SUCCESS)
     {
         cout << "Error " << ocl_error_number << ": Failed to build program." << endl;

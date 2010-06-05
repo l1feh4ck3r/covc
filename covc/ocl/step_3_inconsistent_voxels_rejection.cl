@@ -34,15 +34,6 @@ float4 mul_mat_vec (float16 mat, float4 vec)
 }
 
 
-uint isequalui(uint4 vec1, uint4 vec2)
-{
-    if (vec1.x != vec2.x || vec1.y != vec2.y ||
-        vec1.z != vec2.z || vec1.w != vec2.w)
-        return 0;
-    else
-        return 1;
-}
-
 //TODO: remove this hardcoded image sizes
 #define width   512
 #define height  512
@@ -52,7 +43,7 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
                                 uint x, uint y, uint z,
                                 __global __const float * bounding_box,
                                 __global __const uint * dimensions,
-                                __global uchar * z_buffer,
+                                __global uint * z_buffer,
                                 __global float16 * projection_matrices,
                                 float threshold)
 {
@@ -61,73 +52,65 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
 
     uint number_of_images = get_global_size(0);
 
-    uint hypotheses_size = 2 + number_of_images*3;
-    uint hypotheses_offset = 2 + z*hypotheses_size +
+    uint hypotheses_size = 1 + number_of_images;
+    uint hypotheses_offset = z*hypotheses_size +
                              y*dimensions[2]*hypotheses_size +
                              x*dimensions[2]*dimensions[1]*hypotheses_size;
 
     // if voxel not visible
-    if (hypotheses[hypotheses_offset + pos*3 - 2] == 0)
+    uchar4 voxel_info = vload4(hypotheses_offset, hypotheses);
+    if (voxel_info.x == 0)
         return;
 
-    uint4 hypothesis_color = (uint4) (hypotheses[hypotheses_offset + pos*3],
-                                      hypotheses[hypotheses_offset + pos*3 + 1],
-                                      hypotheses[hypotheses_offset + pos*3 + 2],
-                                      0);
+    uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + pos*3, hypotheses);
 
     // if hypothesis is not consist
-    if (isequalui(hypothesis_color, (uint4)(0)))
+    if ((hypothesis_color.x + hypothesis_color.y + hypothesis_color.z + hypothesis_color.w) == 0)
         return;
-
 
     // project voxel to z buffer
     // calculate voxel position in 3d
-    float4 pos3d = (float4) (bounding_box[0] + x*(bounding_box[4]/dimensions[0]),
-                             bounding_box[1] + y*(bounding_box[5]/dimensions[1]),
-                             bounding_box[2] + z*(bounding_box[6]/dimensions[2]),
+    float4 pos3d = (float4) (convert_float(bounding_box[0]) + convert_float(x)*convert_float(bounding_box[4]/dimensions[0]),
+                             convert_float(bounding_box[1]) + convert_float(y)*convert_float(bounding_box[5]/dimensions[1]),
+                             convert_float(bounding_box[2]) + convert_float(z)*convert_float(bounding_box[6]/dimensions[2]),
                              1);
 
     // calculate voxel pos in voxel model
-    uint4 voxel_pos = (uint4) (get_global_id(0), get_global_id(1), get_global_id(2), 0);
     float4 pos_at_image_3d = mul_mat_vec(projection_matrices[pos], pos3d);
     float4 pos_at_image = (float4) (pos_at_image_3d.x/pos_at_image_3d.z, pos_at_image_3d.y/pos_at_image_3d.z, pos, 0);
 
-    uint z_buffer_offset = pos_at_image.z + pos_at_image.y*number_of_images + pos_at_image.x*height*number_of_images;
+    if (pos_at_image.x < 0.0f || pos_at_image.x > convert_float(width) ||
+        pos_at_image.y < 0.0f || pos_at_image.y > convert_float(height) )
+        return;
+
+    uint z_buffer_offset = convert_uint(pos_at_image.x) +
+                           convert_uint(pos_at_image.y)*number_of_images +
+                           convert_uint(pos_at_image.z)*height*number_of_images;
+
     // if hypothesis occupied
-    if (z_buffer[z_buffer_offset] == 1)
+    uint occupied = z_buffer[z_buffer_offset];
+    if (occupied)
         return;
 
     uint consistent = 0;
-    for (uint i = 0; i < number_of_images; ++i)
+    for (uint i = 0; i < number_of_images && consistent == 0; ++i)
     {
-        uint current_offset = hypotheses_offset + i*3;
+        uint current_offset = hypotheses_offset + 1 + i*3;
 
         // if it is the same hypothesis
-        if (current_offset == (hypotheses_offset + pos*3))
-            continue;
-
-        uint4 color = (uint4) ( hypotheses[current_offset],
-                                hypotheses[current_offset + 1],
-                                hypotheses[current_offset + 2],
-                                0);
-
-        if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
+        if (current_offset != (hypotheses_offset + 1 + pos*3))
         {
-            consistent = 1;
-            break;
+            uchar4 color = vload4 (current_offset, hypotheses);
+
+            if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
+                consistent = 1;
         }
     }
 
     // hypothesis is not consistent
     if (!consistent)
-    {
-        hypotheses[hypotheses_offset + pos*3] = 0;
-        hypotheses[hypotheses_offset + pos*3 + 1] = 0;
-        hypotheses[hypotheses_offset + pos*3 + 2] = 0;
-    }
+        vstore4((uchar4)(0), hypotheses_offset + 1 + pos*3, hypotheses);
     else
-    {
         //set hypothesis occupied on z buffer
-        z_buffer[z_buffer_offset] = 1;
-    }
+        z_buffer[z_buffer_offset]++;
 }

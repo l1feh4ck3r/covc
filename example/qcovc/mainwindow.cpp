@@ -233,6 +233,7 @@ void MainWindow::run()
             return;
 
         vc->set_number_of_images(images.size());
+        vc->set_resulting_voxel_cube_dimensions(32, 32, 32);
 
         float camera_calibration_matrix[16];
         for (size_t r = 0; r < matrix_of_camera_calibration.RowNo(); ++r)
@@ -254,7 +255,6 @@ void MainWindow::run()
                           matrix);
         }
 
-        vc->set_resulting_voxel_cube_dimensions(32, 32, 32);
 
         time_t temp_time = time(NULL);
         vc->build_voxel_model();
@@ -358,10 +358,10 @@ void MainWindow::save_voxel_model()
 
     QDataStream out(&file);
 
-    for (size_t i = 0; i < model.size()/3; ++i)
+    for (size_t i = 0; i < model.size(); ++i)
     {
-        out << (unsigned char)0;
-        for (size_t j = 0; j < 3; ++j)
+//        out << (unsigned char)0;
+//        for (size_t j = 0; j < 3; ++j)
             out << model[i];
     }
 

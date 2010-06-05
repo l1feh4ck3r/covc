@@ -23,16 +23,6 @@
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
 
 
-uint isequalui(uint4 vec1, uint4 vec2)
-{
-    if (vec1.x != vec2.x || vec1.y != vec2.y ||
-        vec1.z != vec2.z || vec1.w != vec2.w)
-        return 0;
-    else
-        return 1;
-}
-
-
 __kernel void
 build_voxel_model ( __global uchar * hypotheses,
                     __global uchar * voxel_model,
@@ -41,34 +31,40 @@ build_voxel_model ( __global uchar * hypotheses,
 {
     uint4 pos = (uint4) (get_global_id(0), get_global_id(1), get_global_id(2), 0);
 
-    uint hypothesis_offset = 2 + pos.z*(2+number_of_images*3) + pos.y*dimensions[2]*(2+number_of_images*3) +
-                             pos.x*dimensions[2]*dimensions[1]*(2+number_of_images*3);
+    __const uint hypothesis_size = (1 + number_of_images);
+    __const uint hypothesis_offset = pos.z*hypothesis_size + pos.y*dimensions[2]*hypothesis_size +
+                                     pos.x*dimensions[2]*dimensions[1]*hypothesis_size;
 
-    uint4 result_color;
-    uint  result_number_of_hypotheses;
+    uint4 result_color = (uint4)(0);
+    uint  result_number_of_hypotheses = 0;
 
-    for (uint i = 0; i < number_of_images; ++i)
+    uchar4 voxel_info = vload4(hypothesis_offset, hypotheses);
+
+    // if voxel is visible
+    if (voxel_info.x != 0)
     {
-        // if voxel is visible
-        if (hypotheses[hypothesis_offset + i*3 - 2] != 0)
+        for (uint i = 0; i < number_of_images; ++i)
         {
-            uint4 color = (uint4) ( hypotheses[hypothesis_offset + i*3],
-                                    hypotheses[hypothesis_offset + i*3 + 1],
-                                    hypotheses[hypothesis_offset + i*3 + 2],
-                                    0 );
+            uchar4 color = vload4(hypothesis_offset + 1 + i, hypotheses);
 
             // if hypothesis is consistent
-            if (!isequalui(color, (uint4)(0)))
+            if ((color.x + color.y + color.z + color.w) != 0)
             {
-                result_color += color;
+                result_color.x += color.x;
+                result_color.y += color.y;
+                result_color.z += color.z;
+                result_color.w += color.w;
                 result_number_of_hypotheses++;
             }
         }
+
+        result_color /= result_number_of_hypotheses;
+
+        vstore4((uchar4)(0, result_color.x, result_color.y, result_color.z),
+                pos.x + pos.y*dimensions[0] + pos.z*dimensions[0]*dimensions[1],
+                voxel_model);
     }
+    else
+        vstore4((uchar4)(0, 0, 0, 0), pos.x + pos.y*dimensions[0] + pos.z*dimensions[0]*dimensions[1], voxel_model);
 
-    result_color /= result_number_of_hypotheses;
-
-    voxel_model[    pos.x + pos.y*dimensions[0] + pos.z*dimensions[0]*dimensions[1]] = result_color.x;   //r
-    voxel_model[1 + pos.x + pos.y*dimensions[0] + pos.z*dimensions[0]*dimensions[1]] = result_color.y;   //g
-    voxel_model[2 + pos.x + pos.y*dimensions[0] + pos.z*dimensions[0]*dimensions[1]] = result_color.z;   //b
-}
+ }

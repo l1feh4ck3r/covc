@@ -20,37 +20,23 @@
  * THE SOFTWARE.
  */
 
- #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
+#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
 
+#define width   512
+#define height  512
 
 __kernel void
-calculate_number_of_consistent_hypotheses ( __global uchar * hypotheses,
-                                            __global __const uint * dimensions,
-                                            uint number_of_images,
-                                            __global __write_only uint * number_of_consistent_hypotheses)
+clear_z_buffer (__global uint * z_buffer)
 {
-    uint result = 0;
+    uint z = get_global_id(0);
+    uint number_of_images = get_global_size(0);
 
-    uint hypotheses_size = 1 + number_of_images;
-
-    for (uint x = 0; x < dimensions[0]; ++x)
-    {
-        for (uint y = 0; y < dimensions[1]; ++y)
+    for (uint x = 0; x < width; ++x)
+        for (uint y = 0; y < height; ++y)
         {
-            for (uint z = 0; z < dimensions[2]; ++z)
-            {
-                uint hypothesis_offset = z*hypotheses_size +
-                                         y*dimensions[2]*hypotheses_size +
-                                         x*dimensions[2]*dimensions[1]*hypotheses_size;
+            uint z_buffer_offset = x + y*number_of_images + z*height*number_of_images;
 
-                // if voxel is visible
-                uchar4 voxel_info = vload4(hypothesis_offset, hypotheses);
-
-                if (voxel_info.x != 0)
-                    result += voxel_info.y;
-            }
+            z_buffer[z_buffer_offset] = 0;
         }
-    }
 
-    *number_of_consistent_hypotheses = result;
 }

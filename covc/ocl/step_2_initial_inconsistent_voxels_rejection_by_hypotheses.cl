@@ -23,16 +23,6 @@
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
 
 
-uint isequalui(uint4 vec1, uint4 vec2)
-{
-    if (vec1.x != vec2.x || vec1.y != vec2.y ||
-        vec1.z != vec2.z || vec1.w != vec2.w)
-        return 0;
-    else
-        return 1;
-}
-
-
 __kernel void
 initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
                                         uint x, uint y, uint z,
@@ -44,50 +34,41 @@ initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
 
     uint number_of_images = get_global_size(0);
 
-    uint hypotheses_size = 2 + number_of_images*3;
-    uint hypotheses_offset = 2 + z*hypotheses_size +
-                             y*dimensions[2]*hypotheses_size +
-                             x*dimensions[2]*dimensions[1]*hypotheses_size;
+    __const uint hypotheses_size = 1 + number_of_images;
+    __const uint hypotheses_offset = z*hypotheses_size +
+                                     y*dimensions[2]*hypotheses_size +
+                                     x*dimensions[2]*dimensions[1]*hypotheses_size;
 
     // if voxel not visible
-    if (hypotheses[hypotheses_offset + pos*3 - 2] == 0)
+    uchar4 voxel_info = vload4(hypotheses_offset, hypotheses);
+    if (voxel_info.x == 0)
         return;
 
-    uint4 hypothesis_color = (uint4) (hypotheses[hypotheses_offset + pos*3],
-                                      hypotheses[hypotheses_offset + pos*3 + 1],
-                                      hypotheses[hypotheses_offset + pos*3 + 2],
-                                      0);
+    uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + pos*3, hypotheses);
 
     // if hypothesis is not consist
-    if (isequalui(hypothesis_color, (uint4)(0)))
+    if ((hypothesis_color.x + hypothesis_color.y + hypothesis_color.z + hypothesis_color.w) == 0)
         return;
 
     uint consistent = 0;
-    for (uint i = 0; i < number_of_images; ++i)
+    for (uint i = 0; i < number_of_images && consistent == 0; ++i)
     {
-        uint current_offset = hypotheses_offset + i*3;
+        uint current_offset = hypotheses_offset + 1 + i*3;
 
         // if it is the same hypothesis
-        if (current_offset == (hypotheses_offset + pos*3))
+        if (current_offset == (hypotheses_offset + 1 + pos*3))
             continue;
 
-        uint4 color = (uint4) ( hypotheses[current_offset],
-                                hypotheses[current_offset + 1],
-                                hypotheses[current_offset + 2],
-                                0);
+        uchar4 color = vload4(current_offset, hypotheses);
 
         if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
-        {
+        //if (distance(convert_float4(color), convert_float4(hypothesis_color)) < threshold)
             consistent = 1;
-            break;
-        }
     }
 
     // hypothesis is not consistent
     if (!consistent)
     {
-        hypotheses[hypotheses_offset + pos*3] = 0;
-        hypotheses[hypotheses_offset + pos*3 + 1] = 0;
-        hypotheses[hypotheses_offset + pos*3 + 2] = 0;
+        vstore4((uchar4)(0), hypotheses_offset + 1 + pos*3, hypotheses);
     }
 }

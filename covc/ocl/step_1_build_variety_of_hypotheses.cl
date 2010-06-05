@@ -42,38 +42,37 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
                             __global __const uint * dimensions,
                             uint number_of_images)
 {
-    float4 pos3d = (float4) (bounding_box[0] + get_global_id(0)*(bounding_box[4]/dimensions[0]),
-                             bounding_box[1] + get_global_id(1)*(bounding_box[5]/dimensions[1]),
-                             bounding_box[2] + get_global_id(2)*(bounding_box[6]/dimensions[2]),
-                             1);
+    uint4 voxel_pos = (uint4) (get_global_id(0), get_global_id(1), get_global_id(2), 0);
+
+    float4 pos3d = (float4) (convert_float(bounding_box[0]) + convert_float(voxel_pos.x)*(convert_float(bounding_box[4])/dimensions[0]),
+                             convert_float(bounding_box[1]) + convert_float(voxel_pos.y)*(convert_float(bounding_box[5])/dimensions[1]),
+                             convert_float(bounding_box[2]) + convert_float(voxel_pos.z)*(convert_float(bounding_box[6])/dimensions[2]),
+                             1.0f);
 
     int width = get_image_width(images);
     int height = get_image_height(images);
 
-    uint4 voxel_pos = (uint4) (get_global_id(0), get_global_id(1), get_global_id(2), 0);
 
-    uint hypotheses_size = 2+number_of_images*3;
-    uint hypotheses_offset = 2 + voxel_pos.z*hypotheses_size +
-                             voxel_pos.y*dimensions[2]*hypotheses_size +
-                             voxel_pos.x*dimensions[2]*dimensions[1]*hypotheses_size;
+    __const uint hypotheses_size = 1 + number_of_images;
+    __const uint hypotheses_offset = voxel_pos.z*hypotheses_size +
+                                     voxel_pos.y*dimensions[2]*hypotheses_size +
+                                     voxel_pos.x*dimensions[2]*dimensions[1]*hypotheses_size;
 
-    hypotheses[hypotheses_offset - 2] = 1;  // set voxel visible
-    hypotheses[hypotheses_offset - 1] = UINT_MAX;  // set non zero number of consists hypotheses
+    // set voxel visible and non zero number of consists hypotheses
+    vstore4((uchar4)(1, UINT_MAX, 0, 0), hypotheses_offset, hypotheses);
 
     for (uint i = 0; i < number_of_images; ++i)
     {
         float4 pos_at_image_3d = mul_mat_vec(projection_matrices[i], pos3d);
         float4 pos_at_image = (float4) (pos_at_image_3d.x/pos_at_image_3d.z, pos_at_image_3d.y/pos_at_image_3d.z, i, 0);
 
-        uint hypothesis_offset = hypotheses_offset + i*3;
+        uint hypothesis_offset = hypotheses_offset + 1 + i*3;
 
-        if (pos_at_image.x < 0 || pos_at_image.x > width ||
-            pos_at_image.y < 0 || pos_at_image.y > height)
+        if (pos_at_image.x < 0.0f || pos_at_image.x > convert_float(width) ||
+            pos_at_image.y < 0.0f || pos_at_image.y > convert_float(height) )
         {
             //if voxel not projected in image
-            hypotheses[hypothesis_offset] = 0;     //r
-            hypotheses[hypothesis_offset + 1] = 0; //g
-            hypotheses[hypothesis_offset + 2] = 0; //b
+            vstore4((uchar4)(0), hypothesis_offset, hypotheses);
         }
         else
         {
@@ -82,9 +81,7 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
             // we have ARGB format
             uint4 color = read_imageui(images, imageSampler, pos_at_image);
 
-            hypotheses[hypothesis_offset] = color.y;     //r
-            hypotheses[hypothesis_offset + 1] = color.z; //g
-            hypotheses[hypothesis_offset + 2] = color.w; //b
+            vstore4((uchar4)(0, color.x, color.y, color.z), hypothesis_offset, hypotheses);
         }
     }
 }

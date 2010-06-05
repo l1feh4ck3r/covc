@@ -46,10 +46,10 @@ int intersectBox(float4 r_o, float4 r_d, float4 boxmin, float4 boxmax, float *tn
 
 uint rgbaFloatToInt(float4 rgba)
 {
-    rgba.x = clamp(rgba.x,0.0f,1.0f);  
-    rgba.y = clamp(rgba.y,0.0f,1.0f);  
-    rgba.z = clamp(rgba.z,0.0f,1.0f);  
-    rgba.w = clamp(rgba.w,0.0f,1.0f);  
+    //rgba.x = clamp(rgba.x,0.0f,1.0f);
+    //rgba.y = clamp(rgba.y,0.0f,1.0f);
+    //rgba.z = clamp(rgba.z,0.0f,1.0f);
+    //rgba.w = clamp(rgba.w,0.0f,1.0f);
     return ((uint)(rgba.w*255.0f)<<24) | ((uint)(rgba.z*255.0f)<<16) | ((uint)(rgba.y*255.0f)<<8) | (uint)(rgba.x*255.0f);
 }
 
@@ -112,7 +112,7 @@ d_render(__global uint *d_output,
         // read from 3D texture
         uint4 col = read_imageui(volume, volumeSampler, pos);
 
-        float4 nomralized_color = convert_float4(col); //normalize(convert_float4(col));
+        float4 nomralized_color = normalize(convert_float4(col));
 
         uint is_not_black = col.x+col.y+col.z+col.w;
 

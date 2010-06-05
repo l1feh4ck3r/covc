@@ -64,10 +64,8 @@ float viewRotation[3];
 float viewTranslation[3] = {0.0, 0.0, -4.0f};
 float invViewMatrix[12];
 
-float density = 0.01f;
-float brightness = 0.1f;
-float transferOffset = 0.0f;
-float transferScale = 1.0f;
+float density = 0.1f;
+float brightness = 1.0f;
 bool linearFiltering = true;
 
 GLuint pbo = 0;                 // OpenGL pixel buffer object
@@ -136,9 +134,7 @@ int main(int argc, const char** argv)
     shrSetLogFileName ("oclVolumeRender.txt");
     shrLog("%s Starting...\n\n", argv[0]); 
     shrLog(" Press '=' and '-' to change density\n"
-           "       ']' and '[' to change brightness\n"
-           "       ';' and ''' to modify transfer function offset\n"
-           "       '.' and ',' to modify transfer function scale\n\n");
+           "       ']' and '[' to change brightness\n\n");
 
     // get command line arg for quick test, if provided
     // process command line arguments
@@ -388,20 +384,6 @@ void KeyboardGL(unsigned char key, int /*x*/, int /*y*/)
     case '[':
         brightness -= 0.1;
         break;
-
-    case ';':
-        transferOffset += 0.01;
-        break;
-    case '\'':
-        transferOffset -= 0.01;
-        break;
-
-    case '.':
-        transferScale += 0.01;
-        break;
-    case ',':
-        transferScale -= 0.01;
-        break;
     case '\033': // escape quits
     case '\015': // Enter quits
     case 'Q':    // Q quits
@@ -412,7 +394,7 @@ void KeyboardGL(unsigned char key, int /*x*/, int /*y*/)
     default:
         break;
     }
-    shrLog("density = %.2f, brightness = %.2f, transferOffset = %.2f, transferScale = %.2f\n", density, brightness, transferOffset, transferScale);
+    shrLog("density = %.2f, brightness = %.2f\n", density, brightness);
     glutPostRedisplay();
 }
 
@@ -700,8 +682,6 @@ void TestNoGL()
     ciErrNum |= clSetKernelArg(ckKernel, 2, sizeof(unsigned int), &height);
     ciErrNum |= clSetKernelArg(ckKernel, 3, sizeof(float), &density);
     ciErrNum |= clSetKernelArg(ckKernel, 4, sizeof(float), &brightness);
-    ciErrNum |= clSetKernelArg(ckKernel, 5, sizeof(float), &transferOffset);
-    ciErrNum |= clSetKernelArg(ckKernel, 6, sizeof(float), &transferScale);
     
     // Warmup
     ciErrNum |= clEnqueueNDRangeKernel(cqCommandQueue, ckKernel, 2, NULL, gridSize, NULL, 0, 0, 0);

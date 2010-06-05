@@ -23,16 +23,6 @@
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
 
 
-uint isequalui(uint4 vec1, uint4 vec2)
-{
-    if (vec1.x != vec2.x || vec1.y != vec2.y ||
-        vec1.z != vec2.z || vec1.w != vec2.w)
-        return 0;
-    else
-        return 1;
-}
-
-
 __kernel void
 calculate_number_of_consistent_hypotheses_by_voxels (__global uchar * hypotheses,
                                                      __global __const uint * dimensions,
@@ -40,32 +30,37 @@ calculate_number_of_consistent_hypotheses_by_voxels (__global uchar * hypotheses
 {
     uint4 voxel_pos = (uint4)(get_global_id(0), get_global_id(1), get_global_id(2), 0);
 
-    uint hypotheses_size = 2+number_of_images*3;
+    uint hypotheses_size = 1 + number_of_images;
 
     uint hypothesis_offset = voxel_pos.z*hypotheses_size +
                              voxel_pos.y*dimensions[2]*hypotheses_size +
                              voxel_pos.x*dimensions[2]*dimensions[1]*hypotheses_size;
 
     // if voxel is not visible
-    if (hypotheses[hypothesis_offset] == 0)
+    uchar4 voxel_info = vload4(hypothesis_offset, hypotheses);
+    if (voxel_info.x == 0)
         return;
 
     uchar consistent_hypotheses = 0;
 
     for (uint i = 0; i < number_of_images; ++i)
     {
-        uint4 color = (uint4)  (hypotheses[hypothesis_offset + 2 + i*3],
-                                hypotheses[hypothesis_offset + 2 + i*3 + 1],
-                                hypotheses[hypothesis_offset + 2 + i*3 + 2],
-                                0);
+        uchar4 color = vload4(hypothesis_offset + 1 + i*3, hypotheses);
 
         // if hypothesis is consistent
-        if (isequalui(color, (uint4)(0)))
+        if ((color.x + color.y + color.z + color.w) != 0)
             consistent_hypotheses++;
     }
 
-    // if number of consistent hypotheses at previos step
-    // is not equal to number of consistent hypothises at this step
-    if (hypotheses[hypothesis_offset + 1] != consistent_hypotheses)
-        hypotheses[hypothesis_offset + 1] = consistent_hypotheses;
+    if (consistent_hypotheses == 0)
+    {
+        vstore4((uchar4)(0), hypothesis_offset, hypotheses);
+    }
+    else if (voxel_info.y != consistent_hypotheses)
+    {
+        // if number of consistent hypotheses at previos step
+        // is not equal to number of consistent hypothises at this step
+        voxel_info.y = consistent_hypotheses;
+        vstore4(voxel_info, hypothesis_offset, hypotheses);
+    }
 }

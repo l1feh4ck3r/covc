@@ -80,6 +80,9 @@ private:
                         cl::KernelFunctor & func_step_2_3_first,
                         cl::KernelFunctor & func_step_2_3_second);
 
+    void build_clear_z_buffer(cl::Kernel & kernel);
+    void clear_z_buffer(cl::Kernel & kernel, cl::Buffer * z_buffer);
+
     void run_step_3(cl::Buffer & hypotheses_buffer,
                     cl::Buffer & bounding_box_buffer,
                     cl::Buffer & dimensions_buffer,
@@ -89,7 +92,7 @@ private:
                     cl::Buffer & number_of_consistent_hypotheses_buffer,
                     unsigned int * number_of_consistent_hypotheses);
 
-    void run_step_4(cl::Buffer & hypotheses_buffer, cl::Buffer & voxel_model_buffer, cl::Buffer & dimensions_buffer);
+    void run_step_4(cl::Buffer & hypotheses_buffer, cl::Buffer & dimensions_buffer);
 
 
 private:
@@ -99,7 +102,7 @@ private:
     //! dimensions of resulting voxel cube by x, y, z
     size_t dimensions[3];
 
-    //! rusulting voxel model. size = dimension[0]*dimension[1]*dimension[2]*3*size_of(color)
+    //! rusulting voxel model. size = dimension[0]*dimension[1]*dimension[2]*4*size_of(color)
     std::vector<unsigned char> voxel_model;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -131,11 +134,13 @@ private:
     //! bounding box. elements: pos_x, pos_y, pos_z, size_x, size_y, size_z;
     float bounding_box[6];
 
-    //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*(2*sizeof(char) + number_of_images*3*size_of(color))
+    //! hypotheses. size = dimension[0]*dimension[1]*dimension[2]*(4*sizeof(char) + number_of_images*4*size_of(color))
     // hypotheses:
     //  _
     // |_| - voxel visibility
     // |_| - number of consistent hypoteses on previous iteration
+    // |_| - empty
+    // |_| - empty
     // |_|-
     // |_| \
     // ...  - hypotheses
