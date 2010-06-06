@@ -256,11 +256,10 @@ void MainWindow::run()
         }
 
 
-        time_t temp_time = time(NULL);
+        int time = clock();
         vc->build_voxel_model();
-        double real_time = difftime(time(NULL), temp_time);
 
-        QMessageBox::information(this, tr("Building voxel model..."), QString("... done at %1 s").arg(real_time));
+        QMessageBox::information(this, tr("Building voxel model..."), QString("... done at %1 ms").arg(clock() - time));
     }
     catch(cl::Error ex)
     {

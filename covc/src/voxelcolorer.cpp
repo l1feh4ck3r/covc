@@ -21,6 +21,7 @@
  */
 
 #include "voxelcolorer.h"
+#include "matrices_and_vectors.h"
 
 #include <fstream>
 #include <sstream>
@@ -29,6 +30,7 @@
 #include <limits.h>
 
 #include <math.h>
+
 
 VoxelColorer::VoxelColorer()
     :width(0), height(0),
@@ -53,7 +55,7 @@ void VoxelColorer::add_image(const unsigned char * image, size_t _width, size_t 
     height = _height;
 
     for (size_t i = 0; i < width*height*4; ++i)
-            pixels.data()[number_of_last_added_image*width*height + i] = image[i];
+        pixels.data()[number_of_last_added_image*width*height + i] = image[i];
 
     for (size_t i = 0; i < 16; ++i)
         image_calibration_matrices[number_of_last_added_image][i] = image_calibration_matrix[i];
@@ -373,100 +375,6 @@ void VoxelColorer::calculate_projection_matrix()
     }
 }
 
-void VoxelColorer::inverse(const float *matrix, float *inverted_matrix)
-{
-    float a0 = matrix[ 0]*matrix[ 5] - matrix[ 1]*matrix[ 4];
-    float a1 = matrix[ 0]*matrix[ 6] - matrix[ 2]*matrix[ 4];
-    float a2 = matrix[ 0]*matrix[ 7] - matrix[ 3]*matrix[ 4];
-    float a3 = matrix[ 1]*matrix[ 6] - matrix[ 2]*matrix[ 5];
-    float a4 = matrix[ 1]*matrix[ 7] - matrix[ 3]*matrix[ 5];
-    float a5 = matrix[ 2]*matrix[ 7] - matrix[ 3]*matrix[ 6];
-    float b0 = matrix[ 8]*matrix[13] - matrix[ 9]*matrix[12];
-    float b1 = matrix[ 8]*matrix[14] - matrix[10]*matrix[12];
-    float b2 = matrix[ 8]*matrix[15] - matrix[11]*matrix[12];
-    float b3 = matrix[ 9]*matrix[14] - matrix[10]*matrix[13];
-    float b4 = matrix[ 9]*matrix[15] - matrix[11]*matrix[13];
-    float b5 = matrix[10]*matrix[15] - matrix[11]*matrix[14];
-
-    float det = a0*b5 - a1*b4 + a2*b3 + a3*b2 - a4*b1 + a5*b0;
-    float epsilon = 0.1;
-    if (fabs(det) > epsilon)
-    {
-        float inverse[16];
-
-        inverse[ 0] = + matrix[ 5]*b5 - matrix[ 6]*b4 + matrix[ 7]*b3;
-        inverse[ 4] = - matrix[ 4]*b5 + matrix[ 6]*b2 - matrix[ 7]*b1;
-        inverse[ 8] = + matrix[ 4]*b4 - matrix[ 5]*b2 + matrix[ 7]*b0;
-        inverse[12] = - matrix[ 4]*b3 + matrix[ 5]*b1 - matrix[ 6]*b0;
-        inverse[ 1] = - matrix[ 1]*b5 + matrix[ 2]*b4 - matrix[ 3]*b3;
-        inverse[ 5] = + matrix[ 0]*b5 - matrix[ 2]*b2 + matrix[ 3]*b1;
-        inverse[ 9] = - matrix[ 0]*b4 + matrix[ 1]*b2 - matrix[ 3]*b0;
-        inverse[13] = + matrix[ 0]*b3 - matrix[ 1]*b1 + matrix[ 2]*b0;
-        inverse[ 2] = + matrix[13]*a5 - matrix[14]*a4 + matrix[15]*a3;
-        inverse[ 6] = - matrix[12]*a5 + matrix[14]*a2 - matrix[15]*a1;
-        inverse[10] = + matrix[12]*a4 - matrix[13]*a2 + matrix[15]*a0;
-        inverse[14] = - matrix[12]*a3 + matrix[13]*a1 - matrix[14]*a0;
-        inverse[ 3] = - matrix[ 9]*a5 + matrix[10]*a4 - matrix[11]*a3;
-        inverse[ 7] = + matrix[ 8]*a5 - matrix[10]*a2 + matrix[11]*a1;
-        inverse[11] = - matrix[ 8]*a4 + matrix[ 9]*a2 - matrix[11]*a0;
-        inverse[15] = + matrix[ 8]*a3 - matrix[ 9]*a1 + matrix[10]*a0;
-
-        float invDet = ((float)1)/det;
-        inverse[ 0] *= invDet;
-        inverse[ 1] *= invDet;
-        inverse[ 2] *= invDet;
-        inverse[ 3] *= invDet;
-        inverse[ 4] *= invDet;
-        inverse[ 5] *= invDet;
-        inverse[ 6] *= invDet;
-        inverse[ 7] *= invDet;
-        inverse[ 8] *= invDet;
-        inverse[ 9] *= invDet;
-        inverse[10] *= invDet;
-        inverse[11] *= invDet;
-        inverse[12] *= invDet;
-        inverse[13] *= invDet;
-        inverse[14] *= invDet;
-        inverse[15] *= invDet;
-
-        for (size_t i = 0; i < 16; ++i)
-            inverted_matrix[i] = inverse[i];
-    }
-}
-
-void VoxelColorer::multiply_matrix_vector(const float *matrix, const float *vector, float *result)
-{
-    float temp[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-
-    for (size_t i = 0; i < 4; ++i)
-        for (size_t j = 0; j < 4; ++j)
-            temp[i] += matrix[i*4 + j]*vector[j];
-
-    for (size_t i = 0; i < 4; ++i)
-        result[i] = temp[i];
-}
-
-void VoxelColorer::multiply_vector_vector(const float *vec1, const float *vec2, float *result)
-{
-    float temp[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    temp[0] = vec1[1]*vec2[2] - vec1[2]*vec2[1];
-    temp[1] = vec1[2]*vec2[0] - vec1[0]*vec2[2];
-    temp[2] = vec1[0]*vec2[1] - vec1[1]*vec2[0];
-
-    for (size_t i = 0; i < 4; ++i)
-        result[i] = temp[i];
-}
-
-void VoxelColorer::normalize_vector(const float *vector, float *result)
-{
-    float sum = 0.0f;
-    for (size_t i = 0; i < 4; ++i)
-        sum += vector[i]*vector[i];
-
-    float radix = sqrt(sum);
-    for (size_t i = 0; i < 4; ++i)
-        result[i] = vector[i] / radix;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 //! Prepare voxel colorer
@@ -598,7 +506,7 @@ void VoxelColorer::run_step_2(cl::Buffer & hypotheses_buffer,
 
     std::cout << "Number of consistent hypotheses = " << *number_of_consistent_hypotheses << std::endl;
     float float_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
-    threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*1000);
+    threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*10000);
     std::cout << "threshold = " << threshold << std::endl;
 
 }
@@ -691,27 +599,138 @@ void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
         // fill z buffer with non occupied values
         clear_z_buffer(clear_z_buffer_kernel, z_buffer);
 
-        for (size_t x = 0; x < dimensions[0]; ++x)
+        for (size_t current_image = 0; current_image < number_of_images; ++current_image)
         {
-            for (size_t y = 0; y < dimensions[1]; ++y)
+            float corners[8][4] = {{bounding_box[0],                   bounding_box[1],                   bounding_box[2],                   1.0f},
+                                   {bounding_box[0] + bounding_box[3], bounding_box[1],                   bounding_box[2],                   1.0f},
+                                   {bounding_box[0],                   bounding_box[1] + bounding_box[4], bounding_box[2],                   1.0f},
+                                   {bounding_box[0] + bounding_box[3], bounding_box[1] + bounding_box[4], bounding_box[2],                   1.0f},
+                                   {bounding_box[0],                   bounding_box[1],                   bounding_box[2] + bounding_box[5], 1.0f},
+                                   {bounding_box[0] + bounding_box[3], bounding_box[1],                   bounding_box[2] + bounding_box[5], 1.0f},
+                                   {bounding_box[0],                   bounding_box[1] + bounding_box[4], bounding_box[2] + bounding_box[5], 1.0f},
+                                   {bounding_box[0] + bounding_box[3], bounding_box[1] + bounding_box[4], bounding_box[2] + bounding_box[5], 1.0f}};
+
+            float camera[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+            multiply_matrix_vector(image_calibration_matrices.at(current_image).data(), camera, camera);
+
+            for (size_t i = 0; i < 8; ++i)
+                multiply_matrix_vector(image_calibration_matrices.at(current_image).data(), corners[i], corners[i]);
+
+            float corners_to_camera[8][4];
+            for (size_t i = 0; i < 8; ++i)
+                vector_minus_vector(corners[i], camera, corners_to_camera[i]);
+
+            float distance[8];
+            for (size_t i = 0; i < 8; ++i)
+                distance[i] = vector_length(corners_to_camera[i]);
+
+            struct {int index; float length;} nearest[3];
+            for (size_t j = 0; j < 3; j++)
             {
-                for (size_t z = 0; z < dimensions[2]; ++z)
+                nearest[j].index = 0;
+                float length = distance[0];
+            }
+
+            for (size_t i = 0; i < 3; ++i)
+                for (size_t j = 0; j < 8; ++j)
                 {
-                    ocl_kernel_step_3.setArg(0, hypotheses_buffer);
-                    ocl_kernel_step_3.setArg(1, x);
-                    ocl_kernel_step_3.setArg(2, y);
-                    ocl_kernel_step_3.setArg(3, z);
-                    ocl_kernel_step_3.setArg(4, bounding_box_buffer);
-                    ocl_kernel_step_3.setArg(5, dimensions_buffer);
-                    ocl_kernel_step_3.setArg(6, *z_buffer);
-                    ocl_kernel_step_3.setArg(7, projection_matrices_buffer);
-                    ocl_kernel_step_3.setArg(8, threshold);
+                if (i == 0)
+                {
+                    if (distance[j] < nearest[0].length)
+                    {
+                        nearest[0].index = j;
+                        nearest[0].length = distance[j];
+                    }
+                }
+                else if (i == 1)
+                {
+                    if (nearest[0].length < distance[j] && distance[j] < nearest[1].length)
+                    {
+                        nearest[1].index = j;
+                        nearest[1].length = distance[j];
+                    }
+                }
+                else if (i == 2)
+                {
+                    if (nearest[1].length < distance[j] && distance[j] < nearest[2].length)
+                    {
+                        nearest[2].index = j;
+                        nearest[2].length = distance[j];
+                    }
+                }
+            }
 
-                    cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
-                                                                           cl::NDRange(number_of_images),
-                                                                           cl::NDRange(1));
+            size_t start[3];
+            size_t stop[3];
+            int direction[3];
+            switch(nearest[0].index)
+            {
+            case 0:
+                start[0] = 0;   stop[0] = dimensions[0];    direction[0] = 1;
+                start[1] = 0;   stop[1] = dimensions[1];    direction[1] = 1;
+                start[2] = 0;   stop[2] = dimensions[2];    direction[2] = 1;
+                break;
+            case 1:
+                start[0] = dimensions[0];   stop[0] = 0;    direction[0] = -1;
+                start[1] = 0;   stop[1] = dimensions[1];    direction[1] = 1;
+                start[2] = 0;   stop[2] = dimensions[2];    direction[2] = 1;
+                break;
+            case 2:
+                start[0] = 0;   stop[0] = dimensions[0];    direction[0] = 1;
+                start[1] = dimensions[1];   stop[1] = 0;    direction[1] = -1;
+                start[2] = 0;   stop[2] = dimensions[2];    direction[2] = 1;
+                break;
+            case 3:
+                start[0] = dimensions[0];   stop[0] = 0;    direction[0] = -1;
+                start[1] = dimensions[1];   stop[1] = 0;    direction[1] = -1;
+                start[2] = 0;   stop[2] = dimensions[2];    direction[2] = 1;
+                break;
+            case 4:
+                start[0] = 0;   stop[0] = dimensions[0];    direction[0] = 1;
+                start[1] = 0;   stop[1] = dimensions[1];    direction[1] = 1;
+                start[2] = dimensions[2];   stop[2] = dimensions[2];    direction[2] = -1;
+                break;
+            case 5:
+                start[0] = dimensions[0];   stop[0] = dimensions[0];    direction[0] = -1;
+                start[1] = 0;   stop[1] = dimensions[1];    direction[1] = 1;
+                start[2] = dimensions[2];   stop[2] = dimensions[2];    direction[2] = -1;
+                break;
+            case 6:
+                start[0] = 0;   stop[0] = dimensions[0];    direction[0] = 1;
+                start[1] = dimensions[1];   stop[1] = 0;    direction[1] = -1;
+                start[2] = dimensions[2];   stop[2] = 0;    direction[2] = -1;
+                break;
+            case 7:
+                start[0] = dimensions[0];   stop[0] = 0;    direction[0] = -1;
+                start[1] = dimensions[1];   stop[1] = 0;    direction[1] = -1;
+                start[2] = dimensions[2];   stop[2] = 0;    direction[2] = -1;
+                break;
+            }
 
-                    func_step_3().wait();
+            for (size_t x = start[0]; x < stop[0]; x+=direction[0])
+            {
+                for (size_t y = start[1]; y < stop[1]; y+=direction[1])
+                {
+                    for (size_t z = start[2]; z < stop[2]; z+=direction[2])
+                    {
+                        ocl_kernel_step_3.setArg(0, hypotheses_buffer);
+                        ocl_kernel_step_3.setArg(1, x);
+                        ocl_kernel_step_3.setArg(2, y);
+                        ocl_kernel_step_3.setArg(3, z);
+                        ocl_kernel_step_3.setArg(4, bounding_box_buffer);
+                        ocl_kernel_step_3.setArg(5, dimensions_buffer);
+                        ocl_kernel_step_3.setArg(6, *z_buffer);
+                        ocl_kernel_step_3.setArg(7, projection_matrices_buffer);
+                        ocl_kernel_step_3.setArg(8, threshold);
+                        ocl_kernel_step_3.setArg(9, current_image);
+                        ocl_kernel_step_3.setArg(10, number_of_images);
+
+                        cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
+                                                                               cl::NDRange(1),
+                                                                               cl::NDRange(1));
+
+                        func_step_3().wait();
+                    }
                 }
             }
         }
@@ -731,13 +750,14 @@ void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
 
         std::cout << "Number of consistent hypotheses = " << *number_of_consistent_hypotheses << std::endl;
         float float_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
-        threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*1000);
+        threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*10000);
         std::cout << "threshold = " << threshold << std::endl;
 
         // remove sz buffer
         delete z_buffer;
     }
 }
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -805,24 +825,4 @@ void VoxelColorer::set_resulting_voxel_cube_dimensions (size_t dimension_x, size
     dimensions[2] = dimension_z;
 
     voxel_model.resize(dimensions[0]*dimensions[1]*dimensions[2]*4*sizeof(unsigned char), 0);
-}
-
-void VoxelColorer::vector_minus_vector(const float *vec1, const float *vec2, float *result)
-{
-    float temp[4];
-    for (size_t i = 0; i < 4; ++i)
-        temp[i] = vec1[i] - vec2[i];
-
-    for (size_t i = 0; i < 4; ++i)
-        result[i] = temp[i];
-}
-
-void VoxelColorer::vector_plus_vector(const float *vec1, const float *vec2, float *result)
-{
-    float temp[4];
-    for (size_t i = 0; i < 4; ++i)
-        temp[i] = vec1[i] + vec2[i];
-
-    for (size_t i = 0; i < 4; ++i)
-        result[i] = temp[i];
 }

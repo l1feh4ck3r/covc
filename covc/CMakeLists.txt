@@ -9,6 +9,7 @@ include_directories("include"
 
 set(COVC_LIB_SRCS_CXX
     src/voxelcolorer.cpp
+    src/matrices_and_vectors.cpp
     )
 
 add_library(covclib STATIC ${COVC_LIB_SRCS_CXX})

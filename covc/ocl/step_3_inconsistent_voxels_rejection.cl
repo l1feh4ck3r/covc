@@ -33,10 +33,28 @@ float4 mul_mat_vec (float16 mat, float4 vec)
     return res;
 }
 
+uint is_in_image(float4 pos, float4 box)
+{
+    if (isless(pos.x, box.x) || isgreater(pos.x, box.y) ||
+        isless(pos.y, box.z) || isgreater(pos.y, box.w) )
+        return 0;
+
+    return 1;
+}
+
 
 //TODO: remove this hardcoded image sizes
 #define width   512
 #define height  512
+
+float4 position_at_image(float16 projection_matrix, float4 position_in_3d)
+{
+    float4 pos_at_image_3d = mul_mat_vec(projection_matrix, position_in_3d);
+    float4 pos_at_image = (float4) (pos_at_image_3d.x/pos_at_image_3d.z, pos_at_image_3d.y/pos_at_image_3d.z, 0, 0);
+
+    return pos_at_image;
+}
+
 
 __kernel void
 inconsistent_voxel_rejection ( __global uchar * hypotheses,
@@ -45,13 +63,10 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
                                 __global __const uint * dimensions,
                                 __global uint * z_buffer,
                                 __global float16 * projection_matrices,
-                                float threshold)
+                                float threshold,
+                                uint pos,
+                                uint number_of_images)
 {
-    // current hypothesis number
-    uint pos = get_global_id(0);
-
-    uint number_of_images = get_global_size(0);
-
     uint hypotheses_size = 1 + number_of_images;
     uint hypotheses_offset = x*hypotheses_size +
                              y*dimensions[0]*hypotheses_size +
@@ -76,16 +91,18 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
                              1);
 
     // calculate voxel pos in voxel model
-    float4 pos_at_image_3d = mul_mat_vec(projection_matrices[pos], pos3d);
-    float4 pos_at_image = (float4) (pos_at_image_3d.x/pos_at_image_3d.z, pos_at_image_3d.y/pos_at_image_3d.z, pos, 0);
+    float4 pos_at_image = position_at_image(projection_matrices[pos], pos3d);
+    pos_at_image.z = pos;
 
-    if (pos_at_image.x < 0.0f || pos_at_image.x > convert_float(width) ||
-        pos_at_image.y < 0.0f || pos_at_image.y > convert_float(height) )
+    if (is_in_image(pos_at_image, (float4)(0.0f, 0.0f, convert_float(width), convert_float(height))))
         return;
 
-    uint z_buffer_offset = convert_uint(pos_at_image.x) +
-                           convert_uint(pos_at_image.y)*number_of_images +
-                           convert_uint(pos_at_image.z)*height*number_of_images;
+    uint z_buffer_offset = convert_uint((pos_at_image.x/512.0f)*32.0f) +
+                           convert_uint((pos_at_image.y/512.0f)*32.0f)*32 +
+                           pos*32*32;
+//uint z_buffer_offset = convert_uint(pos_at_image.x) +
+//                       convert_uint(pos_at_image.y)*width +
+//                       pos*width*height;
 
     // if hypothesis occupied
     uint occupied = z_buffer[z_buffer_offset];
@@ -95,26 +112,35 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
     uint consistent = 0;
     for (uint i = 0; i < number_of_images && consistent == 0; ++i)
     {
-        uint current_offset = hypotheses_offset + 1 + i;
+        float4 pos_at_second_image = position_at_image(projection_matrices[i], pos3d);
+        pos_at_second_image.z = i;
 
-        // if it is the same hypothesis
-        if (i != pos)
+        if (is_in_image(pos_at_second_image, (float4)(0.0f, 0.0f, convert_float(width), convert_float(height))))
+            continue;
+
+        uint z_buffer_offset_second = convert_uint((pos_at_second_image.x/512.0f)*32.0f) +
+                               convert_uint((pos_at_second_image.y/512.0f)*32.0f)*32 +
+                               i*32*32;
+
+//        uint z_buffer_offset_second = convert_uint(pos_at_second_image.x) +
+//                                      convert_uint(pos_at_second_image.y)*width +
+//                                      i*width*height;
+
+        // if hypothesis occupied
+        uint occupied_second = z_buffer[z_buffer_offset_second];
+        if (!occupied_second)
         {
-            uchar4 color = vload4 (current_offset, hypotheses);
+            uint current_offset = hypotheses_offset + 1 + i;
 
-//            float4 normal1 = convert_float4(color);
-//            float4 normal2 = convert_float4(hypothesis_color);
-//            float2 sum = (float2)((normal1.x + normal1.y + normal1.z + normal1.w),
-//                                  (normal2.x + normal2.y + normal2.z + normal2.w));
-//            if ((fabs(normal1.x/sum.x - normal2.x/sum.y) +
-//                 fabs(normal1.y/sum.x - normal2.y/sum.y) +
-//                 fabs(normal1.z/sum.x - normal2.z/sum.y) +
-//                 fabs(normal1.w/sum.x - normal2.w/sum.y))
-//                 < threshold)
+            // if it is the same hypothesis
+            if (i != pos)
+            {
+                uchar4 color = vload4 (current_offset, hypotheses);
 
 
-            if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
-                consistent = 1;
+                if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
+                    consistent = 1;
+            }
         }
     }
 
