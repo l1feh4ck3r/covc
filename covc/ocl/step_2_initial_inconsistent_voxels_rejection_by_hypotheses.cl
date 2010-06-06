@@ -20,9 +20,6 @@
  * THE SOFTWARE.
  */
 
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
-
-
 __kernel void
 initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
                                         uint x, uint y, uint z,
@@ -34,10 +31,9 @@ initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
 
     uint number_of_images = get_global_size(0);
 
-    __const uint hypotheses_size = 1 + number_of_images;
-    __const uint hypotheses_offset = x*hypotheses_size +
-                                     y*dimensions[0]*hypotheses_size +
-                                     z*dimensions[0]*dimensions[1]*hypotheses_size;
+    __const uint hypotheses_offset = x*(1 + number_of_images) +
+                                     y*dimensions[0]*(1 + number_of_images) +
+                                     z*dimensions[0]*dimensions[1]*(1 + number_of_images);
 
     // if voxel not visible
     uchar4 voxel_info = vload4(hypotheses_offset, hypotheses);
@@ -56,11 +52,10 @@ initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
         uint current_offset = hypotheses_offset + 1 + i;
 
         // if it is not the same hypothesis
-        if (current_offset != (hypotheses_offset + 1 + pos))
+        if (i != pos)
         {
             uchar4 color = vload4(current_offset, hypotheses);
 
-            if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
             //if (distance(convert_float4(color), convert_float4(hypothesis_color)) < threshold)
 //            float4 normal1 = convert_float4(color);
 //            float4 normal2 = convert_float4(hypothesis_color);
@@ -71,12 +66,14 @@ initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
 //                 fabs(normal1.z/sum.x - normal2.z/sum.y) +
 //                 fabs(normal1.w/sum.x - normal2.w/sum.y))
 //                 < threshold)
+
+            if(isless(distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))), threshold)
                 consistent = 1;
         }
     }
 
     // hypothesis is not consistent
-    if (!consistent)
+    if (consistent == 0)
     {
         vstore4((uchar4)(0), hypotheses_offset + 1 + pos, hypotheses);
     }

@@ -20,9 +20,6 @@
  * THE SOFTWARE.
  */
 
- #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
-
-
 __kernel void
 calculate_number_of_consistent_hypotheses ( __global uchar * hypotheses,
                                             __global __const uint * dimensions,

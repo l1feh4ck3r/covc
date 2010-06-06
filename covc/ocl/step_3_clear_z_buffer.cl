@@ -20,8 +20,6 @@
  * THE SOFTWARE.
  */
 
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
-
 #define width   512
 #define height  512
 

@@ -20,9 +20,6 @@
  * THE SOFTWARE.
  */
 
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
-
-
 float4 mul_mat_vec (float16 mat, float4 vec)
 {
     float4 res;
@@ -67,14 +64,12 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
                                 uint pos,
                                 uint number_of_images)
 {
-    uint hypotheses_size = 1 + number_of_images;
-    uint hypotheses_offset = x*hypotheses_size +
-                             y*dimensions[0]*hypotheses_size +
-                             z*dimensions[0]*dimensions[1]*hypotheses_size;
+    __const uint hypotheses_offset = x*(1 + number_of_images) +
+                             y*dimensions[0]*(1 + number_of_images) +
+                             z*dimensions[0]*dimensions[1]*(1 + number_of_images);
 
     // if voxel not visible
-    uchar4 voxel_info = vload4(hypotheses_offset, hypotheses);
-    if (voxel_info.x == 0)
+    if (vload4(hypotheses_offset, hypotheses).x == 0)
         return;
 
     uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + pos, hypotheses);
@@ -97,50 +92,45 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
     if (is_in_image(pos_at_image, (float4)(0.0f, 0.0f, convert_float(width), convert_float(height))))
         return;
 
-    uint z_buffer_offset = convert_uint((pos_at_image.x/512.0f)*32.0f) +
-                           convert_uint((pos_at_image.y/512.0f)*32.0f)*32 +
-                           pos*32*32;
 //uint z_buffer_offset = convert_uint(pos_at_image.x) +
 //                       convert_uint(pos_at_image.y)*width +
 //                       pos*width*height;
 
+
+    uint z_buffer_offset = convert_uint((pos_at_image.x/512.0f)*32.0f) +
+                           convert_uint((pos_at_image.y/512.0f)*32.0f)*32 +
+                           pos*32*32;
+
     // if hypothesis occupied
-    uint occupied = z_buffer[z_buffer_offset];
-    if (occupied)
+    if (z_buffer[z_buffer_offset])
         return;
 
     uint consistent = 0;
+    float4 pos_at_second_image;
+    uint z_buffer_offset_second;
+    uint current_offset;
+
     for (uint i = 0; i < number_of_images && consistent == 0; ++i)
     {
-        float4 pos_at_second_image = position_at_image(projection_matrices[i], pos3d);
+        pos_at_second_image = position_at_image(projection_matrices[i], pos3d);
         pos_at_second_image.z = i;
 
         if (is_in_image(pos_at_second_image, (float4)(0.0f, 0.0f, convert_float(width), convert_float(height))))
             continue;
 
-        uint z_buffer_offset_second = convert_uint((pos_at_second_image.x/512.0f)*32.0f) +
+        z_buffer_offset_second = convert_uint((pos_at_second_image.x/512.0f)*32.0f) +
                                convert_uint((pos_at_second_image.y/512.0f)*32.0f)*32 +
                                i*32*32;
 
-//        uint z_buffer_offset_second = convert_uint(pos_at_second_image.x) +
-//                                      convert_uint(pos_at_second_image.y)*width +
-//                                      i*width*height;
-
-        // if hypothesis occupied
-        uint occupied_second = z_buffer[z_buffer_offset_second];
-        if (!occupied_second)
+        // if hypothesis not occupied and
+        // if it is not the same hypothesis
+        if (z_buffer[z_buffer_offset_second] == 0 &&  i != pos)
         {
-            uint current_offset = hypotheses_offset + 1 + i;
+            current_offset = hypotheses_offset + 1 + i;
+            uchar4 color = vload4 (current_offset, hypotheses);
 
-            // if it is the same hypothesis
-            if (i != pos)
-            {
-                uchar4 color = vload4 (current_offset, hypotheses);
-
-
-                if (distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))) < threshold)
-                    consistent = 1;
-            }
+            if (isless(distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))), threshold))
+                consistent = 1;
         }
     }
 

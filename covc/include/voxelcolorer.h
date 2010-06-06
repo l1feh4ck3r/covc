@@ -75,7 +75,7 @@ private:
                         cl::KernelFunctor & func_step_2_3_second);
 
     void build_clear_z_buffer(cl::Kernel & kernel);
-    void clear_z_buffer(cl::Kernel & kernel, cl::Buffer * z_buffer);
+    void clear_z_buffer(cl::Kernel & kernel, cl::Buffer & z_buffer);
 
     void run_step_3(cl::Buffer & hypotheses_buffer,
                     cl::Buffer & bounding_box_buffer,

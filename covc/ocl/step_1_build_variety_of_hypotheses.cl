@@ -35,6 +35,15 @@ float4 mul_mat_vec (float16 mat, float4 vec)
     return res;
 }
 
+uint is_in_image(float4 pos, float4 box)
+{
+    if (isless(pos.x, box.x) || isgreater(pos.x, box.y) ||
+        isless(pos.y, box.z) || isgreater(pos.y, box.w) )
+        return 0;
+
+    return 1;
+}
+
 __kernel void
 build_variety_of_hypotheses (__global __const float * bounding_box,
                             __read_only image3d_t images,
@@ -54,10 +63,9 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
     int height = get_image_height(images);
 
 
-    __const uint hypotheses_size = 1 + number_of_images;
-    __const uint hypotheses_offset = voxel_pos.x*hypotheses_size +
-                                     voxel_pos.y*dimensions[0]*hypotheses_size +
-                                     voxel_pos.z*dimensions[0]*dimensions[1]*hypotheses_size;
+    __const uint hypotheses_offset = voxel_pos.x*(1 + number_of_images) +
+                                     voxel_pos.y*dimensions[0]*(1 + number_of_images) +
+                                     voxel_pos.z*dimensions[0]*dimensions[1]*(1 + number_of_images);
 
     // set voxel visible and non zero number of consists hypotheses
     vstore4((uchar4)(1, UINT_MAX, 0, 0), hypotheses_offset, hypotheses);
@@ -69,8 +77,7 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
 
         uint hypothesis_offset = hypotheses_offset + 1 + i;
 
-        if (pos_at_image.x < 0.0f || pos_at_image.x > convert_float(width) ||
-            pos_at_image.y < 0.0f || pos_at_image.y > convert_float(height) )
+        if (is_in_image(pos_at_image, (float4)(0.0f, 0.0f, convert_float(width), convert_float(height))))
         {
             //if voxel not projected in image
             vstore4((uchar4)(0), hypothesis_offset, hypotheses);
@@ -83,11 +90,10 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
             uint4 color = read_imageui(images, imageSampler, pos_at_image);
             color.w = 0;
 
-            float4 float_color = convert_float4(color);
-            if (float_color.x < 5.0f && float_color.y < 5.0f && float_color.z < 5.0f)
+            if (color.x < 5 && color.y < 5 && color.z < 5)
                 vstore4((uchar4)(0), hypothesis_offset, hypotheses);
             else
-                vstore4((uchar4)(convert_uchar(color.x), convert_uchar(color.y), convert_uchar(color.z), convert_uchar(color.w)), hypothesis_offset, hypotheses);
+                vstore4((uchar4)(color.x, color.y, color.z, 0), hypothesis_offset, hypotheses);
         }
     }
 }

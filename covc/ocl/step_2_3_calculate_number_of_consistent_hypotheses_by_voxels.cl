@@ -20,9 +20,6 @@
  * THE SOFTWARE.
  */
 
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable
-
-
 __kernel void
 calculate_number_of_consistent_hypotheses_by_voxels (__global uchar * hypotheses,
                                                      __global __const uint * dimensions,
@@ -30,10 +27,9 @@ calculate_number_of_consistent_hypotheses_by_voxels (__global uchar * hypotheses
 {
     uint4 voxel_pos = (uint4)(get_global_id(0), get_global_id(1), get_global_id(2), 0);
 
-    uint hypotheses_size = 1 + number_of_images;
-    uint hypothesis_offset = voxel_pos.x*hypotheses_size +
-                             voxel_pos.y*dimensions[0]*hypotheses_size +
-                             voxel_pos.z*dimensions[0]*dimensions[1]*hypotheses_size;
+    uint hypothesis_offset = voxel_pos.x*(1 + number_of_images) +
+                             voxel_pos.y*dimensions[0]*(1 + number_of_images) +
+                             voxel_pos.z*dimensions[0]*dimensions[1]*(1 + number_of_images);
 
     // if voxel is not visible
     uchar4 voxel_info = vload4(hypothesis_offset, hypotheses);

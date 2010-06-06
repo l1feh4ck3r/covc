@@ -36,7 +36,7 @@ VoxelColorer::VoxelColorer()
     :width(0), height(0),
     number_of_images(0),
     number_of_last_added_image(0),
-    threshold(1.0f)
+    threshold(0.0001f)
 {
     memset(dimensions, 0, sizeof(dimensions));
     memset(camera_calibration_matrix, 0, sizeof(camera_calibration_matrix));
@@ -506,7 +506,7 @@ void VoxelColorer::run_step_2(cl::Buffer & hypotheses_buffer,
 
     std::cout << "Number of consistent hypotheses = " << *number_of_consistent_hypotheses << std::endl;
     float float_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
-    threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*10000);
+    threshold = threshold/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images);
     std::cout << "threshold = " << threshold << std::endl;
 
 }
@@ -552,9 +552,9 @@ void VoxelColorer::build_clear_z_buffer(cl::Kernel & kernel)
     kernel = cl::Kernel(ocl_program, "clear_z_buffer");
 }
 
-void VoxelColorer::clear_z_buffer(cl::Kernel &kernel, cl::Buffer *z_buffer)
+void VoxelColorer::clear_z_buffer(cl::Kernel &kernel, cl::Buffer &z_buffer)
 {
-    kernel.setArg(0, *z_buffer);
+    kernel.setArg(0, z_buffer);
     cl::KernelFunctor func = kernel.bind(ocl_command_queue,
                                          cl::NDRange(number_of_images),
                                          cl::NDRange(1));
@@ -586,151 +586,151 @@ void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
 
     unsigned int old_number_of_consistent_hypotheses = UINT_MAX;
 
+    // create opencl buffer for z buffer
+    // z buffer element contain only one value: free or occupied
+    cl::Buffer z_buffer (ocl_context,
+                         CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
+                         width*height*number_of_images*4*sizeof(unsigned char));
+
+
+    struct Nearest
+    {
+        int index;
+        float length;
+    };
+
+    Nearest * nearest = new Nearest[number_of_images];
+
+    size_t * start[3];
+    size_t * stop[3];
+    int * direction[3];
+    for (int i = 0; i < 3; ++i)
+    {
+        start[i] = new size_t[number_of_images];
+        stop[i] = new size_t[number_of_images];
+        direction[i] = new int[number_of_images];
+    }
+
+    for (size_t current_image = 0; current_image < number_of_images; ++current_image)
+    {
+        float corners[8][4] = {{bounding_box[0],                   bounding_box[1],                   bounding_box[2],                   1.0f},
+                               {bounding_box[0] + bounding_box[3], bounding_box[1],                   bounding_box[2],                   1.0f},
+                               {bounding_box[0],                   bounding_box[1] + bounding_box[4], bounding_box[2],                   1.0f},
+                               {bounding_box[0] + bounding_box[3], bounding_box[1] + bounding_box[4], bounding_box[2],                   1.0f},
+                               {bounding_box[0],                   bounding_box[1],                   bounding_box[2] + bounding_box[5], 1.0f},
+                               {bounding_box[0] + bounding_box[3], bounding_box[1],                   bounding_box[2] + bounding_box[5], 1.0f},
+                               {bounding_box[0],                   bounding_box[1] + bounding_box[4], bounding_box[2] + bounding_box[5], 1.0f},
+                               {bounding_box[0] + bounding_box[3], bounding_box[1] + bounding_box[4], bounding_box[2] + bounding_box[5], 1.0f}};
+
+        float camera[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+        multiply_matrix_vector(image_calibration_matrices.at(current_image).data(), camera, camera);
+
+        for (size_t i = 0; i < 8; ++i)
+            multiply_matrix_vector(image_calibration_matrices.at(current_image).data(), corners[i], corners[i]);
+
+        float corners_to_camera[8][4];
+        for (size_t i = 0; i < 8; ++i)
+            vector_minus_vector(corners[i], camera, corners_to_camera[i]);
+
+        float distance[8];
+        for (size_t i = 0; i < 8; ++i)
+            distance[i] = vector_length(corners_to_camera[i]);
+
+        for (size_t j = 0; j < number_of_images; j++)
+        {
+            nearest[j].index = 0;
+            float length = distance[0];
+        }
+
+        for (size_t i = 0; i < number_of_images; ++i)
+        {
+            for (size_t j = 0; j < 8; ++j)
+            {
+                if (distance[j] < nearest[i].length)
+                {
+                    nearest[i].index = j;
+                    nearest[i].length = distance[j];
+                }
+                switch(nearest[0].index)
+                {
+                case 0:
+                    start[0][i] = 0;   stop[0][i] = dimensions[0];    direction[0][i] = 1;
+                    start[1][i] = 0;   stop[1][i] = dimensions[1];    direction[1][i] = 1;
+                    start[2][i] = 0;   stop[2][i] = dimensions[2];    direction[2][i] = 1;
+                    break;
+                case 1:
+                    start[0][i] = dimensions[0];   stop[0][i] = 0;    direction[0][i] = -1;
+                    start[1][i] = 0;   stop[1][i] = dimensions[1];    direction[1][i] = 1;
+                    start[2][i] = 0;   stop[2][i] = dimensions[2];    direction[2][i] = 1;
+                    break;
+                case 2:
+                    start[0][i] = 0;   stop[0][i] = dimensions[0];    direction[0][i] = 1;
+                    start[1][i] = dimensions[1];   stop[1][i] = 0;    direction[1][i] = -1;
+                    start[2][i] = 0;   stop[2][i] = dimensions[2];    direction[2][i] = 1;
+                    break;
+                case 3:
+                    start[0][i] = dimensions[0];   stop[0][i] = 0;    direction[0][i] = -1;
+                    start[1][i] = dimensions[1];   stop[1][i] = 0;    direction[1][i] = -1;
+                    start[2][i] = 0;   stop[2][i] = dimensions[2];    direction[2][i] = 1;
+                    break;
+                case 4:
+                    start[0][i] = 0;   stop[0][i] = dimensions[0];    direction[0][i] = 1;
+                    start[1][i] = 0;   stop[1][i] = dimensions[1];    direction[1][i] = 1;
+                    start[2][i] = dimensions[2];   stop[2][i] = dimensions[2];    direction[2][i] = -1;
+                    break;
+                case 5:
+                    start[0][i] = dimensions[0];   stop[0][i] = dimensions[0];    direction[0][i] = -1;
+                    start[1][i] = 0;   stop[1][i] = dimensions[1];    direction[1][i] = 1;
+                    start[2][i] = dimensions[2];   stop[2][i] = dimensions[2];    direction[2][i] = -1;
+                    break;
+                case 6:
+                    start[0][i] = 0;   stop[0][i] = dimensions[0];    direction[0][i] = 1;
+                    start[1][i] = dimensions[1];   stop[1][i] = 0;    direction[1][i] = -1;
+                    start[2][i] = dimensions[2];   stop[2][i] = 0;    direction[2][i] = -1;
+                    break;
+                case 7:
+                    start[0][i] = dimensions[0];   stop[0][i] = 0;    direction[0][i] = -1;
+                    start[1][i] = dimensions[1];   stop[1][i] = 0;    direction[1][i] = -1;
+                    start[2][i] = dimensions[2];   stop[2][i] = 0;    direction[2][i] = -1;
+                    break;
+                }
+            }
+
+        }
+    }
+
+
     while (*number_of_consistent_hypotheses != old_number_of_consistent_hypotheses)
     {
         old_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
 
-        // create opencl buffer for z buffer
-        // z buffer element contain only one value: free or occupied
-        cl::Buffer * z_buffer = new cl::Buffer(ocl_context,
-                                               CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
-                                               width*height*number_of_images*4*sizeof(unsigned char));
-
         // fill z buffer with non occupied values
         clear_z_buffer(clear_z_buffer_kernel, z_buffer);
 
-        for (size_t current_image = 0; current_image < number_of_images; ++current_image)
-        {
-            float corners[8][4] = {{bounding_box[0],                   bounding_box[1],                   bounding_box[2],                   1.0f},
-                                   {bounding_box[0] + bounding_box[3], bounding_box[1],                   bounding_box[2],                   1.0f},
-                                   {bounding_box[0],                   bounding_box[1] + bounding_box[4], bounding_box[2],                   1.0f},
-                                   {bounding_box[0] + bounding_box[3], bounding_box[1] + bounding_box[4], bounding_box[2],                   1.0f},
-                                   {bounding_box[0],                   bounding_box[1],                   bounding_box[2] + bounding_box[5], 1.0f},
-                                   {bounding_box[0] + bounding_box[3], bounding_box[1],                   bounding_box[2] + bounding_box[5], 1.0f},
-                                   {bounding_box[0],                   bounding_box[1] + bounding_box[4], bounding_box[2] + bounding_box[5], 1.0f},
-                                   {bounding_box[0] + bounding_box[3], bounding_box[1] + bounding_box[4], bounding_box[2] + bounding_box[5], 1.0f}};
-
-            float camera[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-            multiply_matrix_vector(image_calibration_matrices.at(current_image).data(), camera, camera);
-
-            for (size_t i = 0; i < 8; ++i)
-                multiply_matrix_vector(image_calibration_matrices.at(current_image).data(), corners[i], corners[i]);
-
-            float corners_to_camera[8][4];
-            for (size_t i = 0; i < 8; ++i)
-                vector_minus_vector(corners[i], camera, corners_to_camera[i]);
-
-            float distance[8];
-            for (size_t i = 0; i < 8; ++i)
-                distance[i] = vector_length(corners_to_camera[i]);
-
-            struct {int index; float length;} nearest[3];
-            for (size_t j = 0; j < 3; j++)
+        for (size_t i = 0; i < number_of_images; ++i)
+            for (size_t x = start[0][i]; x < stop[0][i]; x+=direction[0][i])
             {
-                nearest[j].index = 0;
-                float length = distance[0];
-            }
-
-            for (size_t i = 0; i < 3; ++i)
-                for (size_t j = 0; j < 8; ++j)
-                {
-                if (i == 0)
-                {
-                    if (distance[j] < nearest[0].length)
-                    {
-                        nearest[0].index = j;
-                        nearest[0].length = distance[j];
-                    }
-                }
-                else if (i == 1)
-                {
-                    if (nearest[0].length < distance[j] && distance[j] < nearest[1].length)
-                    {
-                        nearest[1].index = j;
-                        nearest[1].length = distance[j];
-                    }
-                }
-                else if (i == 2)
-                {
-                    if (nearest[1].length < distance[j] && distance[j] < nearest[2].length)
-                    {
-                        nearest[2].index = j;
-                        nearest[2].length = distance[j];
-                    }
-                }
-            }
-
-            size_t start[3];
-            size_t stop[3];
-            int direction[3];
-            switch(nearest[0].index)
+            for (size_t y = start[1][i]; y < stop[1][i]; y+=direction[1][i])
             {
-            case 0:
-                start[0] = 0;   stop[0] = dimensions[0];    direction[0] = 1;
-                start[1] = 0;   stop[1] = dimensions[1];    direction[1] = 1;
-                start[2] = 0;   stop[2] = dimensions[2];    direction[2] = 1;
-                break;
-            case 1:
-                start[0] = dimensions[0];   stop[0] = 0;    direction[0] = -1;
-                start[1] = 0;   stop[1] = dimensions[1];    direction[1] = 1;
-                start[2] = 0;   stop[2] = dimensions[2];    direction[2] = 1;
-                break;
-            case 2:
-                start[0] = 0;   stop[0] = dimensions[0];    direction[0] = 1;
-                start[1] = dimensions[1];   stop[1] = 0;    direction[1] = -1;
-                start[2] = 0;   stop[2] = dimensions[2];    direction[2] = 1;
-                break;
-            case 3:
-                start[0] = dimensions[0];   stop[0] = 0;    direction[0] = -1;
-                start[1] = dimensions[1];   stop[1] = 0;    direction[1] = -1;
-                start[2] = 0;   stop[2] = dimensions[2];    direction[2] = 1;
-                break;
-            case 4:
-                start[0] = 0;   stop[0] = dimensions[0];    direction[0] = 1;
-                start[1] = 0;   stop[1] = dimensions[1];    direction[1] = 1;
-                start[2] = dimensions[2];   stop[2] = dimensions[2];    direction[2] = -1;
-                break;
-            case 5:
-                start[0] = dimensions[0];   stop[0] = dimensions[0];    direction[0] = -1;
-                start[1] = 0;   stop[1] = dimensions[1];    direction[1] = 1;
-                start[2] = dimensions[2];   stop[2] = dimensions[2];    direction[2] = -1;
-                break;
-            case 6:
-                start[0] = 0;   stop[0] = dimensions[0];    direction[0] = 1;
-                start[1] = dimensions[1];   stop[1] = 0;    direction[1] = -1;
-                start[2] = dimensions[2];   stop[2] = 0;    direction[2] = -1;
-                break;
-            case 7:
-                start[0] = dimensions[0];   stop[0] = 0;    direction[0] = -1;
-                start[1] = dimensions[1];   stop[1] = 0;    direction[1] = -1;
-                start[2] = dimensions[2];   stop[2] = 0;    direction[2] = -1;
-                break;
-            }
-
-            for (size_t x = start[0]; x < stop[0]; x+=direction[0])
-            {
-                for (size_t y = start[1]; y < stop[1]; y+=direction[1])
+                for (size_t z = start[2][i]; z < stop[2][i]; z+=direction[2][i])
                 {
-                    for (size_t z = start[2]; z < stop[2]; z+=direction[2])
-                    {
-                        ocl_kernel_step_3.setArg(0, hypotheses_buffer);
-                        ocl_kernel_step_3.setArg(1, x);
-                        ocl_kernel_step_3.setArg(2, y);
-                        ocl_kernel_step_3.setArg(3, z);
-                        ocl_kernel_step_3.setArg(4, bounding_box_buffer);
-                        ocl_kernel_step_3.setArg(5, dimensions_buffer);
-                        ocl_kernel_step_3.setArg(6, *z_buffer);
-                        ocl_kernel_step_3.setArg(7, projection_matrices_buffer);
-                        ocl_kernel_step_3.setArg(8, threshold);
-                        ocl_kernel_step_3.setArg(9, current_image);
-                        ocl_kernel_step_3.setArg(10, number_of_images);
+                    ocl_kernel_step_3.setArg(0, hypotheses_buffer);
+                    ocl_kernel_step_3.setArg(1, x);
+                    ocl_kernel_step_3.setArg(2, y);
+                    ocl_kernel_step_3.setArg(3, z);
+                    ocl_kernel_step_3.setArg(4, bounding_box_buffer);
+                    ocl_kernel_step_3.setArg(5, dimensions_buffer);
+                    ocl_kernel_step_3.setArg(6, z_buffer);
+                    ocl_kernel_step_3.setArg(7, projection_matrices_buffer);
+                    ocl_kernel_step_3.setArg(8, threshold);
+                    ocl_kernel_step_3.setArg(9, i);
+                    ocl_kernel_step_3.setArg(10, number_of_images);
 
-                        cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
-                                                                               cl::NDRange(1),
-                                                                               cl::NDRange(1));
+                    cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
+                                                                           cl::NDRange(1),
+                                                                           cl::NDRange(1));
 
-                        func_step_3().wait();
-                    }
+                    func_step_3().wait();
                 }
             }
         }
@@ -749,12 +749,6 @@ void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
                                             number_of_consistent_hypotheses);
 
         std::cout << "Number of consistent hypotheses = " << *number_of_consistent_hypotheses << std::endl;
-        float float_number_of_consistent_hypotheses = *number_of_consistent_hypotheses;
-        threshold = float_number_of_consistent_hypotheses/(float)(dimensions[0]*dimensions[1]*dimensions[2]*number_of_images*10000);
-        std::cout << "threshold = " << threshold << std::endl;
-
-        // remove sz buffer
-        delete z_buffer;
     }
 }
 
