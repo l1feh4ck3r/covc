@@ -24,7 +24,7 @@
 #define height  512
 
 __kernel void
-clear_z_buffer (__global uint * z_buffer)
+clear_z_buffer (__global int * z_buffer)
 {
     uint z = get_global_id(0);
     uint number_of_images = get_global_size(0);
@@ -34,7 +34,7 @@ clear_z_buffer (__global uint * z_buffer)
         {
             uint z_buffer_offset = x + y*number_of_images + z*height*number_of_images;
 
-            z_buffer[z_buffer_offset] = 0;
+            z_buffer[z_buffer_offset] = -1;
         }
 
 }

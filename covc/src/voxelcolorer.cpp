@@ -36,8 +36,8 @@ VoxelColorer::VoxelColorer()
     :width(0), height(0),
     number_of_images(0),
     number_of_last_added_image(0),
-    threshold(0.0001f),
-    step_size(0.01f)
+    threshold(0.01f),
+    step_size(0.001f)
 {
     memset(dimensions, 0, sizeof(dimensions));
     memset(camera_calibration_matrix, 0, sizeof(camera_calibration_matrix));
@@ -465,9 +465,9 @@ void VoxelColorer::run_step_2(cl::Buffer & hypotheses_buffer,
 {
     cl::Program ocl_program;
 
-    build_program(ocl_program, "ocl/step_2_initial_inconsistent_voxels_rejection_by_hypotheses.cl");
+    build_program(ocl_program, "ocl/step_2_initial_inconsistent_hypotheses_rejection_by_hypotheses.cl");
 
-    cl::Kernel ocl_kernel_step_2 = cl::Kernel(ocl_program, "initial_inconsistent_voxels_rejection");
+    cl::Kernel ocl_kernel_step_2 = cl::Kernel(ocl_program, "initial_inconsistent_hypotheses_rejection");
 
     for (size_t x = 0; x < dimensions[0]; ++x)
     {
@@ -605,7 +605,6 @@ void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
                          CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR,
                          width*height*number_of_images*4*sizeof(unsigned char));
 
-
     while (iteration_info[0] != old_number_of_consistent_hypotheses)
     {
         old_number_of_consistent_hypotheses = iteration_info[0];
@@ -627,8 +626,8 @@ void VoxelColorer::run_step_3(cl::Buffer & hypotheses_buffer,
             ocl_kernel_step_3.setArg(9, step_size);
 
             cl::KernelFunctor func_step_3 = ocl_kernel_step_3.bind(ocl_command_queue,
-                                                                   cl::NDRange(1),
-                                                                   cl::NDRange(1));
+                                                                   cl::NDRange(width, height),
+                                                                   cl::NDRange(1, 1));
 
             func_step_3().wait();
         }

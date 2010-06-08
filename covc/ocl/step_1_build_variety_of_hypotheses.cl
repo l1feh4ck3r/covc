@@ -54,9 +54,9 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
 {
     uint4 voxel_pos = (uint4) (get_global_id(0), get_global_id(1), get_global_id(2), 0);
 
-    float4 pos3d = (float4) (convert_float(bounding_box[0]) + convert_float(voxel_pos.x)*(convert_float(bounding_box[4])/convert_float(dimensions[0])),
-                             convert_float(bounding_box[1]) + convert_float(voxel_pos.y)*(convert_float(bounding_box[5])/convert_float(dimensions[1])),
-                             convert_float(bounding_box[2]) + convert_float(voxel_pos.z)*(convert_float(bounding_box[6])/convert_float(dimensions[2])),
+    float4 voxel_pos_3d = (float4) ((float)bounding_box[0] + ((float)voxel_pos.x + 0.5f)*((float)bounding_box[3]/(float)dimensions[0]),
+                             (float)bounding_box[1] + ((float)voxel_pos.y + 0.5f)*((float)bounding_box[4]/(float)dimensions[1]),
+                             (float)bounding_box[2] + ((float)voxel_pos.z + 0.5f)*((float)bounding_box[5]/(float)dimensions[2]),
                              1.0f);
 
     int width = get_image_width(images);
@@ -72,7 +72,7 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
 
     for (uint i = 0; i < number_of_images; ++i)
     {
-        float4 pos_at_image_3d = mul_mat_vec(projection_matrices[i], pos3d);
+        float4 pos_at_image_3d = mul_mat_vec(projection_matrices[i], voxel_pos_3d);
         float4 pos_at_image = (float4) (pos_at_image_3d.x/pos_at_image_3d.z, pos_at_image_3d.y/pos_at_image_3d.z, i, 0);
 
         uint hypothesis_offset = hypotheses_offset + 1 + i;

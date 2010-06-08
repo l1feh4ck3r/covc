@@ -47,6 +47,29 @@ float4 position_at_image(float16 projection_matrix, float4 position_in_3d)
     return pos_at_image;
 }
 
+// intersect ray with a box
+// http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
+
+int intersectBox(float4 r_o, float4 r_d, float4 boxmin, float4 boxmax, float *tnear, float *tfar)
+{
+    // compute intersection of ray with all six bbox planes
+    float4 invR = (float4)(1.0f,1.0f,1.0f,1.0f) / r_d;
+    float4 tbot = invR * (boxmin - r_o);
+    float4 ttop = invR * (boxmax - r_o);
+
+    // re-order intersections to find smallest and largest on each axis
+    float4 tmin = min(ttop, tbot);
+    float4 tmax = max(ttop, tbot);
+
+    // find the largest tmin and the smallest tmax
+    float largest_tmin = max(max(tmin.x, tmin.y), max(tmin.x, tmin.z));
+    float smallest_tmax = min(min(tmax.x, tmax.y), min(tmax.x, tmax.z));
+
+    *tnear = largest_tmin;
+    *tfar = smallest_tmax;
+
+    return smallest_tmax > largest_tmin;
+}
 
 // base on code from volumeRender.cl from NVIDIA GPU Computing SDK
 int4 hit_voxel (float8 bounding_box,
@@ -98,7 +121,6 @@ int4 hit_voxel (float8 bounding_box,
         return (int4)(-1, -1, -1, -1);
     }
 
-
     float4 pos = eyeRay_o + eyeRay_d*t;
     pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
 
@@ -144,7 +166,7 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
     // step to go inside bounding volume
     float step = 0.0f;
 
-    while (find_voxel != 0)
+    while (find_voxel == 0)
     {
         voxel_position = hit_voxel((float8)(bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3],
                                             bounding_box[4], bounding_box[5], 0.0f, 0.0f),

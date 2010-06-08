@@ -21,10 +21,10 @@
  */
 
 __kernel void
-initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
-                                        uint x, uint y, uint z,
-                                        __global __const uint * dimensions,
-                                        float threshold)
+initial_inconsistent_hypotheses_rejection (__global uchar * hypotheses,
+                                           uint x, uint y, uint z,
+                                           __global __const uint * dimensions,
+                                           float threshold)
 {
     // current hypothesis number
     uint pos = get_global_id(0);
