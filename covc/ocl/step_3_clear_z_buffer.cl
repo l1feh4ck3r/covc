@@ -32,7 +32,7 @@ clear_z_buffer (__global int * z_buffer)
     for (uint x = 0; x < width; ++x)
         for (uint y = 0; y < height; ++y)
         {
-            uint z_buffer_offset = x + y*number_of_images + z*height*number_of_images;
+            uint z_buffer_offset = x + y*width + z*width*height;
 
             z_buffer[z_buffer_offset] = -1;
         }

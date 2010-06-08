@@ -86,8 +86,8 @@ int4 hit_voxel (float8 bounding_box,
 
     float4 boxMin = (float4)(bounding_box.s0, bounding_box.s1, bounding_box.s2, 1.0f);
     float4 boxMax = (float4)(bounding_box.s0 + bounding_box.s3,
-                             bounding_box.s0 + bounding_box.s4,
-                             bounding_box.s0 + bounding_box.s5,
+                             bounding_box.s1 + bounding_box.s4,
+                             bounding_box.s2 + bounding_box.s5,
                              1.0f);
 
     // calculate eye ray in world space
