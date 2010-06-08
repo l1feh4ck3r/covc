@@ -37,8 +37,8 @@ float4 mul_mat_vec (float16 mat, float4 vec)
 
 uint is_in_image(float4 pos, float4 box)
 {
-    if (isless(pos.x, box.x) || isgreater(pos.x, box.y) ||
-        isless(pos.y, box.z) || isgreater(pos.y, box.w) )
+    if (isless(pos.x, box.x) || isgreater(pos.x, box.z) ||
+        isless(pos.y, box.y) || isgreater(pos.y, box.w) )
         return 0;
 
     return 1;
@@ -55,9 +55,9 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
     uint4 voxel_pos = (uint4) (get_global_id(0), get_global_id(1), get_global_id(2), 0);
 
     float4 voxel_pos_3d = (float4) ((float)bounding_box[0] + ((float)voxel_pos.x + 0.5f)*((float)bounding_box[3]/(float)dimensions[0]),
-                             (float)bounding_box[1] + ((float)voxel_pos.y + 0.5f)*((float)bounding_box[4]/(float)dimensions[1]),
-                             (float)bounding_box[2] + ((float)voxel_pos.z + 0.5f)*((float)bounding_box[5]/(float)dimensions[2]),
-                             1.0f);
+                                    (float)bounding_box[1] + ((float)voxel_pos.y + 0.5f)*((float)bounding_box[4]/(float)dimensions[1]),
+                                    (float)bounding_box[2] + ((float)voxel_pos.z + 0.5f)*((float)bounding_box[5]/(float)dimensions[2]),
+                                     1.0f);
 
     int width = get_image_width(images);
     int height = get_image_height(images);
@@ -68,7 +68,7 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
                                      voxel_pos.z*dimensions[0]*dimensions[1]*(1 + number_of_images);
 
     // set voxel visible and non zero number of consists hypotheses
-    vstore4((uchar4)(1, UINT_MAX, 0, 0), hypotheses_offset, hypotheses);
+    vstore4((uchar4)(1, UCHAR_MAX, 0, 0), hypotheses_offset, hypotheses);
 
     for (uint i = 0; i < number_of_images; ++i)
     {
@@ -90,7 +90,7 @@ build_variety_of_hypotheses (__global __const float * bounding_box,
             uint4 color = read_imageui(images, imageSampler, pos_at_image);
             color.w = 0;
 
-            if (color.x < 5 && color.y < 5 && color.z < 5)
+            if (color.x < 10 && color.y < 10 && color.z < 10)
                 vstore4((uchar4)(0), hypothesis_offset, hypotheses);
             else
                 vstore4((uchar4)(color.x, color.y, color.z, 0), hypothesis_offset, hypotheses);

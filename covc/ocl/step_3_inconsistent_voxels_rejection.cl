@@ -32,8 +32,8 @@ float4 mul_mat_vec (float16 mat, float4 vec)
 
 uint is_in_image(float4 pos, float4 box)
 {
-    if (isless(pos.x, box.x) || isgreater(pos.x, box.y) ||
-        isless(pos.y, box.z) || isgreater(pos.y, box.w) )
+    if (isless(pos.x, box.x) || isgreater(pos.x, box.z) ||
+        isless(pos.y, box.y) || isgreater(pos.y, box.w) )
         return 0;
 
     return 1;
@@ -93,9 +93,11 @@ int4 hit_voxel (float8 bounding_box,
     // calculate eye ray in world space
     float4 eyeRay_d;
 
-    float4 temp = normalize(((float4)(u, v, 1.0f, 0.0f)));
+    float4 temp = (float4)(u, v, 1.0f, 1.0f);
     eyeRay_d = mul_mat_vec(projection_matrix, temp);
-    eyeRay_d.w = 0.0f;
+    //eyeRay_d.w = 0.0f;
+
+    //eyeRay_d -= eyeRay_o;
 
     // find intersection with box
     float tnear, tfar;
@@ -138,6 +140,7 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
                                 __global __const uint * dimensions,
                                 __global int * z_buffer,
                                 __global float16 * projection_matrices,
+                                __global float16 * unprojection_matrices,
                                 __global float16 * image_calibration_matrices,
                                 uint current_image_number,
                                 uint number_of_images,
@@ -150,8 +153,8 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
     uint height = get_global_size(1);
 
     // calculate offset in z buffer
-    __const uint z_buffer_offset = convert_uint(x) +
-                                   convert_uint(y)*width +
+    __const uint z_buffer_offset = (uint)x +
+                                   (uint)y*width +
                                    current_image_number*width*height;
 
     uint hypotheses_offset = 0;
@@ -175,7 +178,7 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
                                             image_calibration_matrices[current_image_number].s7,
                                             image_calibration_matrices[current_image_number].sB,
                                             0.0f),
-                                   projection_matrices[current_image_number],
+                                   unprojection_matrices[current_image_number],
                                    (uint4)(dimensions[0], dimensions[1], dimensions[2], 0),
                                    step,
                                    &find_voxel);

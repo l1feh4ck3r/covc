@@ -52,6 +52,7 @@ private:
     void build_program(cl::Program & program, const std::string & path_to_file_with_program);
     void calculate_bounding_box();
     void calculate_projection_matrix();
+    void calculate_unprojection_matrices();
     bool prepare_opencl();
 
     void run_step_1(cl::Buffer & bounding_box_buffer,
@@ -116,6 +117,7 @@ private:
     //! projection matrices for images
     //! size = number_of_images*16*size_of(float)
     std::vector<std::vector<float> > projection_matrices;
+    std::vector<std::vector<float> > unprojection_matrices;
 
     std::vector<std::vector<float> > image_calibration_matrices;
     ///////////////////////////////////////////////////////////////////////////
@@ -145,6 +147,7 @@ private:
     //! threshold.
     float threshold;
     float step_size;
+    float precision;
 };
 
 #endif // VOXELCOLORER_H

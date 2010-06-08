@@ -3843,6 +3843,28 @@ public:
         const CommandQueue& queue,
         const NDRange& global,
         const NDRange& local);
+
+    /*! \brief Bind a kernel to a command-queue and launch dimensions.
+     *
+     * \param queue is the command-queue to bind with.
+     *
+     *  \param global describes  the number of global work-items in will execute
+     *  the  kernel  function. The  total  number  of  global
+     *  work-items is computed as global_work_size[0] * ...
+     *  * global_work_size[work_dim - 1].
+     *
+     *  \param local describes the number of work-items that  make  up  a
+     *  work-group (also referred to as the size of the work-group) that
+     *  will execute the  kernel specified by kernel.
+     *
+     *  /return A KernelFunctor object that when called with the appropriate
+     *  number of arguments, as defined by kernel itself, will be launched
+     *  with the corresponding queue, offset=NullRange, global, and local values.
+     */
+    KernelFunctor bind(
+        const CommandQueue& queue,
+        const NDRange& global);
+
 };
 
 
@@ -6829,6 +6851,14 @@ inline KernelFunctor Kernel::bind(
 {
     return KernelFunctor(*this,queue,NullRange,global,local);
 }
+
+inline KernelFunctor Kernel::bind(
+    const CommandQueue& queue,
+    const NDRange& global)
+{
+    return KernelFunctor(*this,queue,NullRange,global,NullRange);
+}
+
 
 inline KernelFunctor& KernelFunctor::operator=(const KernelFunctor& rhs)
 {
