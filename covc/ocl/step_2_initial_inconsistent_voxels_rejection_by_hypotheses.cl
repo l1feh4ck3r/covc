@@ -56,18 +56,7 @@ initial_inconsistent_voxels_rejection ( __global uchar * hypotheses,
         {
             uchar4 color = vload4(current_offset, hypotheses);
 
-            //if (distance(convert_float4(color), convert_float4(hypothesis_color)) < threshold)
-//            float4 normal1 = convert_float4(color);
-//            float4 normal2 = convert_float4(hypothesis_color);
-//            float2 sum = (float2)((normal1.x + normal1.y + normal1.z + normal1.w),
-//                                  (normal2.x + normal2.y + normal2.z + normal2.w));
-//            if ((fabs(normal1.x/sum.x - normal2.x/sum.y) +
-//                 fabs(normal1.y/sum.x - normal2.y/sum.y) +
-//                 fabs(normal1.z/sum.x - normal2.z/sum.y) +
-//                 fabs(normal1.w/sum.x - normal2.w/sum.y))
-//                 < threshold)
-
-            if(isless(distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))), threshold)
+            if(isless( distance( normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))), threshold))
                 consistent = 1;
         }
     }

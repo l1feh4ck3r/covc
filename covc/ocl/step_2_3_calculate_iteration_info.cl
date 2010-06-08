@@ -21,12 +21,13 @@
  */
 
 __kernel void
-calculate_number_of_consistent_hypotheses ( __global uchar * hypotheses,
-                                            __global __const uint * dimensions,
-                                            uint number_of_images,
-                                            __global __write_only uint * number_of_consistent_hypotheses)
+calculate_iteration_info (__global uchar * hypotheses,
+                          __global __const uint * dimensions,
+                          uint number_of_images,
+                          __global __write_only uint * number_of_consistent_hypotheses)
 {
-    uint result = 0;
+    uint hypotheses_result = 0;
+    uint voxels_result = 0;
 
     uint hypotheses_size = 1 + number_of_images;
 
@@ -44,10 +45,14 @@ calculate_number_of_consistent_hypotheses ( __global uchar * hypotheses,
                 uchar4 voxel_info = vload4(hypothesis_offset, hypotheses);
 
                 if (voxel_info.x != 0)
-                    result += voxel_info.y;
+                {
+                    hypotheses_result += voxel_info.y;
+                    voxels_result++;
+                }
             }
         }
     }
 
-    *number_of_consistent_hypotheses = result;
+    number_of_consistent_hypotheses[0] = hypotheses_result;
+    number_of_consistent_hypotheses[1] = voxels_result;
 }

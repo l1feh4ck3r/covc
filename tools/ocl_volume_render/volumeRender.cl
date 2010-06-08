@@ -37,10 +37,10 @@ int intersectBox(float4 r_o, float4 r_d, float4 boxmin, float4 boxmax, float *tn
     float largest_tmin = max(max(tmin.x, tmin.y), max(tmin.x, tmin.z));
     float smallest_tmax = min(min(tmax.x, tmax.y), min(tmax.x, tmax.z));
 
-	*tnear = largest_tmin;
-	*tfar = smallest_tmax;
+    *tnear = largest_tmin;
+    *tfar = smallest_tmax;
 
-	return smallest_tmax > largest_tmin;
+    return smallest_tmax > largest_tmin;
 }
 
 
@@ -77,7 +77,7 @@ d_render(__global uint *d_output,
     float4 eyeRay_o;
     float4 eyeRay_d;
 
-    eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);   
+    eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
 
     float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
     eyeRay_d.x = dot(temp, ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
@@ -88,8 +88,8 @@ d_render(__global uint *d_output,
 
 
     // find intersection with box
-	float tnear, tfar;
-	int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
+    float tnear, tfar;
+    int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
     if (!hit) {
         if ((x < imageW) && (y < imageH)) {
             // write output color
@@ -98,7 +98,8 @@ d_render(__global uint *d_output,
         }
         return;
     }
-	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
+    
+    if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
 
     // march along ray from back to front, accumulating color
     temp = (float4)(0.0f,0.0f,0.0f,0.0f);
@@ -112,7 +113,7 @@ d_render(__global uint *d_output,
         // read from 3D texture
         uint4 col = read_imageui(volume, volumeSampler, pos);
 
-        float4 nomralized_color = normalize(convert_float4(col));
+        float4 normalized_color = normalize(convert_float4(col));
 
         uint is_not_black = col.x+col.y+col.z+col.w;
 
@@ -121,7 +122,7 @@ d_render(__global uint *d_output,
             break;
         else
             if (is_not_black)
-                temp = mix(temp, nomralized_color, (float4)(density));
+                temp = mix(temp, normalized_color, (float4)(density));
     }
     temp *= brightness;
 

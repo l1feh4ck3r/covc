@@ -39,11 +39,6 @@ uint is_in_image(float4 pos, float4 box)
     return 1;
 }
 
-
-//TODO: remove this hardcoded image sizes
-#define width   512
-#define height  512
-
 float4 position_at_image(float16 projection_matrix, float4 position_in_3d)
 {
     float4 pos_at_image_3d = mul_mat_vec(projection_matrix, position_in_3d);
@@ -53,80 +48,176 @@ float4 position_at_image(float16 projection_matrix, float4 position_in_3d)
 }
 
 
+// base on code from volumeRender.cl from NVIDIA GPU Computing SDK
+int4 hit_voxel (float8 bounding_box,
+                uint x, uint y, uint width, uint height,
+                float4 eyeRay_o,
+                float16 projection_matrix,
+                uint4 dimensions,
+                float step,
+                int * find_voxel)
+{
+    // map to [-1, 1] coordinates
+    float u = (x / (float) width)*2.0f-1.0f;
+    float v = (y / (float) height)*2.0f-1.0f;
+
+    float4 boxMin = (float4)(bounding_box.s0, bounding_box.s1, bounding_box.s2, 1.0f);
+    float4 boxMax = (float4)(bounding_box.s0 + bounding_box.s3,
+                             bounding_box.s0 + bounding_box.s4,
+                             bounding_box.s0 + bounding_box.s5,
+                             1.0f);
+
+    // calculate eye ray in world space
+    float4 eyeRay_d;
+
+    float4 temp = normalize(((float4)(u, v, 1.0f, 0.0f)));
+    eyeRay_d = mul_mat_vec(projection_matrix, temp);
+    eyeRay_d.w = 0.0f;
+
+    // find intersection with box
+    float tnear, tfar;
+    int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
+    if (!hit)
+    {
+        if ((x < width) && (y < height))
+        {
+            // return invalid coords
+            return (int4)(-1, -1, -1, -1);
+        }
+    }
+
+    //calculate voxel position
+    int4 voxel_position;
+
+    float t = tnear + step;
+
+    //if ray goes out from bounding volume
+    if (t > tfar)
+    {
+        // return invalid coords
+        return (int4)(-1, -1, -1, -1);
+    }
+
+
+    float4 pos = eyeRay_o + eyeRay_d*t;
+    pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
+
+    voxel_position.x = min(max((int)pos.x, 0), (int)dimensions.x-1);          //clamp((int)floor(pos.x), 0, (int)dimensions[0]-1);
+    voxel_position.y = min(max((int)pos.y, 0), (int)dimensions.y-1);
+    voxel_position.z = min(max((int)pos.z, 0), (int)dimensions.z-1);
+    voxel_position.w = 0;
+
+    return voxel_position;
+}
+
 __kernel void
 inconsistent_voxel_rejection ( __global uchar * hypotheses,
-                                uint x, uint y, uint z,
                                 __global __const float * bounding_box,
                                 __global __const uint * dimensions,
-                                __global uint * z_buffer,
+                                __global int * z_buffer,
                                 __global float16 * projection_matrices,
+                                __global float16 * image_calibration_matrices,
+                                uint current_image_number,
+                                uint number_of_images,
                                 float threshold,
-                                uint pos,
-                                uint number_of_images)
+                                float step_size)
 {
-    __const uint hypotheses_offset = x*(1 + number_of_images) +
-                             y*dimensions[0]*(1 + number_of_images) +
-                             z*dimensions[0]*dimensions[1]*(1 + number_of_images);
+    uint x = get_global_id(0);
+    uint y = get_global_id(1);
+    uint width = get_global_size(0);
+    uint height = get_global_size(1);
 
-    // if voxel not visible
-    if (vload4(hypotheses_offset, hypotheses).x == 0)
-        return;
+    // calculate offset in z buffer
+    __const uint z_buffer_offset = convert_uint(x) +
+                                   convert_uint(y)*width +
+                                   current_image_number*width*height;
 
-    uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + pos, hypotheses);
+    uint hypotheses_offset = 0;
+
+    int4 voxel_position;
+
+    // if find voxel is -1, didn't find _any_ visible voxels
+    // if find voxel is 0 , didn't hit to bounding volume
+    // if find_voxel is 1, find visible voxel
+    int find_voxel = 0;
+
+    // step to go inside bounding volume
+    float step = 0.0f;
+
+    while (find_voxel != 0)
+    {
+        voxel_position = hit_voxel((float8)(bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3],
+                                            bounding_box[4], bounding_box[5], 0.0f, 0.0f),
+                                   x, y, width, height,
+                                   (float4)(image_calibration_matrices[current_image_number].s3,
+                                            image_calibration_matrices[current_image_number].s7,
+                                            image_calibration_matrices[current_image_number].sB,
+                                            0.0f),
+                                   projection_matrices[current_image_number],
+                                   (uint4)(dimensions[0], dimensions[1], dimensions[2], 0),
+                                   step,
+                                   &find_voxel);
+
+        // if we didn't find _any_ visible voxels, stop process this ray
+        if (voxel_position.x == -1 && voxel_position.y == -1 &&
+            voxel_position.z == -1 && voxel_position.w == -1)
+        {
+            z_buffer[z_buffer_offset] = -1;
+            return;
+        }
+
+        // calculate offset to voxel in hypothesis buffer
+       hypotheses_offset = voxel_position.x*(1 + number_of_images) +
+                           voxel_position.y*dimensions[0]*(1 + number_of_images) +
+                           voxel_position.z*dimensions[0]*dimensions[1]*(1 + number_of_images);
+
+        // check is voxel visible
+        if (vload4(hypotheses_offset, hypotheses).x == 1)
+            find_voxel = 1;                                 // if voxel is visible
+        else
+        {
+            step += step_size;
+        }
+    }
+
+    //save voxel index
+    __const int voxel_index = voxel_position.x + voxel_position.y*dimensions[0] + voxel_position.z*dimensions[0]*dimensions[1];
+    z_buffer[z_buffer_offset] = voxel_index;
+
+    uchar4 hypothesis_color = vload4(hypotheses_offset + 1 + current_image_number, hypotheses);
 
     // if hypothesis is not consist
     if ((hypothesis_color.x + hypothesis_color.y + hypothesis_color.z + hypothesis_color.w) == 0)
         return;
 
-    // project voxel to z buffer
-    // calculate voxel position in 3d
-    float4 pos3d = (float4) (convert_float(bounding_box[0]) + convert_float(x)*(convert_float(bounding_box[4])/convert_float(dimensions[0])),
-                             convert_float(bounding_box[1]) + convert_float(y)*(convert_float(bounding_box[5])/convert_float(dimensions[1])),
-                             convert_float(bounding_box[2]) + convert_float(z)*(convert_float(bounding_box[6])/convert_float(dimensions[2])),
-                             1);
-
-    // calculate voxel pos in voxel model
-    float4 pos_at_image = position_at_image(projection_matrices[pos], pos3d);
-    pos_at_image.z = pos;
-
-    if (is_in_image(pos_at_image, (float4)(0.0f, 0.0f, convert_float(width), convert_float(height))))
-        return;
-
-//uint z_buffer_offset = convert_uint(pos_at_image.x) +
-//                       convert_uint(pos_at_image.y)*width +
-//                       pos*width*height;
-
-
-    uint z_buffer_offset = convert_uint((pos_at_image.x/512.0f)*32.0f) +
-                           convert_uint((pos_at_image.y/512.0f)*32.0f)*32 +
-                           pos*32*32;
-
-    // if hypothesis occupied
-    if (z_buffer[z_buffer_offset])
-        return;
-
     uint consistent = 0;
     float4 pos_at_second_image;
     uint z_buffer_offset_second;
-    uint current_offset;
+
+    float4 voxel_position_3d = (float4)(bounding_box[0] + ((float)voxel_position.x + 0.5f)*bounding_box[3]/(float)dimensions[0],
+                                        bounding_box[1] + ((float)voxel_position.y + 0.5f)*bounding_box[4]/(float)dimensions[1],
+                                        bounding_box[2] + ((float)voxel_position.z + 0.5f)*bounding_box[5]/(float)dimensions[2],
+                                        1.0f);
+
 
     for (uint i = 0; i < number_of_images && consistent == 0; ++i)
     {
-        pos_at_second_image = position_at_image(projection_matrices[i], pos3d);
+        pos_at_second_image = position_at_image(projection_matrices[i], voxel_position_3d);
         pos_at_second_image.z = i;
 
         if (is_in_image(pos_at_second_image, (float4)(0.0f, 0.0f, convert_float(width), convert_float(height))))
             continue;
 
-        z_buffer_offset_second = convert_uint((pos_at_second_image.x/512.0f)*32.0f) +
-                               convert_uint((pos_at_second_image.y/512.0f)*32.0f)*32 +
-                               i*32*32;
+        z_buffer_offset_second = (uint)floor(pos_at_second_image.x) +
+                                 (uint)floor(pos_at_second_image.y)*width +
+                                 i*width*height;
 
         // if hypothesis not occupied and
+        // in z buffer we have the same voxel as current and
         // if it is not the same hypothesis
-        if (z_buffer[z_buffer_offset_second] == 0 &&  i != pos)
+        if (z_buffer[z_buffer_offset_second] == voxel_index &&  i != current_image_number)
         {
-            current_offset = hypotheses_offset + 1 + i;
+            uint current_offset = hypotheses_offset + 1 + i;
             uchar4 color = vload4 (current_offset, hypotheses);
 
             if (isless(distance(normalize(convert_float4(color)), normalize(convert_float4(hypothesis_color))), threshold))
@@ -136,8 +227,7 @@ inconsistent_voxel_rejection ( __global uchar * hypotheses,
 
     // hypothesis is not consistent
     if (!consistent)
-        vstore4((uchar4)(0), hypotheses_offset + 1 + pos, hypotheses);
+        vstore4((uchar4)(0), hypotheses_offset + 1 + current_image_number, hypotheses);
     else
-        //set hypothesis occupied on z buffer
-        z_buffer[z_buffer_offset]++;
+        vstore4(hypothesis_color, hypotheses_offset + 1 + current_image_number, hypotheses);
 }

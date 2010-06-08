@@ -55,7 +55,6 @@ private:
     bool prepare_opencl();
 
     void run_step_1(cl::Buffer & bounding_box_buffer,
-                    cl::Image3D & images_buffer,
                     cl::Buffer & projection_matrices_buffer,
                     cl::Buffer & hypotheses_buffer,
                     cl::Buffer & dimensions_buffer);
@@ -145,6 +144,7 @@ private:
 
     //! threshold.
     float threshold;
+    float step_size;
 };
 
 #endif // VOXELCOLORER_H
